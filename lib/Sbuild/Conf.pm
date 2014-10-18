@@ -571,7 +571,7 @@ sub setup ($) {
 	    VARNAME => 'lock_interval',
 	    GROUP => 'Build timeouts',
 	    DEFAULT => 5,
-	    HELP => 'Lock wait interval (seconds).  Maximum wait time is (max_lock_trys × lock_interval).'
+	    HELP => 'Lock wait interval (seconds).  Maximum wait time is (max_lock_trys x lock_interval).'
 	},
 	'CHROOT_MODE'				=> {
 	    TYPE => 'STRING',

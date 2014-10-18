@@ -139,12 +139,12 @@ sub dump_file ($) {
     if (-r "$file" &&
 	open(SOURCES, "<$file")) {
 
-	print "   ┌────────────────────────────────────────────────────────────────────────\n";
+	print "   +------------------------------------------------------------------------\n";
 	while (<SOURCES>) {
 	    chomp;
-	    print "   │$_\n";
+	    print "   |$_\n";
 	}
-	print "   └────────────────────────────────────────────────────────────────────────\n";
+	print "   +------------------------------------------------------------------------\n";
 	close(SOURCES) or print "Failed to close $file\n";
     } else {
 	print "W: Failed to open $file\n";
@@ -212,7 +212,7 @@ sub check_packages ($$) {
 	}
 
 	print "DELETE             ADD\n";
-	print "──────────────────────────────────────\n";
+	print "--------------------------------------\n";
 	my $i = 0;
 	my $j = 0;
 
@@ -284,7 +284,7 @@ sub usage_error ($$) {
     my $message = shift;
 
     print STDERR "E: $message\n";
-    print STDERR "I: Run “$program --help” to list usage example and all available options\n";
+    print STDERR "I: Run '$program --help' to list usage example and all available options\n";
     exit 1;
 }
 

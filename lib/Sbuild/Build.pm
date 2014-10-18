@@ -2267,7 +2267,7 @@ sub open_build_log {
 	    # process in log stream).
 	    if (m/$filter_regex/) {
 		($text,$replacement)=($1,$2);
-		$replacement = "«$replacement»";
+		$replacement = "<<$replacement>>";
 		push (@filter, [$text, $replacement]);
 		$_ = "I: NOTICE: Log filtering will replace '$text' with '$replacement'\n";
 	    } elsif (m/$colour_regex/) {
