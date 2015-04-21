@@ -242,6 +242,7 @@ sub run_command {
     my $options = shift;
 
     $options->{'INTCOMMAND'} = copy($options->{'COMMAND'});
+    $options->{'INTCOMMAND_STR'} = copy($options->{'COMMAND_STR'});
 
     return $self->run_command_internal($options);
 }
@@ -254,6 +255,7 @@ sub pipe_command {
     my $options = shift;
 
     $options->{'INTCOMMAND'} = copy($options->{'COMMAND'});
+    $options->{'INTCOMMAND_STR'} = copy($options->{'COMMAND_STR'});
 
     return $self->pipe_command_internal($options);
 }
@@ -306,7 +308,9 @@ sub exec_command {
 
     debug2("PROGRAM: $program\n");
     debug2("COMMAND: ", join(" ", @{$options->{'COMMAND'}}), "\n");
+    debug2("COMMAND_STR: ", $options->{'COMMAND'} // 'UNDEFINED', "\n");
     debug2("INTCOMMAND: ", join(" ", @{$options->{'INTCOMMAND'}}), "\n");
+    debug2("INTCOMMAND_STR: ", $options->{'INTCOMMAND_STR:'} // 'UNDEFINED', "\n");
     debug2("EXPCOMMAND: ", join(" ", @{$options->{'EXPCOMMAND'}}), "\n");
 
     debug2("Environment set:\n");

@@ -972,7 +972,7 @@ sub setup ($) {
 	    HELP => 'Preceding arguments to launch piuparts as root. If no arguments are specified, piuparts will be launched via sudo.'
 	},
 	'EXTERNAL_COMMANDS'			=> {
-	    TYPE => 'HASH:ARRAY:ARRAY:STRING',
+	    TYPE => 'HASH:ARRAY:STRING',
 	    VARNAME => 'external_commands',
 	    GROUP => 'Chroot options',
 	    DEFAULT => {

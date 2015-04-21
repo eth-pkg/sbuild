@@ -102,7 +102,9 @@ sub get_command_internal {
     my $self = shift;
     my $options = shift;
 
-    my $command = $options->{'INTCOMMAND'}; # Command to run
+    # Command to run. If I have a string, use it. Otherwise use the list-ref
+    my $command = $options->{'INTCOMMAND_STR'} // $options->{'INTCOMMAND'};
+
     my $user = $options->{'USER'};          # User to run command under
     my $dir;                                # Directory to use (optional)
     $dir = $self->get('Defaults')->{'DIR'} if
@@ -125,9 +127,13 @@ sub get_command_internal {
 		'-c', $self->get('Session ID'),
 		'--run-session',
 		@{$self->get_conf('SCHROOT_OPTIONS')},
-		'-u', "$user", '-p', '--',
-		@$command);
-
+		'-u', "$user", '-p', '--');
+    if (ref $command) {
+        push @cmdline, @$command;
+    } else {
+        push @cmdline, ('/bin/sh', '-c', $command);
+        $command = [split(/\s+/, $command)];
+    }
     $options->{'USER'} = $user;
     $options->{'COMMAND'} = $command;
     $options->{'EXPCOMMAND'} = \@cmdline;

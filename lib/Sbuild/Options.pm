@@ -208,9 +208,8 @@ sub set_options {
 			   $self->set_conf('STATS_DIR', $_[1]);
 		       },
 		       "setup-hook=s" => sub {
-			my @command = split(/\s+/, $_[1]);
 			push(@{${$self->get_conf('EXTERNAL_COMMANDS')}{"chroot-setup-commands"}},
-			\@command);
+			$_[1]);
 			   $self->set_conf('CHROOT_SETUP_SCRIPT', $_[1]);
 		       },
 		       "use-snapshot" => sub {
@@ -272,34 +271,28 @@ sub set_options {
 				$_[1]);
 		       },
 			"pre-build-commands=s" => sub {
-			   my @command = split(/\s+/, $_[1]);
 			   push(@{${$self->get_conf('EXTERNAL_COMMANDS')}{"pre-build-commands"}},
-				\@command);
+				$_[1]);
 		       },
 			"chroot-setup-commands=s" => sub {
-			   my @command = split(/\s+/, $_[1]);
 			   push(@{${$self->get_conf('EXTERNAL_COMMANDS')}{"chroot-setup-commands"}},
-				\@command);
+				$_[1]);
 		       },
 			"starting-build-commands=s" => sub {
-			   my @command = split(/\s+/, $_[1]);
 			   push(@{${$self->get_conf('EXTERNAL_COMMANDS')}{"starting-build-commands"}},
-				\@command);
+				$_[1]);
 		       },
 			"finished-build-commands=s" => sub {
-			   my @command = split(/\s+/, $_[1]);
 			   push(@{${$self->get_conf('EXTERNAL_COMMANDS')}{"finished-build-commands"}},
-				\@command);
+				$_[1]);
 		       },
 			"chroot-cleanup-commands=s" => sub {
-			   my @command = split(/\s+/, $_[1]);
 			   push(@{${$self->get_conf('EXTERNAL_COMMANDS')}{"chroot-cleanup-commands"}},
-				\@command);
+				$_[1]);
 		       },
 			"post-build-commands=s" => sub {
-			   my @command = split(/\s+/, $_[1]);
 			   push(@{${$self->get_conf('EXTERNAL_COMMANDS')}{"post-build-commands"}},
-				\@command);
+				$_[1]);
 		       },
 			"log-external-command-output" => sub {
 			    $self->set_conf('LOG_EXTERNAL_COMMAND_OUTPUT', 1);

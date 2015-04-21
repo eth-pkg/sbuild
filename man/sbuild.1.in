@@ -536,8 +536,10 @@ Here is a summary of the ordering, user, internal/external to chroot for each co
 \f[CB]\-\-post\-build\-commands      root  outside chroot\fP
 .fi
 .PP
-Here's an example of how to edit the configuration files to run "foo" and "bar"
-with arguments before a build starts.
+The commands can be given in the configuration files. They can be given as
+strings or as a list of arguments. For example, to run "foo" and "bar" with
+arguments before a build starts, specifying the "foo" command as a list and
+"bar" as a string, one could do this:
 .PP
 \f[CB]$external_commands = {\fP
 .br
@@ -545,7 +547,7 @@ with arguments before a build starts.
 .br
 \f[CB]        ['foo', 'arg1', 'arg2'],\fP
 .br
-\f[CB]        ['bar', 'arg1', 'arg2', 'arg3'],\fP
+\f[CB]        'bar arg1 arg2 arg3',\fP
 .br
 \f[CB]    ],
 .br
@@ -562,6 +564,13 @@ the \fI\-\-pre\-build\-commands\fP option.
 \f[CB]      \-\-pre\-build\-commands='foo arg1 arg2' \\\fP
 .br
 \f[CB]      \-\-pre\-build\-commands='bar arg1 arg2 arg3'\fP
+.PP
+Note that all these commands are executed through the shell in "/bin/sh". If
+specifying the command as a list in the config file, very few shell facilities
+are supported: no redirection, no command concatenation with ; and so on. When
+passing a string (in the config file or on the commandline), the string is
+passed as-is to the shell. So all shell facilities are available, given that
+you escape everything properly, as you would in an interactive shell.
 .PP
 Besides running external commands, sbuild can also detect the use of certain
 percent escapes given as arguments. These are used to allow for a command to be

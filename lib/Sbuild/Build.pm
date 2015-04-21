@@ -1142,23 +1142,37 @@ sub run_command {
 	    $defaults = $self->get('Host')->{'Defaults'};
 	    $out = $defaults->{'STREAMOUT'} if ($log_output);
 	    $err = $defaults->{'STREAMERR'} if ($log_error);
-	    $self->get('Host')->run_command(
-		{ COMMAND => \@{$command},
-		    PRIORITY => 0,
-		    STREAMOUT => $out,
-		    STREAMERR => $err,
-		});
+
+	    my %args = (PRIORITY  => 0,
+			STREAMOUT => $out,
+			STREAMERR => $err);
+	    if(ref $command) {
+		$args{COMMAND} = \@{$command};
+		$args{COMMAND_STR} = "@{$command}";
+	    } else {
+		$args{COMMAND} = [split('\s+', $command)];
+		$args{COMMAND_STR} = $command;
+	    }
+
+	    $self->get('Host')->run_command( \%args );
 	} else {
 	    $defaults = $self->get('Session')->{'Defaults'};
 	    $out = $defaults->{'STREAMOUT'} if ($log_output);
 	    $err = $defaults->{'STREAMERR'} if ($log_error);
-	    $self->get('Session')->run_command(
-		{ COMMAND => \@{$command},
-		    USER => ($rootuser ? 'root' : $self->get_conf('BUILD_USER')),
-		    PRIORITY => 0,
-		    STREAMOUT => $out,
-		    STREAMERR => $err,
-		});
+
+	    my %args = (USER => ($rootuser ? 'root' : $self->get_conf('BUILD_USER')),
+			PRIORITY => 0,
+			STREAMOUT => $out,
+			STREAMERR => $err);
+	    if(ref $command) {
+		$args{COMMAND} = \@{$command};
+		$args{COMMAND_STR} = "@{$command}";
+	    } else {
+		$args{COMMAND} = [split('\s+', $command)];
+		$args{COMMAND_STR} = $command;
+	    }
+
+	    $self->get('Session')->run_command( \%args );
 	}
     my $status = $?;
 
@@ -1233,17 +1247,30 @@ sub run_external_commands {
 	sort {length $b <=> length $a || $a cmp $b} keys %percent);
     my $returnval = 1;
     foreach my $command (@commands) {
-	foreach my $arg (@{$command}) {
-	    $arg =~ s{
-	        # Match a percent followed by a valid keyword
-	       \%($keyword_pat)
-	    }{
-	        # Substitute with the appropriate value only if it's defined
-	        $percent{$1} || $&
-	    }msxge;
+
+	my $substitute = sub {
+	    foreach(@_) {
+		s{
+		     # Match a percent followed by a valid keyword
+		     \%($keyword_pat)
+	     }{
+		 # Substitute with the appropriate value only if it's defined
+		 $percent{$1} || $&
+	     }msxge;
+	    }
+	};
+
+	my $command_str;
+	if( ref $command ) {
+	    $substitute->(@{$command});
+	    $command_str = join(" ", @{$command});
+	} else {
+	    $substitute->($command);
+	    $command_str = $command;
 	}
-	my $command_str = join(" ", @{$command});
+
 	$self->log_subsubsection("$command_str");
+
 	$returnval = $self->run_command($command, $log_output, $log_error, $chroot, $rootuser);
 	$self->log("\n");
 	if (!$returnval) {

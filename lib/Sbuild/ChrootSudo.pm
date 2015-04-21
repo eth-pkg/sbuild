@@ -83,7 +83,9 @@ sub get_command_internal {
     my $self = shift;
     my $options = shift;
 
-    my $command = $options->{'INTCOMMAND'}; # Command to run
+    # Command to run. If I have a string, use it. Otherwise use the list-ref
+    my $command = $options->{'INTCOMMAND_STR'} // $options->{'INTCOMMAND'};
+
     my $user = $options->{'USER'};          # User to run command under
     my $dir;                                # Directory to use (optional)
     $dir = $self->get('Defaults')->{'DIR'} if
@@ -102,27 +104,30 @@ sub get_command_internal {
 	$dir = '/';
     }
 
-    my $shellcommand;
-    foreach (@$command) {
-	my $tmp = $_;
-	$tmp =~ s/'//g; # Strip any single quotes for security
-	if ($_ ne $tmp) {
-	    $self->log_warning("Stripped single quote from command for security: $_\n");
-	}
-	if ($shellcommand) {
-	    $shellcommand .= " '$tmp'";
-	} else {
-	    $shellcommand = "'$tmp'";
-	}
+    @cmdline = ($self->get_conf('SUDO'), '/usr/sbin/chroot', $self->get('Location'),
+		$self->get_conf('SU'), "$user", '-s');
+
+    if( ref $command ) {
+        my $shellcommand;
+        foreach (@$command) {
+            my $tmp = $_;
+            $tmp =~ s/'//g; # Strip any single quotes for security
+            if ($_ ne $tmp) {
+                $self->log_warning("Stripped single quote from command for security: $_\n");
+            }
+            if ($shellcommand) {
+                $shellcommand .= " '$tmp'";
+            } else {
+                $shellcommand = "'$tmp'";
+            }
+        }
+        push(@cmdline, '/bin/sh', '-c', "cd '$dir' && $shellcommand");
+    } else {
+        push(@cmdline, '/bin/sh', '-c', "cd '$dir' && ( $command )");
     }
 
-    @cmdline = ($self->get_conf('SUDO'), '/usr/sbin/chroot', $self->get('Location'),
-		$self->get_conf('SU'), "$user", '-s',
-		'/bin/sh', '-c',
-		"cd '$dir' && $shellcommand");
-
     $options->{'USER'} = $user;
-    $options->{'COMMAND'} = $command;
+    $options->{'COMMAND'} = ref($command) ? $command : [split(/\s+/, $command)];
     $options->{'EXPCOMMAND'} = \@cmdline;
     $options->{'CHDIR'} = undef;
     $options->{'DIR'} = $dir;
