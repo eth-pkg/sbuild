@@ -1229,6 +1229,7 @@ sub run_external_commands {
     my $hostarch = $self->get('Host Arch') if ($self->get('Host Arch'));
     my $build_dir = $self->get('Build Dir');
     my $pkgbuild_dir = $build_dir . '/' . $self->get('DSC Dir');
+    my $shell_cmd = "bash -i </dev/tty >/dev/tty 2>/dev/tty";
     my %percent = (
 	"%" => "%",
 	"d" => $dsc, "SBUILD_DSC" => $dsc,
@@ -1236,6 +1237,7 @@ sub run_external_commands {
 	"a" => $hostarch, "SBUILD_HOST_ARCH" => $hostarch,
 	"b" => $build_dir, "SBUILD_BUILD_DIR" => $build_dir,
 	"p" => $pkgbuild_dir, "SBUILD_PKGBUILD_DIR" => $pkgbuild_dir,
+	"s" => $shell_cmd, "SBUILD_SHELL" => $shell_cmd,
     );
     if ($chroot == 0) {
 	my $chroot_dir = $self->get('Chroot Dir');

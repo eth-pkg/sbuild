@@ -606,6 +606,9 @@ the chroot.
 \fB%p\fR, \fB%SBUILD_PKGBUILD_DIR\fR
 These escapes are converted to the absolute path to the package build directory
 inside the chroot.
+.TP
+\fB%s\fR, \fB%SBUILD_SHELL\fR
+This is converted to a command to spawn an interactive "bash" shell
 .PP
 Percent escapes are only substituted when an appropriate value is defined for
 them. At other times, it is left unchanged. For example, a .changes file is only
