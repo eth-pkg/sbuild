@@ -773,6 +773,25 @@ sub run_fetch_install_packages {
 	}
     };
 
+    # I catch the exception here and trigger the hook, if needed. Normally I'd
+    # do this at the end of the function, but I want the hook to fire before we
+    # clean up the environment. I re-throw the exception at the end, as usual
+    my $e = Exception::Class->caught('Sbuild::Exception::Build');
+    if ( defined $self->get('Pkg Fail Stage') &&
+         $self->get('Pkg Fail Stage') eq 'build' ) {
+        $self->run_external_commands("build-failed-commands",
+                                     $self->get_conf('LOG_EXTERNAL_COMMAND_OUTPUT'),
+                                     $self->get_conf('LOG_EXTERNAL_COMMAND_ERROR'));
+    } elsif($e) {
+
+        $self->run_external_commands("build-deps-failed-commands",
+                                     $self->get_conf('LOG_EXTERNAL_COMMAND_OUTPUT'),
+                                     $self->get_conf('LOG_EXTERNAL_COMMAND_ERROR'));
+    }
+
+
+
+
     $self->log_subsection("Cleanup");
     my $session = $self->get('Session');
     my $resolver = $self->get('Dependency Resolver');
@@ -810,8 +829,9 @@ sub run_fetch_install_packages {
 	}
     }
 
-    my $e;
-    if ($e = Exception::Class->caught('Sbuild::Exception::Build')) {
+
+    # re-throw the previously-caught exception
+    if ($e) {
 	$e->rethrow();
     }
 }
@@ -1207,6 +1227,14 @@ sub run_external_commands {
     } elsif ($stage eq "chroot-setup-commands") {
 	$self->log_subsection("Chroot Setup Commands");
 	$chroot = 1;
+    } elsif ($stage eq "build-deps-failed-commands") {
+	$self->log_subsection("Build-Deps Install Failed Commands");
+	$chroot = 1;
+        $rootuser = 1;
+    } elsif ($stage eq "build-failed-commands") {
+	$self->log_subsection("Generic Build Failed Commands");
+	$chroot = 1;
+        $rootuser = 0;
     } elsif ($stage eq "starting-build-commands") {
 	$self->log_subsection("Starting Timed Build Commands");
 	$chroot = 1;

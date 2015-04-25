@@ -278,6 +278,24 @@ sub set_options {
 			   push(@{${$self->get_conf('EXTERNAL_COMMANDS')}{"chroot-setup-commands"}},
 				$_[1]);
 		       },
+			"build-deps-failed-commands=s" => sub {
+			   push(@{${$self->get_conf('EXTERNAL_COMMANDS')}{"build-deps-failed-commands"}},
+				$_[1]);
+		       },
+			"build-failed-commands=s" => sub {
+			   push(@{${$self->get_conf('EXTERNAL_COMMANDS')}{"build-failed-commands"}},
+				$_[1]);
+		       },
+			"anything-failed-commands=s" => sub {
+
+			   # --anything-failed-commands simply triggers all the
+			   # --xxx-failed-commands I know about
+
+			   push(@{${$self->get_conf('EXTERNAL_COMMANDS')}{"build-deps-failed-commands"}},
+				$_[1]);
+			   push(@{${$self->get_conf('EXTERNAL_COMMANDS')}{"build-failed-commands"}},
+				$_[1]);
+		       },
 			"starting-build-commands=s" => sub {
 			   push(@{${$self->get_conf('EXTERNAL_COMMANDS')}{"starting-build-commands"}},
 				$_[1]);

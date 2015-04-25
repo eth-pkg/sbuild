@@ -978,6 +978,8 @@ sub setup ($) {
 	    DEFAULT => {
 		"pre-build-commands" => [],
 		"chroot-setup-commands" => [],
+		"build-deps-failed-commands" => [],
+		"build-failed-commands" => [],
 		"starting-build-commands" => [],
 		"finished-build-commands" => [],
 		"chroot-cleanup-commands" => [],
@@ -991,6 +993,14 @@ sub setup ($) {
         [\'bar\', \'arg1\', \'arg2\', \'arg3\'],
     ],
     "chroot-setup-commands" => [
+        [\'foo\', \'arg1\', \'arg2\'],
+        [\'bar\', \'arg1\', \'arg2\', \'arg3\'],
+    ],
+    "build-deps-failed-commands" => [
+        [\'foo\', \'arg1\', \'arg2\'],
+        [\'bar\', \'arg1\', \'arg2\', \'arg3\'],
+    ],
+    "build-failed-commands" => [
         [\'foo\', \'arg1\', \'arg2\'],
         [\'bar\', \'arg1\', \'arg2\', \'arg3\'],
     ],
