@@ -817,16 +817,25 @@ EOF
 	}
     }
 
-    my $positive = deps_parse(join(", ", @positive,
-				   @positive_arch, @positive_indep),
+    my $positive_build_deps = join(", ", @positive,
+				   @positive_arch, @positive_indep);
+    my $positive = deps_parse($positive_build_deps,
 			      reduce_arch => 1,
 			      host_arch => $self->get('Host Arch'),
 			      build_arch => $self->get('Build Arch'),
 			      build_dep => 1,
 			      reduce_profiles => 1,
 			      build_profiles => [ split / /, $self->get('Build Profiles') ]);
-    my $negative = deps_parse(join(", ", @negative,
-				   @negative_arch, @negative_indep),
+    if( !defined $positive ) {
+        my $msg = "Error! deps_parse() couldn't parse the positive Build-Depends '$positive_build_deps'";
+        $self->log_error("$msg\n");
+        $self->cleanup_apt_archive();
+        return 0;
+    }
+
+    my $negative_build_deps = join(", ", @negative,
+				   @negative_arch, @negative_indep);
+    my $negative = deps_parse($negative_build_deps,
 			      reduce_arch => 1,
 			      host_arch => $self->get('Host Arch'),
 			      build_arch => $self->get('Build Arch'),
@@ -834,6 +843,13 @@ EOF
 			      union => 1,
 			      reduce_profiles => 1,
 			      build_profiles => [ split / /, $self->get('Build Profiles') ]);
+    if( !defined $negative ) {
+        my $msg = "Error! deps_parse() couldn't parse the negative Build-Depends '$negative_build_deps'";
+        $self->log_error("$msg\n");
+        $self->cleanup_apt_archive();
+        return 0;
+    }
+
 
     # sbuild turns build dependencies into the dependencies of a dummy binary
     # package. Since binary package dependencies do not support :native the

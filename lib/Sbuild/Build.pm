@@ -1051,10 +1051,20 @@ sub fetch_source_files {
         return keys %set;
     }
 
-    my $merged_depends =
-      deps_parse( deps_concat( grep {defined $_} ($build_depends,
-                                                  $build_depends_arch,
-                                                  $build_depends_indep)));
+    my $build_depends_concat =
+      deps_concat( grep {defined $_} ($build_depends,
+                                      $build_depends_arch,
+                                      $build_depends_indep));
+    my $merged_depends = deps_parse( $build_depends_concat );
+    if( !defined $merged_depends ) {
+        my $msg = "Error! deps_parse() couldn't parse the Build-Depends '$build_depends_concat'";
+        $self->log("$msg\n");
+        Sbuild::Exception::Build->throw(error => $msg,
+                                        status => "skipped",
+                                        failstage => "add-forein-architecture");
+        return 0;
+    }
+
     my @explicit_arches = get_explicit_arches($merged_depends, {});
     my @foreign_arches = grep {$_ !~ /any|all|native/} @explicit_arches;
     my $added_any_new;
