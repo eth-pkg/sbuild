@@ -133,9 +133,11 @@ if ($conf->get('COMPAT')) {
     $conf->set('UPDATE', 1);
 }
 
-if ((@ARGV < 1 && !$conf->get('KEYGEN')) ||
-    (@ARGV >= 1 && $conf->get('KEYGEN'))) {
-    usage_error("sbuild-update", "Incorrect number of options")
+if (@ARGV >= 1 && $conf->get('KEYGEN')) {
+    usage_error("sbuild-update", "Incorrect number of options");
+}
+if (@ARGV < 1 && !$conf->get('KEYGEN')) {
+    usage_error("sbuild-update", "No chroot was specified");
 }
 
 my $status = 0;
