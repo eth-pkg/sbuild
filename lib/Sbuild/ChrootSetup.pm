@@ -244,6 +244,21 @@ EOF
     print $tmpfh '%commit' . "\n";
     close($tmpfh);
 
+    my $gnupghome = $ENV{'GNUPGHOME'};
+    if (!$gnupghome) {
+	$gnupghome = $ENV{'HOME'};
+	if (!$gnupghome) {
+	    my @pwinfo = getpwuid($<);
+	    die "Can't get passwd entry for uid $<: $!" if (!@pwinfo);
+	    print STDERR "W: HOME not set in environment; falling back to $pwinfo[7]\n";
+	    $gnupghome = $pwinfo[7];
+	}
+	$gnupghome .= '/.gnupg';
+    }
+    if (! -d $gnupghome) {
+	mkdir $gnupghome, 0700 or die "failed to create $gnupghome";
+    }
+
     $host->run_command(
 	{ COMMAND => ['chown', ':sbuild', $tmpfilename],
 	  USER => $conf->get('USERNAME'),
