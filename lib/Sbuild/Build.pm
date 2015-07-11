@@ -365,12 +365,6 @@ sub run_chroot_session {
 					   $self->get_conf('CHROOT'),
 					   $self->get_conf('HOST_ARCH'));
 
-	# Run pre build external commands
-	$self->check_abort();
-	$self->run_external_commands("pre-build-commands",
-				     $self->get_conf('LOG_EXTERNAL_COMMAND_OUTPUT'),
-				     $self->get_conf('LOG_EXTERNAL_COMMAND_ERROR'));
-
 	$self->check_abort();
 	if (!$session->begin_session()) {
 	    Sbuild::Exception::Build->throw(error => "Error creating chroot session: skipping " .
@@ -400,6 +394,12 @@ sub run_chroot_session {
 			   DIR =>  $session->get('Location') . "/build"));
 
 	$self->set('Build Dir', $session->strip_chroot_path($self->get('Chroot Build Dir')));
+
+	# Run pre build external commands
+	$self->check_abort();
+	$self->run_external_commands("pre-build-commands",
+				     $self->get_conf('LOG_EXTERNAL_COMMAND_OUTPUT'),
+				     $self->get_conf('LOG_EXTERNAL_COMMAND_ERROR'));
 
 	# Log colouring
 	$self->build_log_colour('red', '^E: ');
