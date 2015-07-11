@@ -313,6 +313,9 @@ sub set_options {
 			"extra-repository=s" => sub {
 			   push(@{$self->get_conf('EXTRA_REPOSITORIES')}, $_[1]);
 		       },
+			"build-path=s" => sub {
+			   $self->set_conf('BUILD_PATH', $_[1]);
+			},
 	);
 }
 

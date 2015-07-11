@@ -31,6 +31,7 @@ use Errno qw(:POSIX);
 use Fcntl;
 use File::Basename qw(basename dirname);
 use File::Temp qw(tempdir);
+use File::Path qw(make_path);
 use FileHandle;
 use File::Copy qw(); # copy is already exported from Sbuild, so don't export
 		     # anything.
@@ -387,11 +388,54 @@ sub run_chroot_session {
 	}
 
 	$self->set('Chroot Dir', $session->get('Location'));
-	# TODO: Don't hack the build location in; add a means to customise
-	# the chroot directly.  i.e. allow changing of /build location.
-	$self->set('Chroot Build Dir',
-		   tempdir($self->get('Package') . '-XXXXXX',
-			   DIR =>  $session->get('Location') . "/build"));
+	if (defined($self->get_conf('BUILD_PATH')) && $self->get_conf('BUILD_PATH')) {
+		my $build_path = $session->get('Location') . "/" . $self->get_conf('BUILD_PATH');
+		$self->set('Chroot Build Dir', $build_path);
+		if (!(-d "$build_path")) {
+			make_path($build_path, {error => \my $err} );
+			if (@$err) {
+				my $error;
+				for my $diag (@$err) {
+					my ($file, $message) = %$diag;
+					$error .= "mkdir $file: $message\n";
+				}
+				Sbuild::Exception::Build->throw(
+					error => $error,
+					failstage => "create-session");
+			}
+		} else {
+			my $empty = isEmpty($build_path);
+			if ($empty == 1) {
+				Sbuild::Exception::Build->throw(
+					error => "Buildpath: " . $build_path . " is not empty",
+					failstage => "create-session");
+			}
+			elsif ($empty == 2) {
+				Sbuild::Exception::Build->throw(
+					error => "Buildpath: " . $build_path . " cannot be read. Insufficient permissions?",
+					failstage => "create-session");
+			}
+		}
+	} else {
+		$self->set('Chroot Build Dir',
+			   tempdir($self->get('Package') . '-XXXXXX',
+				   DIR =>  $session->get('Location') . "/build"));
+	}
+	sub isEmpty{
+		my ($dirpath) = @_;
+		my $file;
+		if ( opendir my $dfh, $dirpath){
+			while (defined($file = readdir $dfh)){
+				next if $file eq '.' or $file eq '..';
+				closedir $dfh;
+				return 1;
+			}
+			closedir $dfh;
+			return 0;
+		}
+		return 2;
+	}
+
 
 	$self->set('Build Dir', $session->strip_chroot_path($self->get('Chroot Build Dir')));
 

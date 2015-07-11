@@ -613,6 +613,13 @@ sub setup ($) {
 	    CHECK => $validate_directory,
 	    HELP => 'This option is deprecated.  Directory for chroot symlinks and sbuild logs.  Defaults to the current directory if unspecified.  It is used as the location of chroot symlinks (obsolete) and for current build log symlinks and some build logs.  There is no default; if unset, it defaults to the current working directory.  $HOME/build is another common configuration.'
 	},
+	'BUILD_PATH'				=> {
+	    TYPE => 'STRING',
+	    VARNAME => 'build_path',
+	    GROUP => 'Build options',
+	    DEFAULT => undef,
+	    HELP => 'By default the package is built in a path of the following format /build/packagename-XXXXXX/packagename-version/ where XXXXXX is a random ascii string. This option allows one to specify a custom path where the package is built inside the chroot. Notice that the sbuild user in the chroot must have permissions to create the path. Common writable locations are subdirectories of /tmp or /build. The buildpath must be an empty directory because the last component of the path will be removed after the build is finished. If you are running multiple sbuild instances with the same build path in parallel for the same package, make sure that your build path is not in a directory commonly mounted by all sbuild instances (like /tmp or /home). In that case, use for example /build instead. Otherwise, your builds will probably fail or contain wrong content.'
+	},
 	'SBUILD_MODE'				=> {
 	    TYPE => 'STRING',
 	    VARNAME => 'sbuild_mode',

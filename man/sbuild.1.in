@@ -80,6 +80,7 @@ sbuild \- build debian packages from source
 .RB [ \-\-resolve\-alternatives \[or] \-\-no\-resolve\-alternatives ]
 .RB [ \-\-extra\-package=\fIpackage.deb\fP ]
 .RB [ \-\-extra\-repository=\fIspec\fP ]
+.RB [ \-\-build\-path=\fIstring\fP ]
 .RB [ PACKAGE [ .dsc ]]
 .SH DESCRIPTION
 \fBsbuild\fR rebuilds Debian binary packages from the corresponding Debian
@@ -451,6 +452,9 @@ to allow packages in the experimental distribution to fulfill
 build-dependencies. Note that the build chroot must already trust the
 key of this repository (see
 .BR apt-secure (8)).
+.TP
+.BR \-\-build\-path=\fIstring\fP
+By default the package is built in a path of the following format /build/packagename-XXXXXX/packagename-version/ where XXXXXX is a random ascii string. This option allows one to specify a custom path where the package is built inside the chroot. Notice that the sbuild user in the chroot must have permissions to create the path. Common writable locations are subdirectories of /tmp or /build. The buildpath must be an empty directory because the last component of the path will be removed after the build is finished. If you are running multiple sbuild instances with the same build path in parallel for the same package, make sure that your build path is not in a directory commonly mounted by all sbuild instances (like /tmp or /home). In that case, use for example /build instead. Otherwise, your builds will probably fail or contain wrong content.
 .TP
 .BR \-\-sbuild-mode=\fImode\fP
 Behaviour changes for use in a buildd environment.  This overrides the
