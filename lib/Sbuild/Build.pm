@@ -1596,7 +1596,8 @@ sub build {
 	USER => $self->get_conf('BUILD_USER'),
 	SETSID => 1,
 	PRIORITY => 0,
-	DIR => $bdir
+	DIR => $bdir,
+	STREAMERR => \*STDOUT,
     };
 
     my $pipe = $self->get('Session')->pipe_command($command);
