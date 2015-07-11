@@ -446,7 +446,7 @@ The repository specification is a line suitable for an apt
 .BR sources.list (5)
 file. For instance, you might use
 .nh
-.B \-\-extra\-repository="deb http://ftp.debian.org/debian experimental main"
+.B \-\-extra\-repository="deb http://httpredir.debian.org/debian experimental main"
 .hy
 to allow packages in the experimental distribution to fulfill
 build-dependencies. Note that the build chroot must already trust the
