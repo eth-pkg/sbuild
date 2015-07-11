@@ -109,6 +109,9 @@ It is also possible to run external commands with sbuild. See the section
 configuration files \fI/etc/sbuild/sbuild.conf\fP and \fI~/.sbuildrc\fP.  An
 example sbuildrc is available in
 \fI/usr/share/doc/sbuild/examples/example.sbuildrc\fP.
+A custom path to a configuration file can also be specified through setting the
+\fBSBUILD_CONFIG\fP environment variable to the path of an additional
+configuration file.
 .PP
 You can build either using a local package with its .dsc file or a
 remote one by specifying an explicit dpkg version.
@@ -617,6 +620,9 @@ The following environment variables are used by \fBsbuild\fR:
 The home directory of the user.
 .IP "LOGNAME"
 Used in lockfiles.
+.IP "SBUILD_CONFIG"
+Path to an additional configuration file on top of the system wide and user
+specific ones.
 .SH FILES
 .TP
 .I /etc/sbuild/sbuild.conf

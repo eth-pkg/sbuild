@@ -1087,6 +1087,8 @@ sub read ($) {
     my $files = ["$Sbuild::Sysconfig::paths{'SBUILD_CONF'}",
 		 "$HOME/.sbuildrc"];
 
+    push @{$files}, $ENV{'SBUILD_CONFIG'} if defined $ENV{'SBUILD_CONFIG'};
+
     # For compatibility only.  Non-scalars are deprecated.
     my $deprecated_init = <<END;
 my \%mailto;
