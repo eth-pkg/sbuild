@@ -95,10 +95,6 @@ sub setup {
 	}
 	print $F "APT::Install-Recommends false;\n";
 
-	if ($self->get('Host Arch') ne $self->get('Build Arch')) {
-	    print $F 'APT::Architecture=' . $self->get('Host Arch');
-	    $self->log('Adding APT::Architecture ' . $self->get('Host Arch') . ' to the apt config');
-	}
 	if ($self->get('Split')) {
 	    print $F "Dir \"$chroot_dir\";\n";
 	}
@@ -783,7 +779,7 @@ sub setup_apt_archive {
 	return 0;
     }
 
-    my $arch = $self->get('Build Arch');
+    my $arch = $self->get('Host Arch');
     print DUMMY_CONTROL <<"EOF";
 Package: $dummy_pkg_name
 Version: 0.invalid.0

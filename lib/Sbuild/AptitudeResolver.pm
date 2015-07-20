@@ -92,7 +92,7 @@ sub install_deps {
 	'-o', 'Aptitude::ProblemResolver::Keep-All-Level=55000',
 	'-o', 'Aptitude::ProblemResolver::Remove-Essential-Level=maximum',
 	'install',
-	$dummy_pkg_name
+	$dummy_pkg_name . ':' . $self->get('Host Arch')
     );
 
     $self->log(join(" ", @aptitude_install_command), "\n");

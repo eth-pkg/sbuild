@@ -686,8 +686,6 @@ sub run_fetch_install_packages {
 					    failstage => "install-deps");
 	}
 
-	$resolver->add_dependencies('ESSENTIAL', $self->read_build_essential(), "", "", "", "", "");
-
 	my $snapshot = "";
 	$snapshot = "gcc-snapshot" if ($self->get_conf('GCC_SNAPSHOT'));
 	$resolver->add_dependencies('GCC_SNAPSHOT', $snapshot , "", "", "", "", "");
@@ -713,12 +711,12 @@ sub run_fetch_install_packages {
 
 	my @build_deps;
 	if ($self->get('Host Arch') eq $self->get('Build Arch')) {
-	    @build_deps = ('ESSENTIAL', 'GCC_SNAPSHOT', 'MANUAL',
+	    @build_deps = ('GCC_SNAPSHOT', 'MANUAL',
 			   $self->get('Package'));
 	} else {
 	    $self->check_abort();
 	    if (!$resolver->install_core_deps('essential',
-					      'ESSENTIAL', 'GCC_SNAPSHOT')) {
+					      'GCC_SNAPSHOT')) {
 		Sbuild::Exception::Build->throw(error => "Essential dependencies not satisfied; skipping",
 						failstage => "install-essential");
 	    }
@@ -1882,59 +1880,6 @@ sub get_changes {
 	$changes = $self->get('Package_SVersion') . '_' . $self->get('Host Arch') . '.changes';
     }
     return $changes;
-}
-
-sub read_build_essential {
-    my $self = shift;
-    my @essential;
-    local (*F);
-
-    if (open( F, "$self->{'Chroot Dir'}/usr/share/doc/build-essential/essential-packages-list" )) {
-	while( <F> ) {
-	    last if $_ eq "\n";
-	}
-	while( <F> ) {
-	    chomp;
-	    push( @essential, $_ ) if $_ !~ /^\s*$/;
-	}
-	close( F );
-    }
-    else {
-	warn "Cannot open $self->{'Chroot Dir'}/usr/share/doc/build-essential/essential-packages-list: $!\n";
-    }
-
-    if (open( F, "$self->{'Chroot Dir'}/usr/share/doc/build-essential/list" )) {
-	while( <F> ) {
-	    last if $_ eq "BEGIN LIST OF PACKAGES\n";
-	}
-	while( <F> ) {
-	    chomp;
-	    last if $_ eq "END LIST OF PACKAGES";
-	    next if /^\s/ || /^$/;
-	    push( @essential, $_ );
-	}
-	close( F );
-    }
-    else {
-	warn "Cannot open $self->{'Chroot Dir'}/usr/share/doc/build-essential/list: $!\n";
-    }
-
-    # Workaround http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=602571
-    # Also works around Ubuntu Lucid shipping with "diff" instead of
-    # "diffutils": https://bugs.launchpad.net/ubuntu/+source/sbuild/+bug/741897
-    if (open( F, "$self->{'Chroot Dir'}/etc/lsb-release" )) {
-        while( <F> ) {
-            if ($_ eq "DISTRIB_ID=Ubuntu\n") {
-                @essential = grep(!/^sysvinit$/, @essential);
-            }
-            if ($_ eq "DISTRIB_CODENAME=lucid\n") {
-                s/^diff$/diffutils/ for (@essential);
-            }
-        }
-        close( F );
-    }
-
-    return join( ", ", @essential );
 }
 
 sub check_space {

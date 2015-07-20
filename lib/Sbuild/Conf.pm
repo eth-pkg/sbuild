@@ -768,7 +768,8 @@ sub setup ($) {
 	    TYPE => 'ARRAY:STRING',
 	    VARNAME => 'core_depends',
 	    GROUP => 'Core options',
-	    DEFAULT => ['build-essential', 'fakeroot'],
+	    DEFAULT => ['build-essential:' . $conf->get('BUILD_ARCH'),
+			'fakeroot:' . $conf->get('BUILD_ARCH')],
 	    HELP => 'Packages which must be installed in the chroot for all builds.'
 	},
 	'MANUAL_DEPENDS'			=> {
@@ -811,14 +812,14 @@ sub setup ($) {
 	    TYPE => 'HASH:ARRAY:STRING',
 	    VARNAME => 'crossbuild_core_depends',
 	    GROUP => 'Multiarch support (transitional)',
-	    DEFAULT => { arm64 => ['crossbuild-essential-arm64'],
-			 armel => ['crossbuild-essential-armel'],
-			 armhf => ['crossbuild-essential-armhf'],
-			 ia64 => ['crossbuild-essential-ia64'],
-			 mips => ['crossbuild-essential-mips'],
-			 mipsel => ['crossbuild-essential-mipsel'],
-			 powerpc => ['crossbuild-essential-powerpc'],
-			 sparc => ['crossbuild-essential-sparc']
+	    DEFAULT => { arm64 => ['crossbuild-essential-arm64:' . $conf->get('BUILD_ARCH')],
+			 armel => ['crossbuild-essential-armel:' . $conf->get('BUILD_ARCH')],
+			 armhf => ['crossbuild-essential-armhf:' . $conf->get('BUILD_ARCH')],
+			 ia64 => ['crossbuild-essential-ia64:' . $conf->get('BUILD_ARCH')],
+			 mips => ['crossbuild-essential-mips:' . $conf->get('BUILD_ARCH')],
+			 mipsel => ['crossbuild-essential-mipsel:' . $conf->get('BUILD_ARCH')],
+			 powerpc => ['crossbuild-essential-powerpc:' . $conf->get('BUILD_ARCH')],
+			 sparc => ['crossbuild-essential-sparc:' . $conf->get('BUILD_ARCH')]
 	    	       },
 	    HELP => 'Per-architecture dependencies required for cross-building.'
 	},	'BUILD_SOURCE'				=> {
