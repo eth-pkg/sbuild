@@ -247,7 +247,7 @@ sub setup_dpkg {
     $self->set('Initial Foreign Arches', $self->get_foreign_architectures());
 
     if ($self->get('Host Arch') ne $self->get('Build Arch')) {
-	add_foreign_architecture($session, $self->get('Host Arch'))
+	$self->add_foreign_architecture($self->get('Host Arch'))
     }
 }
 
