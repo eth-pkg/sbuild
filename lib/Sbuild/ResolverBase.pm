@@ -139,32 +139,24 @@ sub get_foreign_architectures {
 
     my $session = $self->get('Session');
 
+    $session->run_command({ COMMAND => ['dpkg', '--assert-multi-arch'],
+                            USER => 'root'});
+    if ($?)
+    {
+        $self->set('Multiarch Support', 0);
+        $self->log_error("dpkg does not support multi-arch\n");
+        return {};
+    }
+
     my ($tmpfh, $tmpfilename) = tempfile(DIR => $session->get('Location') . "/tmp");
-    my ($tmpfh2, $tmpfilename2) = tempfile(DIR => $session->get('Location') . "/tmp");
 
     $session->run_command({ COMMAND => ['dpkg', '--print-foreign-architectures'],
                             USER => 'root',
-                            STREAMOUT => $tmpfh,
-                            STREAMERR => $tmpfh2});
+                            STREAMOUT => $tmpfh});
     if ($?)
     {
-        seek $tmpfh2, 0, SEEK_SET;
-        while(<$tmpfh2>)
-        {
-            chomp;
-            next unless $_;
-            # if 'unknown option' in stderr then dpkg predates multiarch
-            if (m/unknown option/s)
-            {
-                $self->set('Multiarch Support', 0);
-            }
-        }
-        close $tmpfh2;
-        # quietly return nothing if dpkg is too old (for use on older chroots)
-        if ($self->get('Multiarch Support'))
-        {
-            $self->log_error("Failed to get dpkg foreign-architecture config\n");
-        }
+        $self->set('Multiarch Support', 0);
+        $self->log_error("Failed to get dpkg foreign-architecture config\n");
         return {};
     } # else dpkg has multiarch support
     seek $tmpfh, 0, SEEK_SET;
