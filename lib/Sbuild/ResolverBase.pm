@@ -198,10 +198,12 @@ sub add_foreign_architecture {
 
     # FIXME - allow for more than one foreign arch
     $session->run_command(
-                          # this is the ubuntu dpkg 1.16.2 interface - we ought to check (or configure) which to use with check_dpkg_version
+                          # This is the Ubuntu dpkg 1.16.0~ubuntuN interface;
+                          # we ought to check (or configure) which to use with
+                          # check_dpkg_version:
                           #	{ COMMAND => ['sh', '-c', 'echo "foreign-architecture ' . $self->get('Host Arch') . '" > /etc/dpkg/dpkg.cfg.d/sbuild'],
                           #	  USER => 'root' });
-                          # This is the Debian dpkg >= 1.16.3 interface
+                          # This is the Debian dpkg >= 1.16.2 interface:
                           { COMMAND => ['dpkg', '--add-architecture', $arch],
                             USER => 'root' });
     if ($?)
