@@ -2161,7 +2161,13 @@ sub open_build_log {
 				   $self->get_conf('BUILD_DIR') . '/current-' .
 				   $self->get_conf('DISTRIBUTION'));
 	    } else {
-		$self->log_symlink($filename,
+		my $symlinktarget = $filename;
+		# if symlink target is in the same directory as the symlink
+		# itself, make it a relative link instead of an absolute one
+		if (Cwd::abs_path($self->get_conf('BUILD_DIR')) eq Cwd::abs_path(dirname($filename))) {
+		    $symlinktarget = basename($filename)
+		}
+		$self->log_symlink($symlinktarget,
 				   $self->get_conf('BUILD_DIR') . '/' .
 				   $self->get('Package_SVersion') . '_' .
 				   $self->get('Host Arch') . ".build");
