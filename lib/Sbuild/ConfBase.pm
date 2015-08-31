@@ -143,7 +143,16 @@ sub init_allowed_keys {
 	    TYPE => 'STRING',
 	    VARNAME => 'mailprog',
 	    GROUP => 'Programs',
-	    CHECK => $validate_program,
+	    CHECK => sub {
+		my $conf = shift;
+		my $entry = shift;
+		my $key = $entry->{'NAME'};
+
+		# Only validate if needed.
+		if ($conf->get('MAILTO')) {
+		    $validate_program->($conf, $entry);
+		}
+	    },
 	    DEFAULT => '/usr/sbin/sendmail',
 	    HELP => 'Program to use to send mail'
 	},
