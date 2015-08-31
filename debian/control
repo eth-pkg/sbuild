@@ -27,7 +27,6 @@ Depends: adduser,
          dctrl-tools,
          devscripts (>= 2.10.26),
          dpkg-dev,
-         exim4 | mail-transport-agent,
          libdpkg-perl (>= 1.17.2),
          libexception-class-perl,
          libfilesys-df-perl,
@@ -36,6 +35,8 @@ Depends: adduser,
          schroot (>= 1.6.0),
          ${misc:Depends},
          ${perl:Depends}
+Recommends:
+         exim4 | mail-transport-agent,
 Replaces: sbuild (<= 0.58.4-1)
 Description: Tool for building Debian binary packages from Debian sources
  The sbuild suite of programs (wanna-build, buildd and sbuild) are
