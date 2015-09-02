@@ -1068,6 +1068,12 @@ sub setup ($) {
 	    DEFAULT => [],
 	    HELP => 'Additional per-build packages available as build dependencies.  Do not set by hand.'
 	},
+	'EXTRA_REPOSITORY_KEYS'				=> {
+	    TYPE => 'ARRAY:STRING',
+	    GROUP => '__INTERNAL',
+	    DEFAULT => [],
+	    HELP => 'Additional per-build apt repository keys.  Do not set by hand.'
+	},
 	'EXTRA_REPOSITORIES'				=> {
 	    TYPE => 'ARRAY:STRING',
 	    GROUP => '__INTERNAL',

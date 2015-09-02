@@ -67,6 +67,9 @@ sub new {
         '/etc/apt/sources.list.d/sbuild-build-depends-archive.list';
     $self->set('Dummy archive list file', $dummy_archive_list_file);
 
+    my $dummy_archive_key_file = $session->get('Location') .
+        '/etc/apt/trusted.gpg.d/sbuild-build-depends-archive.gpg';
+    $self->set('Dummy archive key file', $dummy_archive_key_file);
 
     return $self;
 }
@@ -1000,6 +1003,54 @@ EOF
         }
     }
 
+    # Now, we'll add in any provided OpenPGP keys into the archive, so that
+    # builds can (optionally) trust an external key for the duration of the
+    # build.
+    if (@{$self->get_conf('EXTRA_REPOSITORY_KEYS')}) {
+        my $dummy_archive_key_file = $self->get('Dummy archive key file');
+        my ($tmpfh, $tmpfilename) = tempfile(DIR => $session->get('Location') . "/tmp");
+        # Right, so, in order to copy the keys into the chroot (since we may have
+        # a bunch of them), we'll append to a tempfile, and write *all* of the
+        # given keys to the same tempfile. After we're clear, we'll move that file
+        # into the correct location by importing the .asc into a .gpg file.
+
+        for my $repokey (@{$self->get_conf('EXTRA_REPOSITORY_KEYS')}) {
+            debug("Adding archive key: $repokey\n");
+            if (!-f $repokey) {
+                $self->log("Failed to add archive key '${repokey}' - it doesn't exist!\n");
+                $self->cleanup_apt_archive();
+                return 0;
+            }
+            copy($repokey, $tmpfh);
+            print $tmpfh "\n";
+        }
+        close($tmpfh);
+
+        # Now that we've concat'd all the keys into the chroot, we're going
+        # to use GPG to import the keys into a single keyring. We've stubbed
+        # out the secret ring and home to ensure we don't store anything
+        # except for the public keyring.
+
+        my $tmpgpghome = tempdir('extra-repository-keys' . '-XXXXXX',
+            DIR => $session->get('Location') . "/tmp");
+
+        my @gpg_command = ('gpg', '--import', '--no-default-keyring',
+                           '--homedir', $session->strip_chroot_path($tmpgpghome),
+                           '--secret-keyring', '/dev/null',
+                           '--keyring', $session->strip_chroot_path($dummy_archive_key_file),
+                           $session->strip_chroot_path($tmpfilename));
+
+        $session->run_command(
+            { COMMAND => \@gpg_command,
+              USER => 'root',
+              PRIORITY => 0});
+        if ($?) {
+            $self->log("Failed to import archive keys to the trusted keyring");
+            $self->cleanup_apt_archive();
+            return 0;
+        }
+    }
+
     # Write a list file for the dummy archive if one not create yet.
     if (! -f $dummy_archive_list_file) {
         my ($tmpfh, $tmpfilename) = tempfile(DIR => $session->get('Location') . "/tmp");
@@ -1067,6 +1118,13 @@ sub cleanup_apt_archive {
 	  USER => 'root',
 	  DIR => '/',
 	  PRIORITY => 0});
+
+    $session->run_command(
+	{ COMMAND => ['rm', '-f', $session->strip_chroot_path($self->get('Dummy archive key file'))],
+	  USER => 'root',
+	  DIR => '/',
+	  PRIORITY => 0});
+
     $self->set('Dummy package path', undef);
     $self->set('Dummy archive directory', undef);
     $self->set('Dummy Release file', undef);
