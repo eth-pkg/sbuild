@@ -90,9 +90,9 @@ sub setup {
     $self->set('Chroot APT Conf', $chroot_aptconf);
 
     # Always write out apt.conf, because it may become outdated.
-    if (my $F = new File::Temp( TEMPLATE => "$aptconf.XXXXXX",
+    if (my $F = eval {new File::Temp( TEMPLATE => "$aptconf.XXXXXX",
 				DIR => $session->get('Location'),
-				UNLINK => 0) ) {
+				UNLINK => 0) } ) {
 	if ($self->get_conf('APT_ALLOW_UNAUTHENTICATED')) {
 	    print $F "APT::Get::AllowUnauthenticated true;\n";
 	}
@@ -103,11 +103,11 @@ sub setup {
 	}
 
 	if (! rename $F->filename, $chroot_aptconf) {
-	    print STDERR "Can't rename $F->filename to $chroot_aptconf: $!\n";
+	    $self->log_error("Can't rename $F->filename to $chroot_aptconf: $!\n");
 	    return 0;
 	}
     } else {
-	print STDERR "Can't create $chroot_aptconf: $!";
+	$self->log_error("Can't create $chroot_aptconf: $!\n");
 	return 0;
     }
 
@@ -135,6 +135,8 @@ sub setup {
     }
 
     $self->cleanup_apt_archive();
+
+    return 1;
 }
 
 sub get_foreign_architectures {

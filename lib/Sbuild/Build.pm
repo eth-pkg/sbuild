@@ -570,7 +570,10 @@ sub run_chroot_session_locked {
 
 
 	$self->check_abort();
-	$resolver->setup();
+	if (!$resolver->setup()) {
+		Sbuild::Exception::Build->throw(error => "resolver setup failed",
+						failstage => "resolver setup");
+	}
 
 	$self->check_abort();
 	$self->run_chroot_update();
