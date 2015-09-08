@@ -50,12 +50,10 @@ echo "# put any local/close mirrors at the top of the file" > $TARGET/etc/apt/so
 if [ "$#" -gt "3" ]; then
     echo "deb     $4 $SUITE main contrib" >> $TARGET/etc/apt/sources.list
 fi
-echo "deb     http://incoming.debian.org/debian $SUITE main contrib" >> $TARGET/etc/apt/sources.list
-echo "deb-src http://incoming.debian.org/debian $SUITE main contrib" >> $TARGET/etc/apt/sources.list
+echo "deb     http://incoming.debian.org/debian-debian buildd-$SUITE main contrib" >> $TARGET/etc/apt/sources.list
+echo "deb-src http://incoming.debian.org/debian-debian buildd-$SUITE main contrib" >> $TARGET/etc/apt/sources.list
 case "$2" in
     sid)
-	echo "deb     http://incoming.debian.org/buildd /" >> $TARGET/etc/apt/sources.list
-	echo "deb-src http://incoming.debian.org/buildd /" >> $TARGET/etc/apt/sources.list
 	;;
     woody)
 	echo "deb     http://non-us.debian.org/debian-non-US $SUITE/non-US main contrib" >> $TARGET/etc/apt/sources.list
