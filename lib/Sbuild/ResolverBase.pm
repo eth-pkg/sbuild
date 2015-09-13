@@ -162,6 +162,8 @@ sub get_foreign_architectures {
     {
         $self->set('Multiarch Support', 0);
         $self->log_error("Failed to get dpkg foreign-architecture config\n");
+        close $tmpfh;
+        unlink $tmpfilename;
         return {};
     } # else dpkg has multiarch support
     seek $tmpfh, 0, SEEK_SET;
@@ -173,6 +175,7 @@ sub get_foreign_architectures {
         push @existing_foreign_arches, $_;
     }
     close $tmpfh;
+    unlink $tmpfilename;
     my %set;
     foreach (@existing_foreign_arches) { $set{$_} = 1; }
     return \%set;
@@ -1037,12 +1040,15 @@ EOF
             if (!-f $repokey) {
                 $self->log("Failed to add archive key '${repokey}' - it doesn't exist!\n");
                 $self->cleanup_apt_archive();
+                close($tmpfh);
+                unlink $tmpfilename;
                 return 0;
             }
             copy($repokey, $tmpfh);
             print $tmpfh "\n";
         }
         close($tmpfh);
+        unlink $tmpfilename;
 
         # Now that we've concat'd all the keys into the chroot, we're going
         # to use GPG to import the keys into a single keyring. We've stubbed
@@ -1080,6 +1086,7 @@ EOF
         }
 
         close($tmpfh);
+        unlink $tmpfilename;
         # List file needs to be moved with root.
         $session->run_command(
             { COMMAND => ['chmod', '0644', $session->strip_chroot_path($tmpfilename)],
@@ -1205,6 +1212,7 @@ APT::FTPArchive::Release::Codename "invalid";
 APT::FTPArchive::Release::Description "Sbuild Build Dependency Temporary Archive";
 EOF
     close $tmpfh;
+    unlink $tmpfilename;
 
     # Remove APT_CONFIG environment variable here, restore it later.
     my $env = $self->get('Session')->get('Defaults')->{'ENV'};
