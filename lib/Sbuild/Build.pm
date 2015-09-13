@@ -365,6 +365,10 @@ sub run_chroot_session {
 					   $self->get_conf('DISTRIBUTION'),
 					   $self->get_conf('CHROOT'),
 					   $self->get_conf('BUILD_ARCH'));
+        if (!defined $session) {
+	    Sbuild::Exception::Build->throw(error => "Error creating chroot",
+					    failstage => "create-session");
+        }
 
 	$self->check_abort();
 	if (!$session->begin_session()) {
@@ -527,16 +531,18 @@ sub run_chroot_session {
 
     # End chroot session
     my $session = $self->get('Session');
-    my $end_session =
-	($self->get_conf('PURGE_SESSION') eq 'always' ||
-	 ($self->get_conf('PURGE_SESSION') eq 'successful' &&
-	  $self->get_status() eq 'successful')) ? 1 : 0;
-    if ($end_session) {
-	$session->end_session();
-    } else {
-	$self->log("Keeping session: " . $session->get('Session ID') . "\n");
+    if (defined $session) {
+	    my $end_session =
+		    ($self->get_conf('PURGE_SESSION') eq 'always' ||
+		     ($self->get_conf('PURGE_SESSION') eq 'successful' &&
+		      $self->get_status() eq 'successful')) ? 1 : 0;
+	    if ($end_session) {
+		    $session->end_session();
+	    } else {
+		    $self->log("Keeping session: " . $session->get('Session ID') . "\n");
+	    }
+	    $session = undef;
     }
-    $session = undef;
     $self->set('Session', $session);
 
     my $e;

@@ -63,6 +63,10 @@ sub create {
 
     my $chrootid = $self->find($namespace, $distribution, $chroot, $arch);
 
+    if (!defined $chrootid) {
+        return undef;
+    }
+
     my $newchroot = $self->_create($chrootid);
 
     if (defined($newchroot)) {
@@ -100,9 +104,8 @@ sub find {
 	    if ($namespace ne 'chroot') {
 		$chroot = $self->find('chroot', $distribution, $chroot, $arch);
 	    } else {
-		# TODO: Return error, rather than die.
-		die "Chroot namespace $namespace not found\n";
-		return undef;
+		    Sbuild::Exception::Build->throw(error => "Chroot namespace $namespace not found\n",
+				    failstage => "find-chroot");
 	    }
 	}
 
@@ -134,9 +137,8 @@ sub find {
 	if ($namespace ne 'chroot') {
 	    $chroot = $self->find('chroot', $distribution, $chroot, $arch);
 	} else {
-	    # TODO: Return error, rather than die.
-	    die "Chroot for distribution $distribution, architecture $arch not found\n";
-	    return undef;
+		    Sbuild::Exception::Build->throw(error => "Chroot for distribution $distribution, architecture $arch not found\n",
+				    failstage => "find-chroot");
 	}
     }
 
