@@ -1048,7 +1048,6 @@ EOF
             print $tmpfh "\n";
         }
         close($tmpfh);
-        unlink $tmpfilename;
 
         # Now that we've concat'd all the keys into the chroot, we're going
         # to use GPG to import the keys into a single keyring. We've stubbed
@@ -1068,6 +1067,7 @@ EOF
             { COMMAND => \@gpg_command,
               USER => 'root',
               PRIORITY => 0});
+        unlink $tmpfilename;
         if ($?) {
             $self->log("Failed to import archive keys to the trusted keyring");
             $self->cleanup_apt_archive();
@@ -1086,7 +1086,6 @@ EOF
         }
 
         close($tmpfh);
-        unlink $tmpfilename;
         # List file needs to be moved with root.
         $session->run_command(
             { COMMAND => ['chmod', '0644', $session->strip_chroot_path($tmpfilename)],
@@ -1102,6 +1101,7 @@ EOF
                           $session->strip_chroot_path($dummy_archive_list_file)],
               USER => 'root',
               PRIORITY => 0});
+        unlink $tmpfilename;
         if ($?) {
             $self->log("Failed to create apt list file for dummy archive.\n");
             $self->cleanup_apt_archive();
@@ -1212,7 +1212,6 @@ APT::FTPArchive::Release::Codename "invalid";
 APT::FTPArchive::Release::Description "Sbuild Build Dependency Temporary Archive";
 EOF
     close $tmpfh;
-    unlink $tmpfilename;
 
     # Remove APT_CONFIG environment variable here, restore it later.
     my $env = $self->get('Session')->get('Defaults')->{'ENV'};
