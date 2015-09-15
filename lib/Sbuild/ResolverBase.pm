@@ -1067,12 +1067,13 @@ EOF
             { COMMAND => \@gpg_command,
               USER => 'root',
               PRIORITY => 0});
-        unlink $tmpfilename;
         if ($?) {
             $self->log("Failed to import archive keys to the trusted keyring");
             $self->cleanup_apt_archive();
+            unlink $tmpfilename;
             return 0;
         }
+        unlink $tmpfilename;
     }
 
     # Write a list file for the dummy archive if one not create yet.
@@ -1094,6 +1095,7 @@ EOF
         if ($?) {
             $self->log("Failed to create apt list file for dummy archive.\n");
             $self->cleanup_apt_archive();
+            unlink $tmpfilename;
             return 0;
         }
         $session->run_command(
@@ -1101,12 +1103,13 @@ EOF
                           $session->strip_chroot_path($dummy_archive_list_file)],
               USER => 'root',
               PRIORITY => 0});
-        unlink $tmpfilename;
         if ($?) {
             $self->log("Failed to create apt list file for dummy archive.\n");
             $self->cleanup_apt_archive();
+            unlink $tmpfilename;
             return 0;
         }
+        unlink $tmpfilename;
     }
 
     if (!$self->get_conf('APT_ALLOW_UNAUTHENTICATED')) {
