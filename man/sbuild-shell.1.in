@@ -23,7 +23,8 @@ sbuild\-shell \- run a shell in an sbuild chroot
 .B CHROOT
 .SH DESCRIPTION
 \fBsbuild\-shell\fR runs an interactive shell (\fI/bin/sh\fP) inside the
-specified chroot.
+specified chroot. The changes will not be discarded, so this can be used to
+setup a build chroot.
 .SH OPTIONS
 .SS Actions
 .TP
