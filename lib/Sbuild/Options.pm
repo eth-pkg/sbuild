@@ -55,6 +55,12 @@ sub set_options {
 		       "no-arch-all" => sub {
 			   $self->set_conf('BUILD_ARCH_ALL', 0);
 		       },
+		       "arch-any" => sub {
+			   $self->set_conf('BUILD_ARCH_ANY', 1);
+		       },
+		       "no-arch-any" => sub {
+			   $self->set_conf('BUILD_ARCH_ANY', 0);
+		       },
 		       "arch-all-only" => sub {
 			   $self->set_conf('BUILD_ARCH_ALL', 1);
 			   $self->set_conf('BUILD_ARCH_ANY', 0);

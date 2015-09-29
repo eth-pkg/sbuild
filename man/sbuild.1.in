@@ -29,6 +29,7 @@ sbuild \- build debian packages from source
 .RB [ \-d \[or] \-\-dist=\fIdistribution\fP ]
 .RB [ \-c \[or] \-\-chroot=\fIchroot\fP ]
 .RB [ \-\-arch=\fIarchitecture\fP ]
+.RB [ \-\-arch\-any " \[or] " \-\-no\-arch\-any ]
 .RB [ \-\-arch\-all\-only ]
 .RB [ \-\-build=\fIarchitecture\fP ]
 .RB [ \-\-host=\fIarchitecture\fP ]
@@ -188,6 +189,14 @@ instead of \-B.
 .BR "\-\-no\-arch\-all"
 Do not build Architecture: all packages, i.e. use dpkg\-buildpackage \-B
 instead of \-b. This option is the opposite of \-\-arch\-all.
+.TP
+.BR "\-\-arch\-any"
+Build Architecture: any packages. This is the default behavior.
+.TP
+.BR "\-\-no\-arch\-any"
+Do not build Architecture: any packages. This option is the opposite
+of \-\-arch\-any and only useful when used together with \-\-arch\-all
+or \-\-source.
 .TP
 .BR "\-\-arch\-all\-only"
 Only build Architecture:all packages, i.e. use dpkg-buildpackage \-A
