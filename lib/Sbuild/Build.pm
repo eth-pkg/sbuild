@@ -1998,7 +1998,10 @@ sub get_changes {
     my $path=shift;
     my $changes;
 
-    if ( -r $path . '/' . $self->get('Package_SVersion') . "_all.changes") {
+    if ( -r $path . '/' . $self->get('Package_SVersion') . "_source.changes") {
+	$changes = $self->get('Package_SVersion') . "_source.changes";
+    }
+    elsif ( -r $path . '/' . $self->get('Package_SVersion') . "_all.changes") {
 	$changes = $self->get('Package_SVersion') . "_all.changes";
     }
     else {
@@ -2442,6 +2445,9 @@ sub close_build_log {
     my $subject = "Log for " . $self->get_status() .
 	" build of " . $self->get('Package_Version');
 
+    if ($self->get_conf('BUILD_SOURCE') && !$self->get_conf('BUILD_ARCH_ALL') && !$self->get_conf('BUILD_ARCH_ANY')) {
+	$subject .= " source";
+    }
     if ($self->get_conf('BUILD_ARCH_ALL') && !$self->get_conf('BUILD_ARCH_ANY')) {
 	$subject .= " on all";
     } elsif ($self->get('Host Arch')) {
