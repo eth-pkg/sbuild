@@ -202,7 +202,11 @@ Use the specified chroot. If not specified, the default is the first of
 \fI$distribution\-$arch\fP or \fI$distribution\fP that exists.
 .TP
 .BR \-d ", " "\-\-dist=\fIdistribution\fP"
-Fetch source packages from specified distribution.
+Explicitly set the distribution for the package build. This will be selecting
+the correct chroot to use and also sets the value of the Distribution field in
+the created .changes file. Setting this option is necessary when giving sbuild
+a .dsc file or a plain source package name to build. In the latter case it
+specifies the distribution the source package is fetched from.
 .TP
 .BR \-\-archive=\fIarchive\fP
 Communicate with specified archive.
