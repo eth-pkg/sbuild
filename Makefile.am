@@ -36,7 +36,6 @@ dist-hook:
 
 EXTRA_DIST =				\
 	bootstrap			\
-	debian				\
 	lisp				\
 	scripts/git-tag-release		\
 	scripts/git-version		\
