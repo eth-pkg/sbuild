@@ -1,11 +1,33 @@
 NEWS                                                            -*- outline -*-
 ----
 
-Welcome to sbuild 0.65.2.  Please read these release notes carefully.
+Welcome to sbuild 0.66.0.  Please read these release notes carefully.
 
 Full installation instructions are provided in the INSTALL file.  The
 README file also contains more specific notes regarding building and
 configuration.
+
+* Major changes in 0.66.0:
+
+  1) add option --arch-all-only to build arch:all packages
+
+  2) environment variable SBUILD_CONFIG allows to specify a custom
+     configuration file
+
+  3) add option --build-path to set a deterministic build path
+
+  4) fix crossbuild dependency resolution
+
+  5) add option --extra-repository-key for extra apt keys
+
+  6) add option --build-dep-resolver=aspcud for aspcud based resolver
+
+  6) allow complex commands as sbuild hooks
+
+  7) add now external command %SBUILD_SHELL produces an interactive shell
+
+  8) add options --build-deps-failed-commands, --build-failed-commands and
+     --anything-failed-commands
 
 * Major changes in 0.65.2:
 
