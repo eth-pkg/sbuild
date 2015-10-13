@@ -1078,7 +1078,13 @@ sub fetch_source_files {
       deps_concat( grep {defined $_} ($build_depends,
                                       $build_depends_arch,
                                       $build_depends_indep));
-    my $merged_depends = deps_parse( $build_depends_concat );
+    my $merged_depends = deps_parse( $build_depends_concat,
+		reduce_arch => 1,
+		host_arch => $self->get('Host Arch'),
+		build_arch => $self->get('Build Arch'),
+		build_dep => 1,
+		reduce_profiles => 1,
+		build_profiles => [ split / /, $self->get('Build Profiles') ]);
     if( !defined $merged_depends ) {
         my $msg = "Error! deps_parse() couldn't parse the Build-Depends '$build_depends_concat'";
         $self->log("$msg\n");
