@@ -61,27 +61,15 @@ sub get_info_from_stream {
 
 	last if ! $_;
 
-	if (/\s*--- Chroot ---/ &&
+	if (/^\s*(───|---) Chroot \1$/ &&
 	    $tmp{'Namespace'} eq "") {
 	    $tmp{'Namespace'} = 'chroot';
 	}
-	if (/\s*--- Session ---/ &&
+	if (/^\s*(───|---) Session \1$/ &&
 	    $tmp{'Namespace'} eq "") {
 	    $tmp{'Namespace'} = 'session';
 	}
-	if (/\s*--- Source ---/ &&
-	    $tmp{'Namespace'} eq "") {
-	    $tmp{'Namespace'} = 'source';
-	}
-	if (/\s*--- Chroot ---/ &&
-	    $tmp{'Namespace'} eq "") {
-	    $tmp{'Namespace'} = 'chroot';
-	}
-	if (/\s*--- Session ---/ &&
-	    $tmp{'Namespace'} eq "") {
-	    $tmp{'Namespace'} = 'session';
-	}
-	if (/\s*--- Source ---/ &&
+	if (/^\s*(───|---) Source \1$/ &&
 	    $tmp{'Namespace'} eq "") {
 	    $tmp{'Namespace'} = 'source';
 	}
