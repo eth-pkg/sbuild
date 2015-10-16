@@ -8,15 +8,6 @@
 .ds SBUILD_SYSCONF_DIR @SBUILD_SYSCONF_DIR@
 .ds WANNA_BUILD_LIBEXEC_DIR @WANNA_BUILD_LIBEXEC_DIR@
 .ds SBUILD_LIBEXEC_DIR @SBUILD_LIBEXEC_DIR@
-.ds PLATFORM @PLATFORM@
-.ds host_os @host_os@
-.ds host_vendor @host_vendor@
-.ds host_cpu @host_cpu@
-.ds host @host@
-.ds build_os @build_os@
-.ds build_vendor @build_vendor@
-.ds build_cpu @build_cpu@
-.ds build @build@
 .ds RELEASE_DATE @RELEASE_DATE@
 .ds VERSION @VERSION@
 .ds PACKAGE @PACKAGE@

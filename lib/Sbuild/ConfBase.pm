@@ -169,6 +169,11 @@ sub init_allowed_keys {
 	    VARNAME => 'host_arch',
 	    GROUP => 'Build options',
 	    DEFAULT => $native_arch,
+	    # the $native_arch is different depending on the machine where
+	    # sbuild is built but arch:all packages must not differ depending on
+	    # the architecture they are built on, so don't show the default for
+	    # example config and man page generation
+	    IGNORE_DEFAULT => 1,
 	    HELP => 'Host architecture (Arch we are building for)'
 	},
 	'BUILD_ARCH'				=> {
@@ -176,6 +181,11 @@ sub init_allowed_keys {
 	    VARNAME => 'build_arch',
 	    GROUP => 'Build options',
 	    DEFAULT => $native_arch,
+	    # the $native_arch is different depending on the machine where
+	    # sbuild is built but arch:all packages must not differ depending on
+	    # the architecture they are built on, so don't show the default for
+	    # example config and man page generation
+	    IGNORE_DEFAULT => 1,
 	    HELP => 'Build architecture (Arch we are building on).'
 	},
 	'BUILD_PROFILES'        => {

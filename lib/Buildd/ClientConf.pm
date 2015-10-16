@@ -152,6 +152,10 @@ sub setup ($) {
 	    VARNAME => 'wanna_build_db_user',
 	    GROUP => 'wanna-build client',
 	    DEFAULT => $conf->get('USERNAME'),
+	    # arch:all packages must not differ depending on which user is
+	    # building the source package, so don't show the default for
+	    # example config and man page generation
+	    IGNORE_DEFAULT => 1,
 	    HELP => 'Database user'
 	},
 	'BUILT_ARCHITECTURE'			=> {
@@ -159,6 +163,11 @@ sub setup ($) {
 	    VARNAME => 'wanna_build_built_architecture',
 	    GROUP => 'wanna-build client',
 	    DEFAULT => $arch,
+	    # the $native_arch is different depending on the machine where
+	    # sbuild is built but arch:all packages must not differ depending on
+	    # the architecture they are built on, so don't show the default for
+	    # example config and man page generation
+	    IGNORE_DEFAULT => 1,
 	    HELP => 'Architecture for database'
 	});
 

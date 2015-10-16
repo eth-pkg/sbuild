@@ -116,9 +116,13 @@ foreach my $group (@groups) {
 			print "#    $line\n";
 		    }
 		}
-		print wrap("#", "#", Data::Dumper->Dump([$default],
-							["$varname"]))
-		    if (!$ignore_default);
+		if ($ignore_default) {
+			print wrap("#", "#", "$varname = ...;");
+			print("\n");
+		} else {
+			print wrap("#", "#", Data::Dumper->Dump([$default],
+							["$varname"]));
+		}
 		print("\n");
 	    } elsif ($output eq "man") {
 		print ".TP\n";
@@ -139,7 +143,13 @@ foreach my $group (@groups) {
 		    }
 		    print ".RE\n";
 		}
-		if (!$ignore_default) {
+		if ($ignore_default) {
+		    print ".PP\n";
+		    print ".RS\n";
+			print "\\f[CR]$varname = ...;\\fP\n";
+			print ".br\n";
+		    print ".RE\n";
+		} else {
 		    print ".IP\n";
 		    print "Default:\n";
 		    print ".PP\n";
