@@ -386,45 +386,74 @@ Add arguments that are used to launch piuparts as root. If no arguments are
 specified, piuparts will be launched via sudo.
 .TP
 .BR \-\-pre\-build\-commands=\fIstring\fP
-Run this command before a build starts. This option can be used multiple times
-to add multiple commands.
+This is the earliest external command which is run right after the chroot
+session has been initialized and before anything else is done (like installing
+the build dependencies). The command is run as root outside of the chroot. This
+option can be used multiple times to add multiple commands. See the section
+.BR "EXTERNAL COMMANDS"
+for more information.
 .TP
 .BR \-\-chroot\-setup\-commands=\fIstring\fP
-Run these commands when a chroot is setup, before dependencies are installed. This
-option can be used multiple times to add multiple commands.
+Run these commands after the chroot and variables have been setup but before
+dependencies are installed. The command is run as root inside of the chroot.
+This option can be used multiple times to add multiple commands. See the
+section
+.BR "EXTERNAL COMMANDS"
+for more information.
 .TP
 .BR \-\-build\-deps\-failed\-commands=\fIstring\fP
-Run these commands we tried to install the dependencies but failed for whatever
-reason. The environment is intact, and the failure can be investigated.
-Especially %SBUILD_SHELL is useful here. This option can be used multiple times
-to add multiple commands.
+These commands are run if installing the build dependencies has failed directly
+after the failed attempt. The environment is intact, and the failure can be
+investigated.  Especially %SBUILD_SHELL is useful here. The command is run as
+root inside the chroot. This option can be used multiple times to add multiple
+commands. See the section
+.BR "EXTERNAL COMMANDS"
+for more information.
 .TP
 .BR \-\-starting\-build\-commands=\fIstring\fP
 Run these commands after dependencies are installed, just before the package
-build starts. This option can be used multiple times to add multiple commands.
+build with dpkg-buildpackage starts. The command is run as the (non-root) user
+running sbuild inside the chroot. This option can be used multiple times to add
+multiple commands. See the section
+.BR "EXTERNAL COMMANDS"
+for more information.
 .TP
 .BR \-\-finished\-build\-commands=\fIstring\fP
-Run these commands immediately after the timed package build finishes.
-This option can be used multiple times to add multiple commands.
+Run these commands immediately after the timed package build finishes.  The
+command is run as the (non-root) user running sbuild inside the chroot.  This
+option can be used multiple times to add multiple commands. See the section
+.BR "EXTERNAL COMMANDS"
+for more information.
 .TP
 .BR \-\-build\-failed\-commands=\fIstring\fP
-Run these commands we tried to run the build but failed for whatever reason.
-The environment is intact, and the failure can be investigated. Especially
-%SBUILD_SHELL is useful here. This option can be used multiple times to add
-multiple commands.
+These commands are run if dpkg-buildpackage has failed directly after the
+failed attempt. The environment is intact, and the failure can be investigated.
+Especially %SBUILD_SHELL is useful here. The command is run as the (non-root)
+user running %sbuild inside the chroot. This option can be used multiple times
+to add multiple commands. See the section
+.BR "EXTERNAL COMMANDS"
+for more information.
 .TP
 .BR \-\-chroot\-cleanup\-commands=\fIstring\fP
 Run these commands when a chroot is cleaned up, before build directory is
-purged. This option can be used multiple times to add multiple commands.
+purged.  The command is run as root inside the chroot. This option can be used
+multiple times to add multiple commands. See the section
+.BR "EXTERNAL COMMANDS"
+for more information.
 .TP
 .BR \-\-post\-build\-commands=\fIstring\fP
-Run this command after a successful build. This option can be used multiple
-times to add multiple commands.
+Run this command after a successful build. The command is run as root outside
+of the chroot. This option can be used multiple times to add multiple commands.
+See the section
+.BR "EXTERNAL COMMANDS"
+for more information.
 .TP
 .BR \-\-anything\-failed\-commands=\fIstring\fP
 Run these commands for all the \fI\-\-xxx\-failed\-commands\fP options.
 Especially %SBUILD_SHELL is useful here. This option can be used multiple times
-to add multiple commands.
+to add multiple commands. See the section
+.BR "EXTERNAL COMMANDS"
+for more information.
 .TP
 .BR \-\-log\-external\-command\-output
 Write output from external commands to the build log.
@@ -528,43 +557,45 @@ run as the current sbuild user. \fIbuild\-deps\-failed\fP runs similarly to
 \fIchroot\-setup\fP: in the chroot as root. \fIbuild\-failed\fP runs similarly
 to \fIfinished\-build\fP: in the chroot as the user.
 .PP
-Here is a summary of the ordering, user, internal/external to chroot for each command hook
-.nf
-.br
-\fIInitialise chroot session\fP
-.br
-\f[CB]\-\-pre\-build\-commands       root  outside chroot\fP
-.br
-\fISetup the chroot and variables\fP
-.br
-\f[CB]\-\-chroot\-setup\-commands    root  inside chroot\fP
-.br
-\fIUpdate and upgrade packages\fP
-.br
-\fIInstall Dependencies\fP
-.br
-\f[CB]\-\-build\-deps\-failed\-commands  root  inside chroot\fP
-.br
-\f[CB]\-\-starting\-build\-commands  user  inside chroot\fP
-.br
-\fIDo actual build (dpkg-buildpackage)\fP
-.br
-\f[CB]\-\-build\-failed\-commands  user  inside chroot\fP
-.br
-\f[CB]\-\-finished\-build\-commands  user  inside chroot\fP
-.br
-\fIRun lintian (if configured)\fP
-.br
-\fICleanup build files and dependencies\fP
-.br
-\f[CB]\-\-chroot\-cleanup\-commands  root  inside chroot\fP
-.br
-\fIClose schroot session\fP
-.br
-\fIRun piuparts (if configured)\fP
-.br
-\f[CB]\-\-post\-build\-commands      root  outside chroot\fP
-.fi
+Here is a summary of the ordering, user, internal/external to chroot for each
+command hook
+.PP
+The following table shows each command hook in the context of the tasks sbuild
+performs. The column \fIroot\fP shows whether the command is run as root (yes)
+or not (no).  The column \fIchroot\fP shows whether the command is run inside
+our outside the chroot. The remaining columns show the percent escapes that are
+defined in each command. Percent escapes that are available in all commands
+(\fB%%\fR, \fB%d\fR, \fB%a\fR, \fB%b\fR, \fB%p\fR, \fB%s\fR) are omitted.
+.PP
+.if t \{\
+.ft CW
+\}
+.TS
+l l l l l.
+command/action	root	chroot	%c	%r
+_
+Initialise chroot session
+\f[CB]\-\-pre\-build\-commands\fP	yes	outside	no	yes
+Setup the chroot and variables
+\f[CB]\-\-chroot\-setup\-commands\fP	yes	inside	no	no
+Update and upgrade packages
+Install Dependencies
+\f[CB]\-\-build\-deps\-failed\-commands\fP	yes	inside	no	no
+\f[CB]\-\-starting\-build\-commands\fP	no	inside	no	no
+Run dpkg-buildpackage
+\f[CB]\-\-build\-failed\-commands\fP	no	inside	no	no
+\f[CB]\-\-finished\-build\-commands\fP	no	inside	no	no
+Run lintian (if configured)
+Cleanup build files and dependencies
+\f[CB]\-\-chroot\-cleanup\-commands\fP	yes	inside	yes	no
+Close schroot session
+Run piuparts (if configured)
+\f[CB]\-\-post\-build\-commands\fP	yes	outside	yes	yes
+.TE
+.if t \{\
+.in
+.ft P
+\}
 .PP
 The commands can be given in the configuration files. They can be given as
 strings or as a list of arguments. For example, to run "foo" and "bar" with
@@ -618,7 +649,8 @@ These escapes are converted to the absolute path to a package's .dsc file.
 .TP
 \fB%c\fR, \fB%SBUILD_CHANGES\fR
 These escapes are converted to the absolute path to a package's source .changes
-file.
+file. This variable is only set after the build is finished, i.e in
+\f[CB]\-\-chroot\-cleanup\-commands\fP and \f[CB]\-\-post\-build\-commands\fP.
 .TP
 \fB%a\fR, \fB%SBUILD_HOST_ARCH\fR
 These escapes are converted to the debian name of the architecture the build 
@@ -627,7 +659,8 @@ is being built for (e.g amd64, armhf).
 \fB%r\fR, \fB%SBUILD_CHROOT_DIR\fR
 These escapes are converted to the absolute path on the host to the root
 directory of the chroot. This variable is not set if the external command is
-run inside the chroot.
+run inside the chroot. Thus this escape is only available for
+\f[CB]\-\-pre\-build\-commands\fP and \f[CB]\-\-post\-build\-commands\fP.
 .TP
 \fB%b\fR, \fB%SBUILD_BUILD_DIR\fR
 These escapes are converted to the absolute path to the build directory inside
@@ -641,9 +674,10 @@ inside the chroot.
 This is converted to a command to spawn an interactive "bash" shell
 .PP
 Percent escapes are only substituted when an appropriate value is defined for
-them. At other times, it is left unchanged. For example, a .changes file is only
-defined at the end of a build, so using \fI%c\fR will only be substituted for
-post-build-commands.
+them. At other times, it is left unchanged. In practice this means that there
+are only two escapes that are not available in all external commands: \fB%c\fR
+and \fB%r\fR. For example, a .changes file is only defined at the end of a
+build, so using \fI%c\fR will only be substituted for post-build-commands.
 .PP
 Here's an example of using an escape to run a program foo on a .changes file
 after a build is done.
@@ -651,6 +685,11 @@ after a build is done.
 \f[CB]$ sbuild \-\-post\-build\-commands \\\fP
 .br
 \f[CB]      'foo %SBUILD_CHANGES'\fP
+.PP
+And here's an example that will spawn an interactive shell to investigate the
+problem whenever the build failed:
+.PP
+\f[CB]$ sbuild \-\-build\-failed\-commands '%s'\fP
 .PP
 One final note, external commands are processed in the order they are given.
 Also, the commands given in a configuration file are processed first, then the
