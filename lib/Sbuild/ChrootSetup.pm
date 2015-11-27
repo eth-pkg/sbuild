@@ -287,9 +287,10 @@ EOF
         return $?;
     }
 
-    # Secret keyring needs to be readable by 'sbuild' group.
+    # Keys needs to be readable by 'sbuild' group.
     @command = ('chmod', '640',
-                $conf->get('SBUILD_BUILD_DEPENDS_SECRET_KEY'));
+                $conf->get('SBUILD_BUILD_DEPENDS_SECRET_KEY'),
+                $conf->get('SBUILD_BUILD_DEPENDS_PUBLIC_KEY'));
     $host->run_command(
         { COMMAND => \@command,
 	  USER => $conf->get('BUILD_USER'),
