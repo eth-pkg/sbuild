@@ -818,6 +818,7 @@ sub setup ($) {
 			 mips => ['crossbuild-essential-mips:native'],
 			 mipsel => ['crossbuild-essential-mipsel:native'],
 			 powerpc => ['crossbuild-essential-powerpc:native'],
+			 ppc64el => ['crossbuild-essential-ppc64el:native'],
 			 sparc => ['crossbuild-essential-sparc:native']
 	    	       },
 	    HELP => 'Per-architecture dependencies required for cross-building.'
