@@ -811,17 +811,14 @@ sub setup ($) {
 	    TYPE => 'HASH:ARRAY:STRING',
 	    VARNAME => 'crossbuild_core_depends',
 	    GROUP => 'Multiarch support (transitional)',
-	    DEFAULT => { arm64 => ['crossbuild-essential-arm64:native'],
-			 armel => ['crossbuild-essential-armel:native'],
-			 armhf => ['crossbuild-essential-armhf:native'],
-			 ia64 => ['crossbuild-essential-ia64:native'],
-			 mips => ['crossbuild-essential-mips:native'],
-			 mipsel => ['crossbuild-essential-mipsel:native'],
-			 powerpc => ['crossbuild-essential-powerpc:native'],
-			 ppc64el => ['crossbuild-essential-ppc64el:native'],
-			 sparc => ['crossbuild-essential-sparc:native']
-	    	       },
-	    HELP => 'Per-architecture dependencies required for cross-building.'
+	    DEFAULT => {},
+	    HELP => 'Per-architecture dependencies required for cross-building. By default, if a Debian architecture is not found as a key in this hash, the package crossbuild-essential-${hostarch}:native will be installed.',
+	    EXAMPLE => '
+$crossbuild_core_depends = {
+    nios2 => [\'crossbuild-essential-nios2:native\', \'special-package\'],
+    musl-linux-mips => [\'crossbuild-essential-musl-linux-mips:native\', \'super-special\'],
+}
+'
 	},	'BUILD_SOURCE'				=> {
 	    TYPE => 'BOOL',
 	    VARNAME => 'build_source',

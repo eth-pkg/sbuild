@@ -687,8 +687,11 @@ sub run_fetch_install_packages {
 	my @coredeps = @{$self->get_conf('CORE_DEPENDS')};
 	if ($self->get('Host Arch') ne $self->get('Build Arch')) {
 	    my $crosscoredeps = $self->get_conf('CROSSBUILD_CORE_DEPENDS');
-	    push(@coredeps, @{$crosscoredeps->{$self->get('Host Arch')}})
-		if defined($crosscoredeps->{$self->get('Host Arch')});
+	    if (defined($crosscoredeps->{$self->get('Host Arch')})) {
+	        push(@coredeps, @{$crosscoredeps->{$self->get('Host Arch')}});
+	    } else {
+		push(@coredeps, 'crossbuild-essential-' . $self->get('Host Arch') . ':native');
+            }
 	}
 	$resolver->add_dependencies('CORE', join(", ", @coredeps) , "", "", "", "", "");
 
