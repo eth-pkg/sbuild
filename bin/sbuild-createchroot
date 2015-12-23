@@ -199,6 +199,7 @@ push @args, "--exclude=" . $conf->get('EXCLUDE') if $conf->get('EXCLUDE');
 push @args, "--components=" . $conf->get('COMPONENTS')
     if $conf->get('COMPONENTS');
 push @args, "--keyring=" . $conf->get('KEYRING') if $conf->get('KEYRING');
+push @args, "--no-check-gpg" if $conf->get('KEYRING') eq "";
 push @args, $conf->get('RESOLVE_DEPS') ?
     "--resolve-deps" : "--no-resolve-deps";
 push @args, "$suite", "$target", "$mirror";
