@@ -445,9 +445,12 @@ sub run_chroot_session {
 
 	# Run pre build external commands
 	$self->check_abort();
-	$self->run_external_commands("pre-build-commands",
-				     $self->get_conf('LOG_EXTERNAL_COMMAND_OUTPUT'),
-				     $self->get_conf('LOG_EXTERNAL_COMMAND_ERROR'));
+	if(!$self->run_external_commands("pre-build-commands",
+		$self->get_conf('LOG_EXTERNAL_COMMAND_OUTPUT'),
+		$self->get_conf('LOG_EXTERNAL_COMMAND_ERROR'))) {
+	    Sbuild::Exception::Build->throw(error => "Failed to execute pre-build-commands",
+		failstage => "run-pre-build-commands");
+	}
 
 	# Log colouring
 	$self->build_log_colour('red', '^E: ');
@@ -562,9 +565,12 @@ sub run_chroot_session_locked {
 
 	# Run specified chroot setup commands
 	$self->check_abort();
-	$self->run_external_commands("chroot-setup-commands",
-				     $self->get_conf('LOG_EXTERNAL_COMMAND_OUTPUT'),
-				     $self->get_conf('LOG_EXTERNAL_COMMAND_ERROR'));
+	if(!$self->run_external_commands("chroot-setup-commands",
+		$self->get_conf('LOG_EXTERNAL_COMMAND_OUTPUT'),
+		$self->get_conf('LOG_EXTERNAL_COMMAND_ERROR'))) {
+	    Sbuild::Exception::Build->throw(error => "Failed to execute chroot-setup-commands",
+		failstage => "run-chroot-setup-commands");
+	}
 
 	$self->check_abort();
 
@@ -753,9 +759,12 @@ sub run_fetch_install_packages {
 
 	# Run specified chroot cleanup commands
 	$self->check_abort();
-	$self->run_external_commands("chroot-cleanup-commands",
-				     $self->get_conf('LOG_EXTERNAL_COMMAND_OUTPUT'),
-				     $self->get_conf('LOG_EXTERNAL_COMMAND_ERROR'));
+	if (!$self->run_external_commands("chroot-cleanup-commands",
+		$self->get_conf('LOG_EXTERNAL_COMMAND_OUTPUT'),
+		$self->get_conf('LOG_EXTERNAL_COMMAND_ERROR'))) {
+	    Sbuild::Exception::Build->throw(error => "Failed to execute chroot-cleanup-commands",
+		failstage => "run-chroot-cleanup-commands");
+	}
 
 	if ($self->get('Pkg Status') eq "successful") {
 	    $self->log_subsection("Post Build");
@@ -766,9 +775,12 @@ sub run_fetch_install_packages {
 
 	    # Run post build external commands
 	    $self->check_abort();
-	    $self->run_external_commands("post-build-commands",
-					 $self->get_conf('LOG_EXTERNAL_COMMAND_OUTPUT'),
-					 $self->get_conf('LOG_EXTERNAL_COMMAND_ERROR'));
+	    if(!$self->run_external_commands("post-build-commands",
+		    $self->get_conf('LOG_EXTERNAL_COMMAND_OUTPUT'),
+		    $self->get_conf('LOG_EXTERNAL_COMMAND_ERROR'))) {
+		Sbuild::Exception::Build->throw(error => "Failed to execute post-build-commands",
+		    failstage => "run-post-build-commands");
+	    }
 
 	}
     };
@@ -779,14 +791,20 @@ sub run_fetch_install_packages {
     my $e = Exception::Class->caught('Sbuild::Exception::Build');
     if ( defined $self->get('Pkg Fail Stage') &&
          $self->get('Pkg Fail Stage') eq 'build' ) {
-        $self->run_external_commands("build-failed-commands",
-                                     $self->get_conf('LOG_EXTERNAL_COMMAND_OUTPUT'),
-                                     $self->get_conf('LOG_EXTERNAL_COMMAND_ERROR'));
+	if(!$self->run_external_commands("build-failed-commands",
+		$self->get_conf('LOG_EXTERNAL_COMMAND_OUTPUT'),
+		$self->get_conf('LOG_EXTERNAL_COMMAND_ERROR'))) {
+	    Sbuild::Exception::Build->throw(error => "Failed to execute build-failed-commands",
+		failstage => "run-build-failed-commands");
+	}
     } elsif($e) {
 
-        $self->run_external_commands("build-deps-failed-commands",
-                                     $self->get_conf('LOG_EXTERNAL_COMMAND_OUTPUT'),
-                                     $self->get_conf('LOG_EXTERNAL_COMMAND_ERROR'));
+	if(!$self->run_external_commands("build-deps-failed-commands",
+		$self->get_conf('LOG_EXTERNAL_COMMAND_OUTPUT'),
+		$self->get_conf('LOG_EXTERNAL_COMMAND_ERROR'))) {
+	    Sbuild::Exception::Build->throw(error => "Failed to execute build-deps-failed-commands",
+		failstage => "run-build-deps-failed-commands");
+	}
     }
 
 
@@ -1327,6 +1345,9 @@ sub run_external_commands {
 	$self->log("\n");
 	if (!$returnval) {
 	    $self->log_error("Command '$command_str' failed to run.\n");
+	    # do not run any other commands of this type after the first
+	    # failure
+	    last;
 	} else {
 	    $self->log_info("Finished running '$command_str'.\n");
 	}
@@ -1613,9 +1634,12 @@ sub build {
 	return 0;
     }
 
-    $self->run_external_commands("starting-build-commands",
-				     $self->get_conf('LOG_EXTERNAL_COMMAND_OUTPUT'),
-				     $self->get_conf('LOG_EXTERNAL_COMMAND_ERROR'));
+    if (!$self->run_external_commands("starting-build-commands",
+	    $self->get_conf('LOG_EXTERNAL_COMMAND_OUTPUT'),
+	    $self->get_conf('LOG_EXTERNAL_COMMAND_ERROR'))) {
+	Sbuild::Exception::Build->throw(error => "Failed to execute starting-build-commands",
+	    failstage => "run-starting-build-commands");
+    }
 
     $self->set('Build Start Time', time);
     $self->set('Build End Time', $self->get('Build Start Time'));
@@ -1808,9 +1832,12 @@ sub build {
     $self->log("Build finished at $finish_date\n");
 
 
-    $self->run_external_commands("finished-build-commands",
-				     $self->get_conf('LOG_EXTERNAL_COMMAND_OUTPUT'),
-				     $self->get_conf('LOG_EXTERNAL_COMMAND_ERROR'));
+    if (!$self->run_external_commands("finished-build-commands",
+	    $self->get_conf('LOG_EXTERNAL_COMMAND_OUTPUT'),
+	    $self->get_conf('LOG_EXTERNAL_COMMAND_ERROR'))) {
+	Sbuild::Exception::Build->throw(error => "Failed to execute finished-build-commands",
+	    failstage => "run-finished-build-commands");
+    }
 
     my @space_files = ("$dscdir");
 
