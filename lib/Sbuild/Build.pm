@@ -1118,7 +1118,23 @@ sub fetch_source_files {
     } else {
 	my $valid_arch;
 	for my $a (split(/\s+/, $dscarchs)) {
-	    if (Dpkg::Arch::debarch_is($host_arch, $a)) {
+	    my $command = <<"EOF";
+		use strict;
+		use warnings;
+		use Dpkg::Arch;
+		if (Dpkg::Arch::debarch_is($host_arch, $a)) {
+		    exit 0;
+		}
+		exit 1;
+EOF
+	    $self->get('Session')->run_command(
+		{ COMMAND => ['perl',
+			'-e',
+			$command],
+		    USER => 'root',
+		    PRIORITY => 0,
+		    DIR => '/' });
+	    if ($? == 0) {
 		$valid_arch = 1;
 		last;
 	    }
