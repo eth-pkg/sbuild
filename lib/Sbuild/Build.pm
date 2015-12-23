@@ -387,7 +387,7 @@ sub run_chroot_session {
 		$self->get_conf('BUILD_ARCH') .
 		") and chroot architecture (" . $chroot_arch .
 		") do not match.  Skipping build.",
-		info => "Please specify the correct architecture with --build-arch, or use a chroot of the correct architecture",
+		info => "Please specify the correct architecture with --build, or use a chroot of the correct architecture",
 		failstage => "create-session");
 	}
 
