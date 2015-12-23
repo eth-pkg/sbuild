@@ -1892,7 +1892,7 @@ sub build {
 			    $_ = '        ' . substr ($_,$index+1);
 			}
 			$self->log($_);
-			if (/^ [a-z0-9]{32}/) {
+			if (/^ [a-z0-9]{32} /) {
 			    push(@cfiles, (split( /\s+/, $_ ))[5] );
 			}
 		    }
