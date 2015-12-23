@@ -102,7 +102,7 @@ sub set_options {
 	    $self->set_conf('BUILD_ARCH', $_[1]);
 	},
 	"foreign" => sub {
-	    $self->set_conf('FOREIGN', 0);
+	    $self->set_conf('FOREIGN', 1);
 	},
 	"resolve-deps" => sub {
 	    $self->set_conf('RESOLVE_DEPS', 1)
