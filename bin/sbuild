@@ -233,11 +233,13 @@ sub create_source_package ($) {
     chdir($dir) or Sbuild::Exception::Build->throw(
 	error => "Failed to change directory",
 	failstage => "pack-source");
-    system($conf->get('FAKEROOT'), 'debian/rules', 'clean');
-    if ($?) {
-	Sbuild::Exception::Build->throw(
-	    error => "Failed to clean source directory $dir ($dsc)",
-	    failstage => "pack-source");
+    if ($conf->get('CLEAN_SOURCE')) {
+	system($conf->get('FAKEROOT'), 'debian/rules', 'clean');
+	if ($?) {
+	    Sbuild::Exception::Build->throw(
+		error => "Failed to clean source directory $dir ($dsc)",
+		failstage => "pack-source");
+	}
     }
     my @dpkg_source_command = ($conf->get('DPKG_SOURCE'), '-b');
     push @dpkg_source_command, @{$conf->get('DPKG_SOURCE_OPTIONS')}

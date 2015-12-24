@@ -895,6 +895,13 @@ sub setup ($) {
 	    },
 	    HELP => 'Build dependency resolver.  The \'apt\' resolver is currently the default, and recommended for most users.  This resolver uses apt-get to resolve dependencies.  Alternative resolvers are \'apt\', \'aptitude\' and \'aspcud\'. The \'apt\' resolver uses a built-in resolver module while the \'aptitude\' resolver uses aptitude to resolve build dependencies.  The aptitude resolver is similar to apt, but is useful in more complex situations, such as where multiple distributions are required, for example when building from experimental, where packages are needed from both unstable and experimental, but defaulting to unstable. If the dependency situation is too complex for either apt or aptitude to solve it, you can use the \'aspcud\' resolver which is a real SAT solver and will thus alwyas find a solution if a solution exists.'
 	},
+	'CLEAN_SOURCE'				=> {
+	    TYPE => 'BOOL',
+	    VARNAME => 'clean_source',
+	    GROUP => 'Build options',
+	    DEFAULT => 1,
+	    HELP => 'When running sbuild from within an unpacked source tree, run the \'clean\' target before generating the source package. This might require some of the build dependencies necessary for running the \'clean\' target to be installed on the host machine. Only disable if you start from a clean checkout and you know what you are doing.'
+	},
 	'LINTIAN'				=> {
 	    TYPE => 'STRING',
 	    VARNAME => 'lintian',

@@ -234,6 +234,12 @@ sub set_options {
 		       "no-resolve-alternatives" => sub {
 			   $self->set_conf('RESOLVE_ALTERNATIVES', 0);
 		       },
+			"clean-source" => sub {
+			    $self->set_conf('CLEAN_SOURCE', 1);
+		       },
+			"no-clean-source" => sub {
+			    $self->set_conf('CLEAN_SOURCE', 0);
+		       },
 			"run-lintian" => sub {
 			    $self->set_conf('RUN_LINTIAN', 1);
 		       },

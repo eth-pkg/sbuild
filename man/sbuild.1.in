@@ -58,6 +58,8 @@ sbuild \- build debian packages from source
 .RB [ \-\-purge\-session=\fPpurge-mode\fP ]
 .RB [ \-b \[or] \-\-batch]
 .RB [ \-n \[or] \-\-nolog ]
+.RB [ \-\-clean\-source ]
+.RB [ \-\-no\-clean\-source ]
 .RB [ \-\-run\-lintian ]
 .RB [ \-\-no\-run\-lintian ]
 .RB [ \-\-lintian\-opt=\fIoptions\fP ]
@@ -350,6 +352,16 @@ used for binary NMUs.
 This option is similar to \-\-make\-binNMU except that it allows the user to
 specify an arbitrary string to be appended to the version number (immediately
 before the '+' in the Debian revision if \-\-make\-binNMU is also provided).
+.TP
+.BR \-\-clean\-source
+When executing sbuild from within an unpacked source tree, execute the
+debian/rules clean target. This is the default and might require some of the
+build dependencies installed on the host.
+.TP
+.BR \-\-no\-clean\-source
+When executing sbuild from within an unpacked source tree, do not run the
+debian/rules clean target before building the source package. Only set this if
+you start from a clean checkout and you know what you are doing.
 .TP
 .BR \-\-run\-lintian
 Run lintian after a successful build.
