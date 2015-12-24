@@ -221,9 +221,11 @@ sub init_allowed_keys {
 	},
 	'BUILD_USER'				=> {
 	    TYPE => 'STRING',
-	    GROUP => '__INTERNAL',
+	    VARNAME => 'build_user',
+	    GROUP => 'Core options',
 	    DEFAULT => $username,
-	    HELP => 'Username used for building.  Should not require setting.'
+	    IGNORE_DEFAULT => 1, # don't write the username into the config
+	    HELP => 'Username used for running dpkg-buildpackage. By default the user running sbuild is used within the chroot as well but that might allow a process from within the chroot to break out of the chroot by attaching to a process running outside the chroot with eg. gdb and then becoming root inside the chroot through schroot and thus be able to leave the chroot.'
 	},
 	'VERBOSE'				=> {
 	    TYPE => 'NUMERIC',
