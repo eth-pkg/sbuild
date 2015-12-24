@@ -99,6 +99,11 @@ sub setup ($$$) {
 				    undef, # TODO: Add --chroot option
 				    $conf->get('BUILD_ARCH'));
 
+    if (!defined $session) {
+	print STDERR "Error creating chroot info\n";
+	return undef;
+    }
+
     $session->set('Log Stream', \*STDOUT);
 
     my $chroot_defaults = $session->get('Defaults');

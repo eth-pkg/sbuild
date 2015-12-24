@@ -104,8 +104,8 @@ sub find {
 	    if ($namespace ne 'chroot') {
 		$chroot = $self->find('chroot', $distribution, $chroot, $arch);
 	    } else {
-		    Sbuild::Exception::Build->throw(error => "Chroot namespace $namespace not found\n",
-				    failstage => "find-chroot");
+		$self->log_error("Chroot namespace $namespace not found\n");
+		return undef;
 	    }
 	}
 
@@ -137,8 +137,8 @@ sub find {
 	if ($namespace ne 'chroot') {
 	    $chroot = $self->find('chroot', $distribution, $chroot, $arch);
 	} else {
-		    Sbuild::Exception::Build->throw(error => "Chroot for distribution $distribution, architecture $arch not found\n",
-				    failstage => "find-chroot");
+		$self->log_error("Chroot for distribution $distribution, architecture $arch not found\n");
+		return undef;
 	}
     }
 
