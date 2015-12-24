@@ -173,6 +173,17 @@ $conf->set('INCLUDE', add_items($conf->get('INCLUDE'),
 				"debfoster"));
 
 my $suite = $ARGV[0];
+
+# check if schroot name is already in use
+
+my $chrootname = "${suite}-" . $conf->get('BUILD_ARCH') . $conf->get('CHROOT_SUFFIX');
+
+open my $pipe, 'schroot -l --all-source-chroots |';
+while (my $line = <$pipe>) {
+	$line ne "source:$chrootname\n" or die "chroot with name $chrootname already exists";
+}
+close $pipe;
+
 # Create the target directory in advance so abs_path (which is buggy)
 # won't fail.  Remove if abs_path is replaced by something better.
 makedir($ARGV[1], 0755);
@@ -270,7 +281,6 @@ dump_file("${target}/etc/apt/sources.list");
 print "I: Please add any additional APT sources to ${target}/etc/apt/sources.list\n";
 
 # Write out schroot chroot configuration.
-my $chrootname = "${suite}-" . $conf->get('BUILD_ARCH') . $conf->get('CHROOT_SUFFIX');
 
 # Determine the schroot chroot configuration to use.
 my $config_entry;
