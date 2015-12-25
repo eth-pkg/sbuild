@@ -614,58 +614,66 @@ sub run_chroot_update {
     my $self = shift;
     my $resolver = $self->get('Dependency Resolver');
 
-    if ($self->get_conf('APT_CLEAN') || $self->get_conf('APT_UPDATE') ||
-	$self->get_conf('APT_DISTUPGRADE') || $self->get_conf('APT_UPGRADE')) {
-	$self->log_subsection('Update chroot');
-    }
+    eval {
+	if ($self->get_conf('APT_CLEAN') || $self->get_conf('APT_UPDATE') ||
+	    $self->get_conf('APT_DISTUPGRADE') || $self->get_conf('APT_UPGRADE')) {
+	    $self->log_subsection('Update chroot');
+	}
 
-    # Clean APT cache.
-    $self->check_abort();
-    if ($self->get_conf('APT_CLEAN')) {
-	if ($resolver->clean()) {
-	    # Since apt-clean was requested specifically, fail on
-	    # error when not in buildd mode.
-	    $self->log("apt-get clean failed\n");
-	    if ($self->get_conf('SBUILD_MODE') ne 'buildd') {
-		Sbuild::Exception::Build->throw(error => "apt-get clean failed",
-						failstage => "apt-get-clean");
+	# Clean APT cache.
+	$self->check_abort();
+	if ($self->get_conf('APT_CLEAN')) {
+	    if ($resolver->clean()) {
+		# Since apt-clean was requested specifically, fail on
+		# error when not in buildd mode.
+		$self->log("apt-get clean failed\n");
+		if ($self->get_conf('SBUILD_MODE') ne 'buildd') {
+		    Sbuild::Exception::Build->throw(error => "apt-get clean failed",
+						    failstage => "apt-get-clean");
+		}
 	    }
 	}
-    }
 
-    # Update APT cache.
-    $self->check_abort();
-    if ($self->get_conf('APT_UPDATE')) {
-	if ($resolver->update()) {
-	    # Since apt-update was requested specifically, fail on
-	    # error when not in buildd mode.
-	    if ($self->get_conf('SBUILD_MODE') ne 'buildd') {
-		Sbuild::Exception::Build->throw(error => "apt-get update failed",
-						failstage => "apt-get-update");
+	# Update APT cache.
+	$self->check_abort();
+	if ($self->get_conf('APT_UPDATE')) {
+	    if ($resolver->update()) {
+		# Since apt-update was requested specifically, fail on
+		# error when not in buildd mode.
+		if ($self->get_conf('SBUILD_MODE') ne 'buildd') {
+		    Sbuild::Exception::Build->throw(error => "apt-get update failed",
+						    failstage => "apt-get-update");
+		}
 	    }
 	}
-    }
 
-    # Upgrade using APT.
-    $self->check_abort();
-    if ($self->get_conf('APT_DISTUPGRADE')) {
-	if ($resolver->distupgrade()) {
-	    # Since apt-distupgrade was requested specifically, fail on
-	    # error when not in buildd mode.
-	    if ($self->get_conf('SBUILD_MODE') ne 'buildd') {
-		Sbuild::Exception::Build->throw(error => "apt-get dist-upgrade failed",
-						failstage => "apt-get-dist-upgrade");
+	# Upgrade using APT.
+	$self->check_abort();
+	if ($self->get_conf('APT_DISTUPGRADE')) {
+	    if ($resolver->distupgrade()) {
+		# Since apt-distupgrade was requested specifically, fail on
+		# error when not in buildd mode.
+		if ($self->get_conf('SBUILD_MODE') ne 'buildd') {
+		    Sbuild::Exception::Build->throw(error => "apt-get dist-upgrade failed",
+						    failstage => "apt-get-dist-upgrade");
+		}
+	    }
+	} elsif ($self->get_conf('APT_UPGRADE')) {
+	    if ($resolver->upgrade()) {
+		# Since apt-upgrade was requested specifically, fail on
+		# error when not in buildd mode.
+		if ($self->get_conf('SBUILD_MODE') ne 'buildd') {
+		    Sbuild::Exception::Build->throw(error => "apt-get upgrade failed",
+						    failstage => "apt-get-upgrade");
+		}
 	    }
 	}
-    } elsif ($self->get_conf('APT_UPGRADE')) {
-	if ($resolver->upgrade()) {
-	    # Since apt-upgrade was requested specifically, fail on
-	    # error when not in buildd mode.
-	    if ($self->get_conf('SBUILD_MODE') ne 'buildd') {
-		Sbuild::Exception::Build->throw(error => "apt-get upgrade failed",
-						failstage => "apt-get-upgrade");
-	    }
-	}
+    };
+
+    my $e = Exception::Class->caught('Sbuild::Exception::Build');
+    if ($e) {
+	$self->run_external_commands("chroot-update-failed-commands");
+	$e->rethrow();
     }
 }
 
@@ -1300,6 +1308,10 @@ sub run_external_commands {
     } elsif ($stage eq "chroot-setup-commands") {
 	$self->log_subsection("Chroot Setup Commands");
 	$chroot = 1;
+    } elsif ($stage eq "chroot-update-failed-commands") {
+	$self->log_subsection("Chroot-update Install Failed Commands");
+	$chroot = 1;
+	$rootuser = 1;
     } elsif ($stage eq "build-deps-failed-commands") {
 	$self->log_subsection("Build-Deps Install Failed Commands");
 	$chroot = 1;

@@ -73,6 +73,7 @@ sbuild \- build debian packages from source
 .RB [ \-\-piuparts\-root\-args=\fIoptions\fP ]
 .RB [ \-\-pre\-build\-commands=\fIstring\fP ]
 .RB [ \-\-chroot\-setup\-commands=\fIstring\fP ]
+.RB [ \-\-chroot\-update\-failed\-commands=\fIstring\fP ]
 .RB [ \-\-build\-deps\-failed\-commands=\fIstring\fP ]
 .RB [ \-\-starting\-build\-commands=\fIstring\fP ]
 .RB [ \-\-finished\-build\-commands=\fIstring\fP ]
@@ -463,6 +464,14 @@ section
 .BR "EXTERNAL COMMANDS"
 for more information.
 .TP
+.BR \-\-chroot\-update\-failed\-commands=\fIstring\fP
+Run these commands after any of 'apt-get update', 'apt-get upgrade' or 'apt-get
+dist-upgrade' failed. The environment is intact, and the failure can be
+investigated. Especially %SBUILD_SHELL is useful here. This option can be used
+multiple times to add multiple commands. See the section
+.BR "EXTERNAL COMMANDS"
+for more information.
+.TP
 .BR \-\-build\-deps\-failed\-commands=\fIstring\fP
 These commands are run if installing the build dependencies has failed directly
 after the failed attempt. The environment is intact, and the failure can be
@@ -661,9 +670,10 @@ There are several sets of commands. The \fIpre/post\-build\-\fP commands are
 run external to the chroot. The \fIchroot\-setup/cleanup\-\fP commands and
 \fIStarting/Finished\-Build\-\fP commands are run inside the chroot. They are
 all run as root except the \fIStarting/Finishing\-build-\fP commands, which are
-run as the current sbuild user. \fIbuild\-deps\-failed\fP runs similarly to
-\fIchroot\-setup\fP: in the chroot as root. \fIbuild\-failed\fP runs similarly
-to \fIfinished\-build\fP: in the chroot as the user.
+run as the current sbuild user. \fIchroot\-update\-failed\fP and
+\fIbuild\-deps\-failed\fP runs similarly to \fIchroot\-setup\fP: in the chroot
+as root. \fIbuild\-failed\fP runs similarly to \fIfinished\-build\fP: in the
+chroot as the user.
 .PP
 Here is a summary of the ordering, user, internal/external to chroot for each
 command hook
@@ -687,6 +697,7 @@ Initialise chroot session
 Setup the chroot and variables
 \f[CB]\-\-chroot\-setup\-commands\fP	yes	inside	no	no
 Update and upgrade packages
+\f[CB]\-\-chroot\-update\-failed\-commands\fP	yes	inside	no	no
 Install Dependencies
 \f[CB]\-\-build\-deps\-failed\-commands\fP	yes	inside	no	no
 \f[CB]\-\-starting\-build\-commands\fP	no	inside	no	no

@@ -983,6 +983,7 @@ $crossbuild_core_depends = {
 	    DEFAULT => {
 		"pre-build-commands" => [],
 		"chroot-setup-commands" => [],
+		"chroot-update-failed-commands" => [],
 		"build-deps-failed-commands" => [],
 		"build-failed-commands" => [],
 		"starting-build-commands" => [],
@@ -998,6 +999,10 @@ $crossbuild_core_depends = {
         [\'bar\', \'arg1\', \'arg2\', \'arg3\'],
     ],
     "chroot-setup-commands" => [
+        [\'foo\', \'arg1\', \'arg2\'],
+        [\'bar\', \'arg1\', \'arg2\', \'arg3\'],
+    ],
+    "chroot-update-failed-commands" => [
         [\'foo\', \'arg1\', \'arg2\'],
         [\'bar\', \'arg1\', \'arg2\', \'arg3\'],
     ],
