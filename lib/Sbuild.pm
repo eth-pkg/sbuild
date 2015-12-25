@@ -374,8 +374,9 @@ sub check_group_membership () {
     }
 
     if (!$in_group) {
-	print STDERR "User $user is not currently a member of group sbuild, but is in the system group database\n";
-	print STDERR "You need to log in again to gain sbuild group privileges\n";
+	print STDERR "User $user is not currently an effective member of group sbuild. Please run:\n";
+	print STDERR " sudo sbuild-adduser $user\n";
+	print STDERR "And then either log out and log in again or use `newgrp sbuild` to gain sbuild group privileges\n";
 	exit(1);
     }
 
