@@ -298,6 +298,7 @@ EOF
     $config_entry = <<"EOF";
 [$chrootname]
 type=directory
+union-type=overlay
 description=Debian $suite/$arch autobuilder
 directory=$target
 groups=root,sbuild

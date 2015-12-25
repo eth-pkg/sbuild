@@ -186,13 +186,6 @@ Generates a compressed tarball using xz.
 If no extension is specified, sbuild\-createchroot will rename \fIfile\fP to
 \fIfile.tar.gz\fP and generate \fIfile.tar.gz\fP as a compressed tarball using gzip.
 .SH EXAMPLES
-To create a plain type sid (unstable) chroot in \fI/srv/chroot/unstable\fP using
-the \fIhttpredir.debian.org\fP Debian http mirror redirector service:
-.PP
-\f[CR]% \f[CB]sudo sbuild\-createchroot sid /srv/chroot/unstable \fP\fP\\
-.br
-\f[CB]    http://httpredir.debian.org/debian\fP\[CR]
-.PP
 To create a bootstrapped file type sid (unstable) chroot ready for use with
 sbuild and saved in \fI/var/cache/sbuild/sbuild.tar.gz\fP using the
 \fIhttpredir.debian.org\fP Debian http mirror redirector service and using a
@@ -200,9 +193,16 @@ temporary directory as the target:
 .PP
 \f[CR]% \f[CB]sudo sbuild\-createchroot \fP\fP\\
 .br
-    \-\-make\-sbuild\-tarball=/var/cache/sbuild/sbuild.tar.gz \fP\fP\\
+    \-\-make\-sbuild\-tarball=/srv/chroot/unstable-amd64.tar.gz \fP\fP\\
 .br
     sid `mktemp \-d` \fP\fP\\
+.br
+\f[CB]    http://httpredir.debian.org/debian\fP\[CR]
+.PP
+To create a plain type sid (unstable) chroot in \fI/srv/chroot/unstable\fP using
+the \fIhttpredir.debian.org\fP Debian http mirror redirector service:
+.PP
+\f[CR]% \f[CB]sudo sbuild\-createchroot sid /srv/chroot/unstable-amd64 \fP\fP\\
 .br
 \f[CB]    http://httpredir.debian.org/debian\fP\[CR]
 .SH HISTORY
