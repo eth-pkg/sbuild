@@ -84,6 +84,10 @@ sub main () {
 	my $jobname = $ARGV[0];
 	my $source_dir = 0;
 
+	if (-e $jobname) {
+	    $jobname = abs_path($jobname);
+	}
+
 	if (-d $jobname) {
 	    $jobname = create_source_package($jobname);
 	    if ($jobname eq '.') {
@@ -166,7 +170,6 @@ sub main () {
 
 sub create_source_package ($) {
     my $dsc = shift;
-    $dsc = abs_path($dsc);
 
     open(my $pipe, '-|', 'dpkg-parsechangelog',
 	 '-l' . $dsc . '/debian/changelog')
