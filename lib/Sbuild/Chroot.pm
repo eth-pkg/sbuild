@@ -273,16 +273,6 @@ sub exec_command {
     my $program = $command->[0];
     $program = $options->{'PROGRAM'} if defined($options->{'PROGRAM'});
 
-    my $chrootenv = $self->get('Defaults')->{'ENV'};
-    foreach (keys %$chrootenv) {
-	$ENV{$_} = $chrootenv->{$_};
-    }
-
-    my $commandenv = $options->{'ENV'};
-    foreach (keys %$commandenv) {
-	$ENV{$_} = $commandenv->{$_};
-    }
-
     my @filter;
     my $chrootfilter = $self->get('Defaults')->{'ENV_FILTER'};
     push(@filter, @{$chrootfilter});
@@ -304,6 +294,16 @@ sub exec_command {
 	} else {
 	    debug2("Environment filter: Kept $var\n");
 	}
+    }
+
+    my $chrootenv = $self->get('Defaults')->{'ENV'};
+    foreach (keys %$chrootenv) {
+	$ENV{$_} = $chrootenv->{$_};
+    }
+
+    my $commandenv = $options->{'ENV'};
+    foreach (keys %$commandenv) {
+	$ENV{$_} = $commandenv->{$_};
     }
 
     debug2("PROGRAM: $program\n");
