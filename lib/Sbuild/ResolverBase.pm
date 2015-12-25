@@ -993,7 +993,13 @@ EOF
     }
 
     # Sign the release file
-    if (!$self->get_conf('APT_ALLOW_UNAUTHENTICATED')) {
+    # This will only be done if the sbuild keys are present.
+    # Once squeeze is not supported anymore, we want to never sign the
+    # dummy repository anymore but instead make use of apt's support for
+    # [trusted=yes] in wheezy and later.
+    if ((-f $self->get_conf('SBUILD_BUILD_DEPENDS_SECRET_KEY')) &&
+	(-f $self->get_conf('SBUILD_BUILD_DEPENDS_PUBLIC_KEY')) &&
+	!$self->get_conf('APT_ALLOW_UNAUTHENTICATED')) {
         if (!$self->generate_keys()) {
             $self->log("Failed to generate archive keys.\n");
             $self->cleanup_apt_archive();
@@ -1079,8 +1085,16 @@ EOF
     # Write a list file for the dummy archive if one not create yet.
     if (! -f $dummy_archive_list_file) {
         my ($tmpfh, $tmpfilename) = tempfile(DIR => $session->get('Location') . "/tmp");
-        print $tmpfh 'deb file://' . $session->strip_chroot_path($dummy_archive_dir) . " ./\n";
-        print $tmpfh 'deb-src file://' . $session->strip_chroot_path($dummy_archive_dir) . " ./\n";
+	# We always trust the dummy apt repositories.
+	# This means that if SBUILD_BUILD_DEPENDS_{SECRET|PUBLIC}_KEY do not
+	# exist and thus the dummy repositories do not get signed, apt will
+	# still trust it. This allows one to run sbuild without generating
+	# keys which is useful on machines with little randomness.
+	# Older apt from squeeze will still require keys to be generated as it
+	# ignores the trusted=yes. Older apt ignoring this is also why we can add
+	# this unconditionally.
+        print $tmpfh 'deb [trusted=yes] file://' . $session->strip_chroot_path($dummy_archive_dir) . " ./\n";
+        print $tmpfh 'deb-src [trusted=yes] file://' . $session->strip_chroot_path($dummy_archive_dir) . " ./\n";
 
         for my $repospec (@{$self->get_conf('EXTRA_REPOSITORIES')}) {
             print $tmpfh "$repospec\n";
@@ -1112,7 +1126,9 @@ EOF
         unlink $tmpfilename;
     }
 
-    if (!$self->get_conf('APT_ALLOW_UNAUTHENTICATED')) {
+    if ((-f $self->get_conf('SBUILD_BUILD_DEPENDS_SECRET_KEY')) &&
+	(-f $self->get_conf('SBUILD_BUILD_DEPENDS_PUBLIC_KEY')) &&
+	!$self->get_conf('APT_ALLOW_UNAUTHENTICATED')) {
         # Add the generated key
         $session->run_command(
             { COMMAND => ['apt-key', 'add', $session->strip_chroot_path($dummy_archive_pubkey)],
