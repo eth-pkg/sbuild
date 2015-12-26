@@ -300,6 +300,8 @@ sub run {
 	$self->run_chroot();
     };
 
+    debug("Error run(): $@") if $@;
+
     my $e;
     if ($e = Exception::Class->caught('Sbuild::Exception::Build')) {
 	if ($e->status) {
@@ -530,6 +532,8 @@ sub run_chroot_session {
 	$self->run_chroot_session_locked();
     };
 
+    debug("Error run_chroot_session(): $@") if $@;
+
     # End chroot session
     my $session = $self->get('Session');
     if (defined $session) {
@@ -583,6 +587,8 @@ sub run_chroot_session_locked {
 	$self->check_abort();
 	$self->run_fetch_install_packages();
     };
+
+    debug("Error run_chroot_session_locked(): $@") if $@;
 
     my $session = $self->get('Session');
     my $resolver = $self->get('Dependency Resolver');
@@ -779,6 +785,8 @@ sub run_fetch_install_packages {
 
 	}
     };
+
+    debug("Error run_fetch_install_packages(): $@") if $@;
 
     # I catch the exception here and trigger the hook, if needed. Normally I'd
     # do this at the end of the function, but I want the hook to fire before we
