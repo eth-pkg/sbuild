@@ -1,11 +1,29 @@
 NEWS                                                            -*- outline -*-
 ----
 
-Welcome to sbuild 0.66.0.  Please read these release notes carefully.
+Welcome to sbuild 0.67.0.  Please read these release notes carefully.
 
 Full installation instructions are provided in the INSTALL file.  The
 README file also contains more specific notes regarding building and
 configuration.
+
+* Major changes in 0.67.0:
+
+  1) add --clean-source and --no-clean-source to allow building a package from
+     an unpacked directory without calling debian/rules clean
+
+  2) allow changing the user running dpkg-buildpackage inside the chroot
+
+  3) sbuild-createchroot: use union-type=overlay for directory chroot
+
+  4) Quit processing when external commands fail
+
+  5) Add the --no-arch-any and --arch-any options which give a better control
+     over building or not building architecture specific packages than
+     --arch-all-only
+
+  6) Set [trusted=yes] for internal dummy repository to make key generation
+     optional
 
 * Major changes in 0.66.0:
 
