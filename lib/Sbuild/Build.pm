@@ -1139,7 +1139,7 @@ sub fetch_source_files {
 		use strict;
 		use warnings;
 		use Dpkg::Arch;
-		if (Dpkg::Arch::debarch_is($host_arch, $a)) {
+		if (Dpkg::Arch::debarch_is('$host_arch', '$a')) {
 		    exit 0;
 		}
 		exit 1;
