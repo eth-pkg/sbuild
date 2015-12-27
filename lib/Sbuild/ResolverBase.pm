@@ -97,6 +97,8 @@ sub setup {
 	    print $F "APT::Get::AllowUnauthenticated true;\n";
 	}
 	print $F "APT::Install-Recommends false;\n";
+	print $F "APT::AutoRemove::SuggestsImportant false;\n";
+	print $F "APT::AutoRemove::RecommendsImportant false;\n";
 
 	if ($self->get('Split')) {
 	    print $F "Dir \"$chroot_dir\";\n";
