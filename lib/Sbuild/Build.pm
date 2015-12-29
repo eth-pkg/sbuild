@@ -1107,7 +1107,7 @@ sub fetch_source_files {
         $self->log("$msg\n");
         Sbuild::Exception::Build->throw(error => $msg,
                                         status => "skipped",
-                                        failstage => "add-forein-architecture");
+                                        failstage => "add-foreign-architecture");
         return 0;
     }
 
