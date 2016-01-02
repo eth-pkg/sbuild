@@ -694,8 +694,13 @@ sub move_to_upload {
     $pkg_noepoch =~ s/_\d*:/_/;
 
     my $changes_name = $pkg_noepoch . '_' . $arch . '.changes';
+    my $upload_path = $self->get_conf('HOME') . '/' . $dist_config->get('DUPLOAD_LOCAL_QUEUE_DIR') . '/' . $pkg_noepoch . '_' . $arch . '.upload';
 
     $self->log("$pv is autosigned, moving to '$upload_dir'\n");
+    if ( -f $upload_path ) {
+        unlink( $upload_path );
+        $self->log("'$upload_path' removed.\n");
+    }
     system sprintf('dcmd mv %s/build/%s %s/%s/',
 	$self->get_conf('HOME'),
 	$changes_name,
