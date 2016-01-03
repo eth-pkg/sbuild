@@ -39,32 +39,79 @@ BEGIN {
 sub set_options {
     my $self = shift;
 
+    my ($opt_arch_all, $opt_no_arch_all);
+    my ($opt_build_arch, $opt_host_arch, $opt_arch);
+    my ($opt_arch_any, $opt_no_arch_any);
+    my ($opt_source, $opt_no_source);
+    my ($opt_apt_clean, $opt_no_apt_clean, $opt_apt_update, $opt_no_apt_update,
+	$opt_apt_upgrade, $opt_no_apt_upgrade, $opt_apt_distupgrade, $opt_no_apt_distupgrade);
+    my ($opt_purge, $opt_purge_build, $opt_purge_deps, $opt_purge_session);
+    my ($opt_resolve_alternatives, $opt_no_resolve_alternatives);
+    my ($opt_clean_source, $opt_no_clean_source);
+    my ($opt_run_lintian, $opt_no_run_lintian);
+    my ($opt_run_piuparts, $opt_no_run_piuparts);
+
     $self->add_options("arch=s" => sub {
+			   if (defined $opt_arch && $opt_arch ne $_[1]) {
+			       die "cannot specify differing --arch multiple times";
+			   }
+			   if (defined $opt_build_arch && $opt_build_arch ne $_[1]) {
+			       die "cannot specify --arch together with differing --build-arch";
+			   }
+			   if (defined $opt_host_arch && $opt_host_arch ne $_[1]) {
+			       die "cannot specify --arch together with differing --host-arch";
+			   }
 			   $self->set_conf('HOST_ARCH', $_[1]);
 			   $self->set_conf('BUILD_ARCH', $_[1]);
+			   $opt_arch = $_[1];
 		       },
 		       "build=s" => sub {
+			   if (defined $opt_build_arch && $opt_build_arch ne $_[1]) {
+			       die "cannot specify differing --build-arch multiple times";
+			   }
+			   if (defined $opt_arch && $opt_arch ne $_[1]) {
+			       die "cannot specify --build-arch together with differing --arch";
+			   }
 			   $self->set_conf('BUILD_ARCH', $_[1]);
+			   $opt_build_arch = $_[1];
 		       },
 		       "host=s" => sub {
+			   if (defined $opt_host_arch && $opt_host_arch ne $_[1]) {
+			       die "cannot specify differing --host-arch multiple times";
+			   }
+			   if (defined $opt_arch && $opt_arch ne $_[1]) {
+			       die "cannot specify --host-arch together with differing --arch";
+			   }
 			   $self->set_conf('HOST_ARCH', $_[1]);
+			   $opt_host_arch = $_[1];
 		       },
 		       "A|arch-all" => sub {
+			   if ($opt_no_arch_all) {
+			       die "--arch-all cannot be used together with --no-arch-all";
+			   }
 			   $self->set_conf('BUILD_ARCH_ALL', 1);
+			   $opt_arch_all = 1;
 		       },
 		       "no-arch-all" => sub {
+			   if ($opt_arch_all) {
+			       die "--no-arch-all cannot be used together with --arch-all";
+			   }
 			   $self->set_conf('BUILD_ARCH_ALL', 0);
+			   $opt_no_arch_all = 1;
 		       },
 		       "arch-any" => sub {
+			   if ($opt_no_arch_any) {
+			       die "--arch-any cannot be used together with --no-arch-any";
+			   }
 			   $self->set_conf('BUILD_ARCH_ANY', 1);
+			   $opt_arch_any = 1;
 		       },
 		       "no-arch-any" => sub {
+			   if ($opt_arch_any) {
+			       die "--no-arch-any cannot be used together with --arch-any";
+			   }
 			   $self->set_conf('BUILD_ARCH_ANY', 0);
-		       },
-		       "arch-all-only" => sub {
-			   $self->log_warning("the --arch-all-only option is deprecated!\n");
-			   $self->set_conf('BUILD_ARCH_ALL', 1);
-			   $self->set_conf('BUILD_ARCH_ANY', 0);
+			   $opt_no_arch_any = 1;
 		       },
 		       "profiles=s" => sub {
 			   $_[1] =~ tr/,/ /;
@@ -115,28 +162,60 @@ sub set_options {
 			   push(@{$self->get_conf('ADT_VIRT_SERVER_OPTIONS')}, $_[1]);
 		       },
 		       "apt-clean" => sub {
+			   if ($opt_no_apt_clean) {
+			       die "--apt-clean cannot be used together with --no-apt-clean";
+			   }
 			   $self->set_conf('APT_CLEAN', 1);
+			   $opt_apt_clean = 1;
 		       },
 		       "apt-update" => sub {
+			   if ($opt_no_apt_update) {
+			       die "--apt-update cannot be used together with --no-apt-update";
+			   }
 			   $self->set_conf('APT_UPDATE', 1);
+			   $opt_apt_update = 1;
 		       },
 		       "apt-upgrade" => sub {
+			   if ($opt_no_apt_upgrade) {
+			       die "--apt-upgrade cannot be used together with --no-apt-upgrade";
+			   }
 			   $self->set_conf('APT_UPGRADE', 1);
+			   $opt_apt_upgrade = 1;
 		       },
 		       "apt-distupgrade" => sub {
+			   if ($opt_no_apt_distupgrade) {
+			       die "--apt-distupgrade cannot be used together with --no-apt-distupgrade";
+			   }
 			   $self->set_conf('APT_DISTUPGRADE', 1);
+			   $opt_apt_distupgrade = 1;
 		       },
 		       "no-apt-clean" => sub {
+			   if ($opt_apt_clean) {
+			       die "--no-apt-clean cannot be used together with --apt-clean";
+			   }
 			   $self->set_conf('APT_CLEAN', 0);
+			   $opt_no_apt_clean = 1;
 		       },
 		       "no-apt-update" => sub {
+			   if ($opt_apt_update) {
+			       die "--no-apt-update cannot be used together with --apt-update";
+			   }
 			   $self->set_conf('APT_UPDATE', 0);
+			   $opt_no_apt_update = 1;
 		       },
 		       "no-apt-upgrade" => sub {
+			   if ($opt_apt_upgrade) {
+			       die "--no-apt-upgrade cannot be used together with --apt-upgrade";
+			   }
 			   $self->set_conf('APT_UPGRADE', 0);
+			   $opt_no_apt_upgrade = 1;
 		       },
 		       "no-apt-distupgrade" => sub {
+			   if ($opt_apt_distupgrade) {
+			       die "--no-apt-distupgrade cannot be used together with --apt-distupgrade";
+			   }
 			   $self->set_conf('APT_DISTUPGRADE', 0);
+			   $opt_no_apt_distupgrade = 1;
 		       },
 		       "d|dist=s" => sub {
 			   $self->set_conf('DISTRIBUTION', $_[1]);
@@ -198,24 +277,54 @@ sub set_options {
 			   $self->set_conf('NOLOG', 1);
 		       },
 		       "p|purge=s" => sub {
+			   if (defined $opt_purge_build) {
+			       die "cannot specify --purge together with --purge-build";
+			   }
+			   if (defined $opt_purge_deps) {
+			       die "cannot specify --purge together with --purge-deps";
+			   }
+			   if (defined $opt_purge_session) {
+			       die "cannot specify --purge together with --purge-session";
+			   }
 			   $self->set_conf('PURGE_BUILD_DEPS', $_[1]);
 			   $self->set_conf('PURGE_BUILD_DIRECTORY', $_[1]);
 			   $self->set_conf('PURGE_SESSION', $_[1]);
+			   $opt_purge = 1;
 		       },
 		       "purge-build=s" => sub {
+			   if (defined $opt_purge) {
+			       die "cannot specify --purge-build together with --purge";
+			   }
 			   $self->set_conf('PURGE_BUILD_DIRECTORY', $_[1]);
+			   $opt_purge_build = 1;
 		       },
 		       "purge-deps=s" => sub {
+			   if (defined $opt_purge) {
+			       die "cannot specify --purge-deps together with --purge";
+			   }
 			   $self->set_conf('PURGE_BUILD_DEPS', $_[1]);
+			   $opt_purge_deps = 1;
 		       },
 		       "purge-session=s" => sub {
+			   if (defined $opt_purge) {
+			       die "cannot specify --purge-session together with --purge";
+			   }
 			   $self->set_conf('PURGE_SESSION', $_[1]);
+			   $opt_purge_session = 1;
 		       },
 		       "s|source" => sub {
+			   if ($opt_no_source) {
+			       die "--source cannot be used together with --no-source";
+			   }
 			   $self->set_conf('BUILD_SOURCE', 1);
+			   $opt_source = 1;
 		       },
 		       "no-source" => sub {
+			   if ($opt_source) {
+			       die "--no-source cannot be used together with --source";
+			   }
 			   $self->set_conf('BUILD_SOURCE', 0);
+			   $opt_no_source = 1;
 		       },
 		       "archive=s" => sub {
 			   $self->set_conf('ARCHIVE', $_[1]);
@@ -248,22 +357,46 @@ sub set_options {
 			   $self->set_conf('ASPCUD_CRITERIA', $_[1]);
 		       },
 		       "resolve-alternatives" => sub {
+			   if ($opt_no_resolve_alternatives) {
+			       die "--resolve-alternatives cannot be used together with --no-resolve-alternatives";
+			   }
 			   $self->set_conf('RESOLVE_ALTERNATIVES', 1);
+			   $opt_resolve_alternatives = 1;
 		       },
 		       "no-resolve-alternatives" => sub {
+			   if ($opt_resolve_alternatives) {
+			       die "--no-resolve-alternatives cannot be used together with --resolve-alternatives";
+			   }
 			   $self->set_conf('RESOLVE_ALTERNATIVES', 0);
+			   $opt_no_resolve_alternatives = 1;
 		       },
 			"clean-source" => sub {
+			    if ($opt_no_clean_source) {
+				die "--clean-source cannot be used together with --no-clean-source";
+			    }
 			    $self->set_conf('CLEAN_SOURCE', 1);
+			    $opt_clean_source = 1;
 		       },
 			"no-clean-source" => sub {
+			    if ($opt_clean_source) {
+				die "--no-clean-source cannot be used together with --clean-source";
+			    }
 			    $self->set_conf('CLEAN_SOURCE', 0);
+			    $opt_no_clean_source = 1;
 		       },
 			"run-lintian" => sub {
+			    if ($opt_no_run_lintian) {
+				die "--run-lintian cannot be used together with --no-run-lintian";
+			    }
 			    $self->set_conf('RUN_LINTIAN', 1);
+			    $opt_run_lintian = 1;
 		       },
 		       "no-run-lintian" => sub {
+			    if ($opt_run_lintian) {
+				die "--no-run-lintian cannot be used together with --run-lintian";
+			    }
 			    $self->set_conf('RUN_LINTIAN', 0);
+			    $opt_no_run_lintian = 1;
 		       },
 		       "lintian-opts=s" => sub {
 			   push(@{$self->get_conf('LINTIAN_OPTIONS')},
@@ -274,10 +407,18 @@ sub set_options {
 				$_[1]);
 		       },
 		       "run-piuparts" => sub {
+			    if ($opt_no_run_piuparts) {
+				die "--run-piuparts cannot be used together with --no-run-piuparts";
+			    }
 			    $self->set_conf('RUN_PIUPARTS', 1);
+			    $opt_run_piuparts = 1;
 		       },
 		       "no-run-piuparts" => sub {
+			    if ($opt_run_piuparts) {
+				die "--no-run-piuparts cannot be used together with --run-piuparts";
+			    }
 			    $self->set_conf('RUN_PIUPARTS', 0);
+			    $opt_no_run_piuparts = 1;
 		       },
 		       "piuparts-opts=s" => sub {
 			   push(@{$self->get_conf('PIUPARTS_OPTIONS')},

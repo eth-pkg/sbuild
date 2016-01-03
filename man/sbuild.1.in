@@ -31,7 +31,6 @@ sbuild \- build debian packages from source
 .RB [ \-\-chroot-mode=\fIschroot|sudo|adt\fP ]
 .RB [ \-\-arch=\fIarchitecture\fP ]
 .RB [ \-\-arch\-any " \[or] " \-\-no\-arch\-any ]
-.RB [ \-\-arch\-all\-only ]
 .RB [ \-\-build=\fIarchitecture\fP ]
 .RB [ \-\-host=\fIarchitecture\fP ]
 .RB [ \-\-profiles=\fIprofile[,...]\fP ]
@@ -141,8 +140,7 @@ must be run in a directory containing a \fIchroot\-$distribution\fP symlink to
 the chroot (not recommended, but done for backward compatibility).
 .SH OPTIONS
 Options set on the command line overwrite settings made in the configuration
-file. For options for which a --foo and --no-foo variant exist, later options
-will overwrite earlier options.
+file.
 .TP
 .BR \-h ", " \-\-help
 Display this manual.
@@ -217,13 +215,6 @@ or \-\-source.
 See the section
 .BR "BUILD ARTIFACTS"
 for more information.
-.TP
-.BR "\-\-arch\-all\-only" (deprecated)
-Only build Architecture:all packages, i.e. use dpkg-buildpackage \-A
-instead of \-B.  The \-\-arch=\fIarchitecture\fP option can still be used to
-specify the architecture used to build the package.
-This option is deprecated. Use --arch-all together with --no-arch-any to get
-the same behaviour.
 .TP
 .BR \-b ", " "\-\-batch"
 Operate in batchmode, i.e. write a build-progress file during execution
