@@ -266,12 +266,13 @@ file(s).  Default is not using any key.
 Number of jobs to run simultaneously.  Passed through to dpkg\-buildpackage.
 .TP
 .BR \-\-debbuildopt=\fIoption\fP
-Pass the specified option directly to dpkg\-buildpackage.
+Pass the specified option directly to dpkg\-buildpackage. This option can be
+specified multiple times, once per option.
 .TP
 .BR \-\-debbuildopts=\fIoptions\fP
-Pass the specified options directly to dpkg\-buildpackage.  The options should
-be separated by spaces.  If any options contain spaces, use \-\-debbuildopt
-instead.
+Pass the specified options directly to dpkg\-buildpackage. The argument will be
+split by whitespaces and the resulting array passed to the dpkg\-buildpackage
+invocation. If any options contain spaces, use \-\-debbuildopt instead.
 .TP
 .BR \-\-dpkg\-source\-opt=\fIoptions\fP
 Pass the specified options directly to dpkg-source. This is only used when
@@ -281,6 +282,8 @@ creating a source package from a Debianized source directory.
 .TP
 .BR \-\-dpkg\-source\-opts=\fIoptions\fP
 Extra options to be appended to existing options passed to dpkg-source.
+The argument will be split by whitespaces before being passed to the
+dpkg-source invocation.
 .TP
 .BR "\-\-mail\-log\-to=\fIemail-address\fP"
 Send the build log to the specified email address.  This overrides the
@@ -380,10 +383,13 @@ Don't run lintian after a successful build.  If sbuild is configured to run
 lintian by default, this option will prevent lintian being run.
 .TP
 .BR \-\-lintian\-opt=\fIoptions\fP
-Run lintian with the specified options.
+Run lintian with the specified option. This option can be specified multiple
+times.
 .TP
 .BR \-\-lintian\-opts=\fIoptions\fP
-Append extra options to existing options passed to lintian.
+Append extra options to existing options passed to lintian. The argument will
+be split by whatespaces and the resulting array passed to lintian. To add
+options containing whitespaces use \-\-lintian\-opt.
 .TP
 .BR \-\-run\-piuparts
 Run piuparts after a successful build.
@@ -393,18 +399,24 @@ Don't run piuparts after a successful build.  If sbuild is configured to run
 piuparts by default, this option will prevent piuparts being run.
 .TP
 .BR \-\-piuparts\-opt=\fIoptions\fP
-Run piuparts with the specified options.
+Run piuparts with the specified option. This option can be specified multiple
+times.
 .TP
 .BR \-\-piuparts\-opts=\fIoptions\fP
-Append extra options to existing options passed to piuparts.
+Append extra options to existing options passed to piuparts. The argument will
+be split by whitespaces. To pass options to piuparts containing whitespaces use
+the option \-\-piuparts\-opt.
 .TP
 .BR \-\-piuparts\-root\-arg=\fIoptions\fP
 Add an argument that is used to launch piuparts as root. If no arguments are
-specified, piuparts will be launched via sudo.
+specified, piuparts will be launched via sudo. This option can be specified
+multiple times.
 .TP
 .BR \-\-piuparts\-root\-args=\fIoptions\fP
 Add arguments that are used to launch piuparts as root. If no arguments are
-specified, piuparts will be launched via sudo.
+specified, piuparts will be launched via sudo. The argument will be split by
+whitespaces. To pass options containing whitespaces use
+the option \-\-piuparts\-root\-arg.
 .TP
 .BR \-\-pre\-build\-commands=\fIstring\fP
 This is the earliest external command which is run right after the chroot
