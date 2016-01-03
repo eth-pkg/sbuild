@@ -323,11 +323,16 @@ snapshot chroots, since by default the snapshot will be deleted.  Possible
 values are \fBalways\fR (default), \fBnever\fR, and \fBsuccessful\fR.
 .TP
 .BR \-s ", " "\-\-source"
-Also build source package, i.e. use dpkg\-buildpackage without \-B.
+Build the source package in addition to the other requested build artifacts. By
+default, the dsc will not be rewritten because the source package is the input
+to sbuild, not its output. Even when running from an unpacked source tree
+sbuild will first build the source package using dpkg-source and then pass that
+on to the sbuild machinery. Use this option only when you know what you are
+doing. This will rewrite the original dsc passed to sbuild.
 .TP
 .BR "\-\-no-source"
-Don't build source package, i.e. use dpkg\-buildpackage with \-B.  This option
-is the opposite of \-\-source.
+Don't rebuild the source package. This is the default. It is the opposite of
+\-\-source.
 .TP
 .BR "\-\-force\-orig\-source"
 When used with in conjunction with \-s, this option forces the inclusion of the
