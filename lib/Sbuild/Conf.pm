@@ -137,14 +137,14 @@ sub setup ($) {
 	    VARNAME => 'build_arch_all',
 	    GROUP => 'Build options',
 	    DEFAULT => 0,
-	    HELP => 'Build architecture: all packages by default'
+	    HELP => 'Build architecture: all packages by default. Set by the --arch-all and --no-arch-all command line options.'
 	},
 	'BUILD_ARCH_ANY'			=> {
 	    TYPE => 'BOOL',
 	    VARNAME => 'build_arch_any',
 	    GROUP => 'Build options',
 	    DEFAULT => 1,
-	    HELP => 'Build architecture: any packages by default'
+	    HELP => 'Build architecture: any packages by default. Set by the --arch-any and --no-arch-any command line options.'
 	},
 	'NOLOG'					=> {
 	    TYPE => 'BOOL',
@@ -825,7 +825,7 @@ $crossbuild_core_depends = {
 	    GROUP => 'Build options',
 	    DEFAULT => 0,
 	    CHECK => $validate_append_version,
-	    HELP => 'By default, do not build a source package (binary only build).  Set to 1 to force creation of a source package, but note that this is inappropriate for binary NMUs, where the option will always be disabled.'
+	    HELP => 'By default, do not build a source package (binary only build).  Set to 1 to force creation of a source package, but note that this is inappropriate for binary NMUs, where the option will always be disabled. Set by the --source and --no-source command line options.'
 	},
 	'ARCHIVE'				=> {
 	    TYPE => 'STRING',

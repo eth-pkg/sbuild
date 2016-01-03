@@ -62,6 +62,7 @@ sub set_options {
 			   $self->set_conf('BUILD_ARCH_ANY', 0);
 		       },
 		       "arch-all-only" => sub {
+			   $self->log_warning("the --arch-all-only option is deprecated!\n");
 			   $self->set_conf('BUILD_ARCH_ALL', 1);
 			   $self->set_conf('BUILD_ARCH_ANY', 0);
 		       },

@@ -270,6 +270,13 @@ sub run {
 	$self->set('Build Arch', $self->get_conf('BUILD_ARCH'));
 	$self->set('Build Profiles', $self->get_conf('BUILD_PROFILES'));
 
+	if (!$self->get_conf('BUILD_ARCH_ANY') &&
+	    !$self->get_conf('BUILD_ARCH_ALL') &&
+	    !$self->get_conf('BUILD_SOURCE')) {
+	    Sbuild::Exception::Build->throw(error => "Neither architecture specific nor architecture independent or source package specified to be built.",
+					    failstage => "init");
+	}
+
 	my $dist = $self->get_conf('DISTRIBUTION');
 	if (!defined($dist) || !$dist) {
 	    Sbuild::Exception::Build->throw(error => "No distribution defined",

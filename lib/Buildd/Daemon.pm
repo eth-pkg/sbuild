@@ -543,7 +543,7 @@ sub do_build {
     }
     if ($dist_config->get('BUILT_ARCHITECTURE')) {
         if ($dist_config->get('BUILT_ARCHITECTURE') eq 'all') {
-	    push ( @sbuild_args, "--arch-all-only" );
+	    push ( @sbuild_args, "--arch-all", "--no-arch-any" );
         } else {
             push ( @sbuild_args, "--arch=" . $dist_config->get('BUILT_ARCHITECTURE') );
 	}

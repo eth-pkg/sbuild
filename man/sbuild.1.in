@@ -136,6 +136,9 @@ a symlink to the chroot located in \fI/etc/sbuild/chroot/$distribution\fP, or
 must be run in a directory containing a \fIchroot\-$distribution\fP symlink to
 the chroot (not recommended, but done for backward compatibility).
 .SH OPTIONS
+Options set on the command line overwrite settings made in the configuration
+file. For options for which a --foo and --no-foo variant exist, later options
+will overwrite earlier options.
 .TP
 .BR \-h ", " \-\-help
 Display this manual.
@@ -183,25 +186,40 @@ cross-building when used together with \-\-host.  If \-\-build is not specified,
 the default system architecture is assumed.
 .TP
 .BR \-A ", " "\-\-arch\-all"
-Also build Architecture: all packages, i.e. use dpkg\-buildpackage \-b
-instead of \-B.
+Also build Architecture: all packages. This option is the opposite of
+\-\-no\-arch\-all.
+See the section
+.BR "BUILD ARTIFACTS"
+for more information.
 .TP
 .BR "\-\-no\-arch\-all"
-Do not build Architecture: all packages, i.e. use dpkg\-buildpackage \-B
-instead of \-b. This option is the opposite of \-\-arch\-all.
+Do not build Architecture: all packages. This is the default behaviour. This
+option is the opposite of \-\-arch\-all.
+See the section
+.BR "BUILD ARTIFACTS"
+for more information.
 .TP
 .BR "\-\-arch\-any"
-Build Architecture: any packages. This is the default behavior.
+Build Architecture: any packages. This is the default behavior. This option is
+the opposite of \-\-no\-arch\-any.
+See the section
+.BR "BUILD ARTIFACTS"
+for more information.
 .TP
 .BR "\-\-no\-arch\-any"
 Do not build Architecture: any packages. This option is the opposite
 of \-\-arch\-any and only useful when used together with \-\-arch\-all
 or \-\-source.
+See the section
+.BR "BUILD ARTIFACTS"
+for more information.
 .TP
-.BR "\-\-arch\-all\-only"
+.BR "\-\-arch\-all\-only" (deprecated)
 Only build Architecture:all packages, i.e. use dpkg-buildpackage \-A
 instead of \-B.  The \-\-arch=\fIarchitecture\fP option can still be used to
 specify the architecture used to build the package.
+This option is deprecated. Use --arch-all together with --no-arch-any to get
+the same behaviour.
 .TP
 .BR \-b ", " "\-\-batch"
 Operate in batchmode, i.e. write a build-progress file during execution
@@ -329,10 +347,16 @@ to sbuild, not its output. Even when running from an unpacked source tree
 sbuild will first build the source package using dpkg-source and then pass that
 on to the sbuild machinery. Use this option only when you know what you are
 doing. This will rewrite the original dsc passed to sbuild.
+See the section
+.BR "BUILD ARTIFACTS"
+for more information.
 .TP
 .BR "\-\-no-source"
 Don't rebuild the source package. This is the default. It is the opposite of
 \-\-source.
+See the section
+.BR "BUILD ARTIFACTS"
+for more information.
 .TP
 .BR "\-\-force\-orig\-source"
 When used with in conjunction with \-s, this option forces the inclusion of the
@@ -579,6 +603,52 @@ By default the package is built in a path of the following format /build/package
 .BR \-\-sbuild-mode=\fImode\fP
 Behaviour changes for use in a buildd environment.  This overrides the
 \fI$sbuild_mode\fP configuration option.
+.SH BUILD ARTIFACTS
+Sbuild is meant to be used to build architecture specific binary packages from
+a given source package. In addition, sbuild is also able to generate
+architecture independent binary packages as well as to rebuild the original
+source package that was used as input. In summary, sbuild is able to build
+architecture specific binary packages, architecture independent binary packages
+and source packages. What ends up being built is determined by the
+configuration variables \fBBUILD_ARCH_ANY\fR, \fBBUILD_ARCH_ALL\fR and
+\fBBUILD_SOURCE\fR, respectively. See
+.BR sbuild.conf (5)
+for a detailed explanation of these configuration variables.
+.PP
+By default, only \fBBUILD_ARCH_ANY\fR is set to true while \fBBUILD_ARCH_ALL\fR
+and \fBBUILD_SOURCE\fR are set to false. So by default only architecture
+specific binary packages will be built. This behaviour can be changed either by
+using command line options or by modifying the configuration variables in your
+\fI~/.sbuildrc\fP. The relevant command line options to change the values of
+\fBBUILD_ARCH_ANY\fR, \fBBUILD_ARCH_ALL\fR and \fBBUILD_SOURCE\fR are
+\f[CB]--arch-any/--no-arch-any\fP, \f[CB]--arch-all/--no-arch-all\fP and
+\f[CB]--source/--no-source\fP, respectively.
+.PP
+The values of \fBBUILD_ARCH_ANY\fR, \fBBUILD_ARCH_ALL\fR and \fBBUILD_SOURCE\fR
+change the parameter that dpkg-buildpackage is called with. The following table
+displays the argument passed to dpkg-buildpackage in the last column depending
+on the configuration options in the first three columns.
+.PP
+.if t \{\
+.ft CW
+\}
+.TS
+l l l l.
+\fBBUILD_ARCH_ANY\fR	\fBBUILD_ARCH_ALL\fR	\fBBUILD_SOURCE\fR	dpkg-buildpackage flag
+_
+false	false	false	invalid
+false	false	true	-S
+false	true	false	-A
+false	true	true	-g
+true	false	false	-B
+true	false	true	-G
+true	true	false	-b
+true	true	true	no option
+.TE
+.if t \{\
+.in
+.ft P
+\}
 .SH EXTERNAL COMMANDS
 Support to run external commands during an sbuild run is provided. A set of
 external commands can be run at various stages of a build. Providing commands to
@@ -786,7 +856,9 @@ Directory containing symbolic links to chroots.  This is only used for sudo
 chroot access; schroot access uses the schroot chroot configuration.
 .TP
 .I ~/.sbuildrc
-User-specific configuration.
+User-specific configuration. A custom path to a configuration file can also be
+specified through setting the \fBSBUILD_CONFIG\fP environment variable to the
+path of an additional configuration file.
 .TP
 .I /var/lib/sbuild
 Build trees, archive signing keys, build statistics and lock files.
