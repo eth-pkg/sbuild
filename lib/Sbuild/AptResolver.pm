@@ -52,7 +52,6 @@ sub new {
 sub install_deps {
     my $self = shift;
     my $name = shift;
-    my $cross = shift;
     my @pkgs = @_;
 
     my $status = 0;
@@ -69,15 +68,7 @@ sub install_deps {
     # Install the dummy package
     my (@instd, @rmvd);
     $self->log("Installing build dependencies\n");
-    my @apt_args = ("-yf", \@instd, \@rmvd);
-    if ($cross) {
-	# Cross-building: 'apt-get build-dep' knows how to get the multiarch
-	# details right.
-	push @apt_args,
-	     '-a' . $self->get('Host Arch'), 'build-dep', $dummy_pkg_name;
-    } else {
-	push @apt_args, 'install', $dummy_pkg_name;
-    }
+    my @apt_args = ("-yf", \@instd, \@rmvd, 'install', $dummy_pkg_name);
 
     if (!$self->run_apt(@apt_args)) {
 	$self->log("Package installation failed\n");

@@ -416,15 +416,14 @@ sub install_core_deps {
     my $self = shift;
     my $name = shift;
 
-    return $self->install_deps($name, 0, @_);
+    return $self->install_deps($name, @_);
 }
 
 sub install_main_deps {
     my $self = shift;
     my $name = shift;
 
-    my $cross = $self->get('Host Arch') ne $self->get('Build Arch');
-    return $self->install_deps($name, $cross, @_);
+    return $self->install_deps($name, @_);
 }
 
 sub uninstall_deps {
