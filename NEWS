@@ -1,11 +1,22 @@
 NEWS                                                            -*- outline -*-
 ----
 
-Welcome to sbuild 0.67.0.  Please read these release notes carefully.
+Welcome to sbuild 0.68.0.  Please read these release notes carefully.
 
 Full installation instructions are provided in the INSTALL file.  The
 README file also contains more specific notes regarding building and
 configuration.
+
+* Major changes in 0.68.0:
+
+  1) Dummy binary packages are now used for native building *and* cross
+     building (apt-get build-dep was used for the latter so far). For an
+     extensive rationale for this choice, read the commit message of commit
+     e227c8f3.
+
+  2) Deprecate --arch-all-only option which was introduced two releases ago in
+     favour of --arch-all --no-arch-any. The option will be completely removed
+     in the next release to remove redundancy and for overall clarity.
 
 * Major changes in 0.67.0:
 
