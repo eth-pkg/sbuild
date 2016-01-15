@@ -61,8 +61,17 @@ sub install_deps {
     my $dummy_pkg_name = 'sbuild-build-depends-' . $name. '-dummy';
 
     # Call functions to setup an archive to install dummy package.
-    return 0 unless ($self->setup_apt_archive($dummy_pkg_name, @pkgs));
-    return 0 unless (!$self->update_archive());
+    $self->log_subsubsection("Setup apt archive");
+
+    if (!$self->setup_apt_archive($dummy_pkg_name, @pkgs)) {
+	$self->log_error("Setting up apt archive failed");
+	return 0;
+    }
+
+    if (!$self->update_archive()) {
+	$self->log_error("Updating apt archive failed");
+	return 0;
+    }
 
     $self->log_subsection("Install $name build dependencies (aptitude-based resolver)");
 

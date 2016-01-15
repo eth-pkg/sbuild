@@ -687,6 +687,12 @@ sub run_fetch_install_packages {
 	    $self->log_warning($msg);
 	}
 
+	if ($self->get('Host Arch') ne $self->get('Build Arch')) {
+	    $self->log_subsection("Install crossbuild-essential");
+	} else {
+	    $self->log_subsection("Install build-essential");
+	}
+
 	$self->check_abort();
 	$self->set('Install Start Time', time);
 	$self->set('Install End Time', $self->get('Install Start Time'));
@@ -752,6 +758,8 @@ sub run_fetch_install_packages {
 	    }
 	    @build_deps = ('MANUAL', $self->get('Package'));
 	}
+
+	$self->log_subsection("Install package build dependencies");
 
 	$self->check_abort();
 	if (!$resolver->install_main_deps($self->get('Package'),
@@ -1134,10 +1142,7 @@ sub check_architectures {
 		build_profiles => [ split / /, $self->get('Build Profiles') ]);
     if( !defined $merged_depends ) {
         my $msg = "Error! deps_parse() couldn't parse the Build-Depends '$build_depends_concat'";
-        $self->log("$msg\n");
-        Sbuild::Exception::Build->throw(error => $msg,
-                                        status => "skipped",
-                                        failstage => "add-foreign-architecture");
+        $self->log_error("$msg\n");
         return 0;
     }
 

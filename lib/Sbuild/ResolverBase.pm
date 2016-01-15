@@ -285,7 +285,6 @@ sub update_archive {
 	      ENV => {'DEBIAN_FRONTEND' => 'noninteractive'},
 	      USER => 'root',
 	      DIR => '/' });
-	return $?;
     } else {
 	my $session = $self->get('Session');
 	my $dummy_archive_list_file = $self->get('Dummy archive list file');
@@ -317,15 +316,22 @@ sub update_archive {
 	      ENV => {'DEBIAN_FRONTEND' => 'noninteractive'},
 	      USER => 'root',
 	      DIR => '/' });
-	return $? if $?;
+	if ($? != 0) {
+	    return 0;
+	}
 
 	$self->run_apt_command(
 	    { COMMAND => [$self->get_conf('APT_CACHE'), 'gencaches'],
 	      ENV => {'DEBIAN_FRONTEND' => 'noninteractive'},
 	      USER => 'root',
 	      DIR => '/' });
-	return $?;
     }
+
+    if ($? != 0) {
+	return 0;
+    }
+
+    return 1;
 }
 
 sub upgrade {

@@ -59,11 +59,19 @@ sub install_deps {
     my $dummy_pkg_name = 'sbuild-build-depends-' . $name. '-dummy';
 
     # Call functions to setup an archive to install dummy package.
-    return 0 unless ($self->setup_apt_archive($dummy_pkg_name, @pkgs));
-    return 0 unless (!$self->update_archive());
+    $self->log_subsubsection("Setup apt archive");
 
+    if (!$self->setup_apt_archive($dummy_pkg_name, @pkgs)) {
+	$self->log_error("Setting up apt archive failed");
+	return 0;
+    }
 
-    $self->log_subsection("Install $name build dependencies (apt-based resolver)");
+    if (!$self->update_archive()) {
+	$self->log_error("Updating apt archive failed");
+	return 0;
+    }
+
+    $self->log_subsubsection("Install $name build dependencies (apt-based resolver)");
 
     # Install the dummy package
     my (@instd, @rmvd);
@@ -71,7 +79,7 @@ sub install_deps {
     my @apt_args = ("-yf", \@instd, \@rmvd, 'install', $dummy_pkg_name);
 
     if (!$self->run_apt(@apt_args)) {
-	$self->log("Package installation failed\n");
+	$self->log_error("Package installation failed\n");
 	if (defined ($self->get('Session')->get('Session Purged')) &&
 	    $self->get('Session')->get('Session Purged') == 1) {
 	    $self->log("Not removing build depends: cloned chroot in use\n");
