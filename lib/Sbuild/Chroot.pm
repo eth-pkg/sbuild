@@ -32,6 +32,7 @@ use warnings;
 use POSIX;
 use FileHandle;
 use File::Temp ();
+use File::Basename qw(basename);
 
 BEGIN {
     use Exporter ();
@@ -107,16 +108,6 @@ sub get_option {
     return $value;
 }
 
-sub strip_chroot_path {
-    my $self = shift;
-    my $path = shift;
-
-    my $location = $self->get('Location');
-    $path =~ s/^\Q$location\E//;
-
-    return $path;
-}
-
 sub log_command {
     my $self = shift;
     my $options = shift;
@@ -133,6 +124,462 @@ sub log_command {
 
 	$self->log_info(join(" ", @$command), "\n");
     }
+}
+
+# create a temporary file or directory inside the chroot
+sub mktemp {
+    my $self = shift;
+    my $options = shift;
+
+    my $user = "root";
+    $user = $options->{'USER'} if defined $options->{'USER'};
+
+    my $dir = "/";
+    $dir = $options->{'DIR'} if defined $options->{'DIR'};
+
+    my $mktempcmd = ['mktemp'];
+
+    if (defined $options->{'DIRECTORY'} && $options->{'DIRECTORY'}) {
+	push(@{$mktempcmd}, "-d");
+    }
+
+    if (defined $options->{'TEMPLATE'}) {
+	push(@{$mktempcmd}, $options->{'TEMPLATE'});
+    }
+
+    my $pipe = $self->pipe_command({ COMMAND => $mktempcmd, USER => $user, DIR => $dir });
+    if (!$pipe) {
+	$self->log_error("cannot open pipe\n");
+	return;
+    }
+    chomp (my $tmpdir = do { local $/; <$pipe> });
+    close $pipe;
+    if ($?) {
+	if (defined $options->{'TEMPLATE'}) {
+	    $self->log_error("cannot run mktemp " . $options->{'TEMPLATE'} . ": $!\n");
+	} else {
+	    $self->log_error("cannot run mktemp: $!\n");
+	}
+	return;
+    }
+    return $tmpdir;
+}
+
+# copy a file from the outside into the chroot
+sub copy_to_chroot {
+    my $self = shift;
+    my $source = shift;
+    my $dest = shift;
+    my $options = shift;
+
+    # if the destination inside the chroot is a directory, then the file has
+    # to be copied into that directory with the same filename as outside
+    if($self->test_directory($dest)) {
+	$dest .= '/' . (basename $source);
+    }
+
+    my $pipe = $self->get_write_file_handle($dest, $options);
+    if (!defined $pipe) {
+	$self->log_error("get_write_file_handle failed\n");
+	return;
+    }
+
+    local *INFILE;
+    if(!open(INFILE, "<", $source)) {
+	$self->log_error("cannot open $source\n");
+	close $pipe;
+	return;
+    }
+
+    while ( (read (INFILE, my $buffer, 65536)) != 0 ) {
+	print $pipe $buffer;
+    }
+
+    close INFILE;
+    close $pipe;
+
+    return 1;
+}
+
+# copy a file inside the chroot to the outside
+sub copy_from_chroot {
+    my $self = shift;
+    my $source = shift;
+    my $dest = shift;
+    my $options = shift;
+
+    my $pipe = $self->get_read_file_handle($source, $options);
+    if (!defined $pipe) {
+	$self->log_error("get_read_file_handle failed\n");
+	return;
+    }
+
+    # if the destination outside the chroot is a directory, then the file has
+    # to be copied into that directory with the same filename as inside
+    if (-d $dest) {
+	$dest .= '/' . (basename $source);
+    }
+
+    local *OUTFILE;
+    if(!open(OUTFILE, ">", $dest)) {
+	$self->log_error("cannot open $dest\n");
+	close $pipe;
+	return;
+    }
+
+    while ( (read ($pipe, my $buffer, 65536)) != 0 ) {
+	print OUTFILE $buffer;
+    }
+
+    close OUTFILE;
+    close $pipe;
+
+    return 1;
+}
+
+# returns a file handle to read a file inside the chroot
+sub get_read_file_handle {
+    my $self = shift;
+    my $source = shift;
+    my $options = shift;
+
+    my $user = "root";
+    $user = $options->{'USER'} if defined $options->{'USER'};
+
+    my $dir = "/";
+    $dir = $options->{'DIR'} if defined $options->{'DIR'};
+
+    my $pipe = $self->pipe_command({
+	    COMMAND => [ "sh", "-c", "cat \"$source\"" ],
+	    DIR => $dir,
+	    USER => $user,
+	    PIPE => 'in'
+	});
+    if (!$pipe) {
+	$self->log_error("cannot open pipe\n");
+	return;
+    }
+
+    return $pipe;
+}
+
+# returns a string with the content of a file inside the chroot
+sub read_file {
+    my $self = shift;
+    my $source = shift;
+    my $options = shift;
+
+    my $pipe = $self->get_read_file_handle($source, $options);
+    if (!defined $pipe) {
+	$self->log_error("get_read_file_handle failed\n");
+	return;
+    }
+
+    my $content = do { local $/; <$pipe> };
+    close $pipe;
+
+    return $content;
+}
+
+# returns a file handle to write to a file inside the chroot
+sub get_write_file_handle {
+    my $self = shift;
+    my $dest = shift;
+    my $options = shift;
+
+    my $user = "root";
+    $user = $options->{'USER'} if defined $options->{'USER'};
+
+    my $dir = "/";
+    $dir = $options->{'DIR'} if defined $options->{'DIR'};
+
+    my $pipe = $self->pipe_command({
+	    COMMAND => [ "sh", "-c", "cat > \"$dest\"" ],
+	    DIR => $dir,
+	    USER => $user,
+	    PIPE => 'out'
+	});
+    if (!$pipe) {
+	$self->log_error("cannot open pipe\n");
+	return;
+    }
+
+    return $pipe;
+}
+
+sub read_command {
+    my $self = shift;
+    my $options = shift;
+
+    $options->{PIPE} = "in";
+
+    my $pipe = $self->pipe_command($options);
+    if (!$pipe) {
+	$self->log_error("cannot open pipe\n");
+	return;
+    }
+
+    my $content = do { local $/; <$pipe> };
+    close $pipe;
+
+    if ($?) {
+	$self->log_error("read_command failed to execute " . $options->{COMMAND} . "\n");
+	return;
+    }
+
+    return $content;
+}
+
+# writes a string to a file inside the chroot
+sub write_file {
+    my $self = shift;
+    my $dest = shift;
+    my $content = shift;
+    my $options = shift;
+
+    my $pipe = $self->get_write_file_handle($dest, $options);
+    if (!defined $pipe) {
+	$self->log_error("get_read_file_handle failed\n");
+	return;
+    }
+
+    print $pipe $content;
+    close $pipe;
+
+    return 1;
+}
+
+sub write_command {
+    my $self = shift;
+    my $content = shift;
+    my $options = shift;
+
+    $options->{PIPE} = "out";
+
+    my $pipe = $self->pipe_command($options);
+    if (!$pipe) {
+	$self->log_error("cannot open pipe\n");
+	return;
+    }
+
+    if(!print $pipe $content) {
+	$self->log_error("failed to print to file handle\n");
+	close $pipe;
+    }
+
+    close $pipe;
+
+    if ($?) {
+	$self->log_error("read_command failed to execute " . $options->{COMMAND} . "\n");
+	return;
+    }
+
+    return 1;
+}
+
+# rename a file inside the chroot
+sub rename {
+    my $self = shift;
+    my $source = shift;
+    my $dest = shift;
+    my $options = shift;
+
+    my $user = "root";
+    $user = $options->{'USER'} if defined $options->{'USER'};
+
+    my $dir = "/";
+    $dir = $options->{'DIR'} if defined $options->{'DIR'};
+
+    $self->run_command({ COMMAND => ["mv", $source, $dest], USER => $user, DIR => $dir});
+    if ($?) {
+	$self->log_error("Can't rename $source to $dest: $!\n");
+	return 0;
+    }
+
+    return 1;
+}
+
+# create a directory inside the chroot
+sub mkdir {
+    my $self = shift;
+    my $path = shift;
+    my $options = shift;
+
+    my $user = "root";
+    $user = $options->{'USER'} if defined $options->{'USER'};
+
+    my $dir = "/";
+    $dir = $options->{'DIR'} if defined $options->{'DIR'};
+
+    my $mkdircmd = [ "mkdir", $path ];
+
+    if (defined $options->{'PARENTS'} && $options->{'PARENTS'}) {
+	push(@{$mkdircmd}, "-p");
+    }
+
+    if (defined $options->{'MODE'}) {
+	push(@{$mkdircmd}, "--mode", $options->{'MODE'});
+    }
+
+    $self->run_command({ COMMAND => $mkdircmd, USER => $user, DIR => $dir});
+    if ($?) {
+	$self->log_error("Can't mkdir $path: $!\n");
+	return 0;
+    }
+
+    return 1;
+}
+
+sub test_internal {
+    my $self = shift;
+    my $path = shift;
+    my $arg = shift;
+    my $options = shift;
+
+    my $user = "root";
+    $user = $options->{'USER'} if defined $options->{'USER'};
+
+    my $dir = "/";
+    $dir = $options->{'DIR'} if defined $options->{'DIR'};
+
+    $self->run_command({ COMMAND => [ "test", $arg, $path ], USER => $user, DIR => $dir});
+    if ($? eq 0) {
+	return 1;
+    } else {
+	return 0;
+    }
+}
+
+# test if a path inside the chroot is a directory
+sub test_directory {
+    my $self = shift;
+    my $path = shift;
+    my $options = shift;
+
+    return $self->test_internal($path, "-d", $options);
+}
+
+# test if a path inside the chroot is a regular file
+sub test_regular_file {
+    my $self = shift;
+    my $path = shift;
+    my $options = shift;
+
+    return $self->test_internal($path, "-f", $options);
+}
+
+# test if a path inside the chroot is a regular readable file
+sub test_regular_file_readable {
+    my $self = shift;
+    my $path = shift;
+    my $options = shift;
+
+    return $self->test_internal($path, "-r", $options);
+}
+
+# test if a path inside the chroot is a symlink
+sub test_symlink {
+    my $self = shift;
+    my $path = shift;
+    my $options = shift;
+
+    return $self->test_internal($path, "-L", $options);
+}
+
+# remove a file inside the chroot
+sub unlink {
+    my $self = shift;
+    my $path = shift;
+    my $options = shift;
+
+    my $user = "root";
+    $user = $options->{'USER'} if defined $options->{'USER'};
+
+    my $dir = "/";
+    $dir = $options->{'DIR'} if defined $options->{'DIR'};
+
+    my $rmcmd = [ "rm", $path ];
+
+    if (defined $options->{'RECURSIVE'} && $options->{'RECURSIVE'}) {
+	push(@{$rmcmd}, "-r");
+    }
+
+    if (defined $options->{'FORCE'} && $options->{'FORCE'}) {
+	push(@{$rmcmd}, "-f");
+    }
+
+    if (defined $options->{'DIRECTORY'} && $options->{'DIRECTORY'}) {
+	push(@{$rmcmd}, "-d");
+    }
+
+    $self->run_command({ COMMAND => $rmcmd, USER => $user, DIR => $dir});
+    if ($?) {
+	$self->log_error("Can't unlink $path: $!\n");
+	return 0;
+    }
+
+    return 1;
+}
+
+# chmod a path inside the chroot
+sub chmod {
+    my $self = shift;
+    my $path = shift;
+    my $mode = shift;
+    my $options = shift;
+
+    my $user = "root";
+    $user = $options->{'USER'} if defined $options->{'USER'};
+
+    my $dir = "/";
+    $dir = $options->{'DIR'} if defined $options->{'DIR'};
+
+    my $chmodcmd = [ "chmod" ];
+
+    if (defined $options->{'RECURSIVE'} && $options->{'RECURSIVE'}) {
+	push(@{$chmodcmd}, "-R");
+    }
+
+    push(@{$chmodcmd}, $mode, $path);
+
+    $self->run_command({ COMMAND => $chmodcmd, USER => $user, DIR => $dir});
+    if ($?) {
+	$self->log_error("Can't chmod $path to $mode: $!\n");
+	return 0;
+    }
+
+    return 1;
+}
+
+# chown a path inside the chroot
+sub chown {
+    my $self = shift;
+    my $path = shift;
+    my $owner = shift;
+    my $group = shift;
+    my $options = shift;
+
+    my $user = "root";
+    $user = $options->{'USER'} if defined $options->{'USER'};
+
+    my $dir = "/";
+    $dir = $options->{'DIR'} if defined $options->{'DIR'};
+
+    my $chowncmd = [ "chown" ];
+
+    if (defined $options->{'RECURSIVE'} && $options->{'RECURSIVE'}) {
+	push(@{$chowncmd}, "-R");
+    }
+
+    push(@{$chowncmd}, "$owner:$group", $path);
+
+    $self->run_command({ COMMAND => $chowncmd, USER => $user, DIR => $dir});
+    if ($?) {
+	$self->log_error("Can't chown $path to $owner:$group: $!\n");
+	return 0;
+    }
+
+    return 1;
 }
 
 # Note, do not run with $user="root", and $chroot=0, because root
@@ -260,11 +707,25 @@ sub pipe_command {
     return $self->pipe_command_internal($options);
 }
 
+sub get_internal_exec_string {
+    my $self = shift;
+    return $self->get_internal_exec_string();
+}
+
+# This function must not print anything to standard output or standard error
+# when it dies because its output will be treated as the output of the program
+# it executes. So error handling can only happen with "die()".
 sub exec_command {
     my $self = shift;
     my $options = shift;
 
     $self->get_command_internal($options);
+
+    if (!defined($options->{'EXPCOMMAND'}) || $options->{'EXPCOMMAND'} eq ''
+	|| !defined($options->{'COMMAND'}) || scalar(@{$options->{'COMMAND'}}) == 0
+	|| !defined($options->{'INTCOMMAND'}) || scalar(@{$options->{'INTCOMMAND'}}) == 0) {
+	die "get_command_internal failed during exec_command\n";
+    }
 
     $self->log_command($options);
 

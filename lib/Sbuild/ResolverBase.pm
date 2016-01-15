@@ -25,7 +25,7 @@ use strict;
 use warnings;
 use POSIX;
 use Fcntl;
-use File::Temp qw(tempdir tempfile);
+use File::Temp qw(tempfile);
 use File::Copy;
 
 use Dpkg::Deps;
@@ -63,11 +63,11 @@ sub new {
     $self->set('Initial Foreign Arches', {});
     $self->set('Added Foreign Arches', {});
 
-    my $dummy_archive_list_file = $session->get('Location') .
+    my $dummy_archive_list_file =
         '/etc/apt/sources.list.d/sbuild-build-depends-archive.list';
     $self->set('Dummy archive list file', $dummy_archive_list_file);
 
-    my $dummy_archive_key_file = $session->get('Location') .
+    my $dummy_archive_key_file =
         '/etc/apt/trusted.gpg.d/sbuild-build-depends-archive.gpg';
     $self->set('Dummy archive key file', $dummy_archive_key_file);
 
@@ -89,28 +89,45 @@ sub setup {
     my $chroot_aptconf = $session->get('Location') . "/$aptconf";
     $self->set('Chroot APT Conf', $chroot_aptconf);
 
+    my $tmpaptconf = $session->mktemp({ TEMPLATE => "$aptconf.XXXXXX"});
+    if (!$tmpaptconf) {
+	$self->log_error("Can't create $chroot_aptconf.XXXXXX: $!\n");
+	return 0;
+    }
+
+    my $F = $session->get_write_file_handle($tmpaptconf);
+    if (!$F) {
+	$self->log_error("Cannot open pipe: $!\n");
+	return 0;
+    }
+
     # Always write out apt.conf, because it may become outdated.
-    if (my $F = eval {new File::Temp( TEMPLATE => "$aptconf.XXXXXX",
-				DIR => $session->get('Location'),
-				UNLINK => 0) } ) {
-	if ($self->get_conf('APT_ALLOW_UNAUTHENTICATED')) {
-	    print $F qq(APT::Get::AllowUnauthenticated "true";\n);
-	}
-	print $F qq(APT::Install-Recommends "false";\n);
-	print $F qq(APT::AutoRemove::SuggestsImportant "false";\n);
-	print $F qq(APT::AutoRemove::RecommendsImportant "false";\n);
-	print $F qq(Acquire::Languages "none";\n); # do not download translations
+    if ($self->get_conf('APT_ALLOW_UNAUTHENTICATED')) {
+	print $F qq(APT::Get::AllowUnauthenticated "true";\n");
+    }
+    print $F qq(APT::Install-Recommends "false";\n);
+    print $F qq(APT::AutoRemove::SuggestsImportant "false";\n);
+    print $F qq(APT::AutoRemove::RecommendsImportant "false";\n);
+    print $F qq(Acquire::Languages "none";\n); # do not download translations
 
-	if ($self->get('Split')) {
-	    print $F "Dir \"$chroot_dir\";\n";
-	}
+    if ($self->get('Split')) {
+	print $F "Dir \"$chroot_dir\";\n";
+    }
 
-	if (! rename $F->filename, $chroot_aptconf) {
-	    $self->log_error("Can't rename $F->filename to $chroot_aptconf: $!\n");
-	    return 0;
-	}
-    } else {
-	$self->log_error("Can't create $chroot_aptconf: $!\n");
+    close $F;
+
+    if (!$session->rename($tmpaptconf, $aptconf)) {
+	$self->log_error("Can't rename $tmpaptconf to $aptconf: $!\n");
+	return 0;
+    }
+
+    if (!$session->chown($aptconf, $self->get_conf('BUILD_USER'), 'sbuild')) {
+	$self->log_error("E: Failed to set " . $self->get_conf('BUILD_USER') .
+			 ":sbuild ownership on apt.conf at $aptconf\n");
+	return 0;
+    }
+    if (!$session->chmod($aptconf, '0664')) {
+	$self->log_error("E: Failed to set 0664 permissions on apt.conf at $aptconf\n");
 	return 0;
     }
 
@@ -156,31 +173,27 @@ sub get_foreign_architectures {
         return {};
     }
 
-    my ($tmpfh, $tmpfilename) = tempfile(DIR => $session->get('Location') . "/tmp");
+    my $foreignarchs = $session->read_command({ COMMAND => ['dpkg', '--print-foreign-architectures'], USER => 'root' });
 
-    $session->run_command({ COMMAND => ['dpkg', '--print-foreign-architectures'],
-                            USER => 'root',
-                            STREAMOUT => $tmpfh});
-    if ($?)
-    {
+    if (!defined($foreignarchs)) {
         $self->set('Multiarch Support', 0);
-        $self->log_error("Failed to get dpkg foreign-architecture config\n");
-        close $tmpfh;
-        unlink $tmpfilename;
+        $self->log_error("dpkg does not support multi-arch\n");
         return {};
-    } # else dpkg has multiarch support
-    seek $tmpfh, 0, SEEK_SET;
-    my @existing_foreign_arches;
-    while(<$tmpfh>)
-    {
-        chomp;
-        next unless $_;
-        push @existing_foreign_arches, $_;
     }
-    close $tmpfh;
-    unlink $tmpfilename;
+
+    if (!$foreignarchs)
+    {
+        $self->log("There are no foreign architectures configured\n");
+        return {};
+    }
+
     my %set;
-    foreach (@existing_foreign_arches) { $set{$_} = 1; }
+    foreach my $arch (split /\s+/, $foreignarchs) {
+	chomp;
+	next unless $_;
+	$set{$_} = 1;
+    }
+
     return \%set;
 }
 
@@ -308,7 +321,7 @@ sub update_archive {
 	# 448eaf8 in apt 0.8.0 and af13d14 in apt 0.9.3). Since this
 	# runs against the target chroot's apt, be conservative.
 	my $dummy_sources_list_d = $self->get('Dummy package path') . '/sources.list.d';
-	if (!(-d $dummy_sources_list_d || mkdir $dummy_sources_list_d, 0700)) {
+	if (!($session->test_directory($dummy_sources_list_d) || $session->mkdir($dummy_sources_list_d, { MODE => "00700"}))) {
 	    $self->log_warning('Could not create build-depends dummy sources.list directory ' . $dummy_sources_list_d . ': ' . $!);
 	    $self->cleanup_apt_archive();
 	    return 0;
@@ -324,8 +337,8 @@ sub update_archive {
 	# 872ed75 in apt 0.9.1.)
 	$self->run_apt_command(
 	    { COMMAND => [$self->get_conf('APT_GET'), 'update',
-	                  '-o', 'Dir::Etc::sourcelist=' . $session->strip_chroot_path($dummy_archive_list_file),
-	                  '-o', 'Dir::Etc::sourceparts=' . $session->strip_chroot_path($dummy_sources_list_d),
+	                  '-o', 'Dir::Etc::sourcelist=' . $dummy_archive_list_file,
+	                  '-o', 'Dir::Etc::sourceparts=' . $dummy_sources_list_d,
 	                  '--no-list-cleanup'],
 	      ENV => {'DEBIAN_FRONTEND' => 'noninteractive'},
 	      USER => 'root',
@@ -560,6 +573,7 @@ sub run_apt {
 	'-o', 'DPkg::Options::=--force-confold',
 	'-o', 'DPkg::Options::=--refuse-remove-essential',
 	'-o', 'APT::Install-Recommends=false',
+	'-o', 'Dpkg::Use-Pty=false',
 	'-q');
     push @apt_command, '--allow-unauthenticated' if
 	($self->get_conf('APT_ALLOW_UNAUTHENTICATED'));
@@ -725,27 +739,22 @@ sub setup_apt_archive {
 
     my $session = $self->get('Session');
 
+
     #Prepare a path to build a dummy package containing our deps:
     if (! defined $self->get('Dummy package path')) {
-        $self->set('Dummy package path',
-		   tempdir('resolver' . '-XXXXXX',
-			   DIR => $self->get('Chroot Build Dir')));
+	my $tmpdir = $session->mktemp({ TEMPLATE => $self->get('Build Dir') . '/resolver-XXXXXX', DIRECTORY => 1});
+	if (!$tmpdir) {
+	    $self->log_error("E: mktemp -d " . $self->get('Build Dir') . '/resolver-XXXXXX failed\n');
+	    return 0;
+	}
+	$self->set('Dummy package path', $tmpdir);
     }
-    $session->run_command(
-	{ COMMAND => ['chown', $self->get_conf('BUILD_USER') . ':sbuild',
-		      $session->strip_chroot_path($self->get('Dummy package path'))],
-	  USER => 'root',
-	  DIR => '/' });
-    if ($?) {
+    if (!$session->chown($self->get('Dummy package path'), $self->get_conf('BUILD_USER'), 'sbuild')) {
 	$self->log_error("E: Failed to set " . $self->get_conf('BUILD_USER') .
 			 ":sbuild ownership on dummy package dir\n");
 	return 0;
     }
-    $session->run_command(
-	{ COMMAND => ['chmod', '0770', $session->strip_chroot_path($self->get('Dummy package path'))],
-	  USER => 'root',
-	  DIR => '/' });
-    if ($?) {
+    if (!$session->chmod($self->get('Dummy package path'), '0770')) {
 	$self->log_error("E: Failed to set 0770 permissions on dummy package dir\n");
 	return 0;
     }
@@ -760,27 +769,22 @@ sub setup_apt_archive {
     $self->set('Dummy Release file', $dummy_release_file);
     my $dummy_archive_list_file = $self->get('Dummy archive list file');
 
-    if (! -d $dummy_dir) {
+    if (!$session->test_directory($dummy_dir)) {
         $self->log_warning('Could not create build-depends dummy dir ' . $dummy_dir . ': ' . $!);
         $self->cleanup_apt_archive();
         return 0;
     }
-    if (!(-d $dummy_gpghome || mkdir $dummy_gpghome, 0700)) {
+    if (!($session->test_directory($dummy_gpghome) || $session->mkdir($dummy_gpghome, { MODE => "00700"}))) {
         $self->log_warning('Could not create build-depends dummy gpg home dir ' . $dummy_gpghome . ': ' . $!);
         $self->cleanup_apt_archive();
         return 0;
     }
-    $session->run_command(
-	{ COMMAND => ['chown', $self->get_conf('BUILD_USER') . ':sbuild',
-		      $session->strip_chroot_path($dummy_gpghome)],
-	  USER => 'root',
-	  DIR => '/' });
-    if ($?) {
+    if (!$session->chown($dummy_gpghome, $self->get_conf('BUILD_USER'), 'sbuild')) {
 	$self->log_error('E: Failed to set ' . $self->get_conf('BUILD_USER') .
 			 ':sbuild ownership on $dummy_gpghome\n');
 	return 0;
     }
-    if (!(-d $dummy_archive_dir || mkdir $dummy_archive_dir, 0775)) {
+    if (!($session->test_directory($dummy_archive_dir) || $session->mkdir($dummy_archive_dir, { MODE => "00775"}))) {
         $self->log_warning('Could not create build-depends dummy archive dir ' . $dummy_archive_dir . ': ' . $!);
         $self->cleanup_apt_archive();
         return 0;
@@ -790,20 +794,27 @@ sub setup_apt_archive {
     my $dummy_deb = $dummy_archive_dir . '/' . $dummy_pkg_name . '.deb';
     my $dummy_dsc = $dummy_archive_dir . '/' . $dummy_pkg_name . '.dsc';
 
-    if (!(mkdir($dummy_pkg_dir) && mkdir($dummy_pkg_dir . '/DEBIAN'))) {
+    if (!($session->mkdir("$dummy_pkg_dir", { MODE => "00775"}))) {
+	$self->log_warning('Could not create build-depends dummy dir ' . $dummy_pkg_dir . $!);
+        $self->cleanup_apt_archive();
+	return 0;
+    }
+
+    if (!($session->mkdir("$dummy_pkg_dir/DEBIAN", { MODE => "00775"}))) {
 	$self->log_warning('Could not create build-depends dummy dir ' . $dummy_pkg_dir . '/DEBIAN: ' . $!);
         $self->cleanup_apt_archive();
 	return 0;
     }
 
-    if (!open(DUMMY_CONTROL, '>', $dummy_pkg_dir . '/DEBIAN/control')) {
+    my $DUMMY_CONTROL = $session->get_write_file_handle("$dummy_pkg_dir/DEBIAN/control");
+    if (!$DUMMY_CONTROL) {
 	$self->log_warning('Could not open ' . $dummy_pkg_dir . '/DEBIAN/control for writing: ' . $!);
         $self->cleanup_apt_archive();
 	return 0;
     }
 
     my $arch = $self->get('Host Arch');
-    print DUMMY_CONTROL <<"EOF";
+    print $DUMMY_CONTROL <<"EOF";
 Package: $dummy_pkg_name
 Version: 0.invalid.0
 Architecture: $arch
@@ -925,33 +936,28 @@ EOF
     }
 
     if ($positive ne "") {
-	print DUMMY_CONTROL 'Depends: ' . $positive . "\n";
+	print $DUMMY_CONTROL 'Depends: ' . $positive . "\n";
     }
     if ($negative ne "") {
-	print DUMMY_CONTROL 'Conflicts: ' . $negative . "\n";
+	print $DUMMY_CONTROL 'Conflicts: ' . $negative . "\n";
     }
 
     $self->log("Filtered Build-Depends: $positive\n") if $positive;
     $self->log("Filtered Build-Conflicts: $negative\n") if $negative;
 
-    print DUMMY_CONTROL <<"EOF";
+    print $DUMMY_CONTROL <<"EOF";
 Maintainer: Debian buildd-tools Developers <buildd-tools-devel\@lists.alioth.debian.org>
 Description: Dummy package to satisfy dependencies with apt - created by sbuild
  This package was created automatically by sbuild and should never appear on
  a real system. You can safely remove it.
 EOF
-    close (DUMMY_CONTROL);
+    close ($DUMMY_CONTROL);
 
     foreach my $path ($dummy_pkg_dir . '/DEBIAN/control',
 		      $dummy_pkg_dir . '/DEBIAN',
 		      $dummy_pkg_dir,
 		      $dummy_archive_dir) {
-	$session->run_command(
-	    { COMMAND => ['chown', $self->get_conf('BUILD_USER') . ':sbuild',
-			  $session->strip_chroot_path($path)],
-	      USER => 'root',
-	      DIR => '/' });
-	if ($?) {
+	if (!$session->chown($path, $self->get_conf('BUILD_USER'), 'sbuild')) {
 	    $self->log_error("E: Failed to set " . $self->get_conf('BUILD_USER')
 			   . ":sbuild ownership on $path\n");
 	    return 0;
@@ -960,7 +966,7 @@ EOF
 
     #Now build the package:
     $session->run_command(
-	{ COMMAND => ['dpkg-deb', '--build', $session->strip_chroot_path($dummy_pkg_dir), $session->strip_chroot_path($dummy_deb)],
+	{ COMMAND => ['dpkg-deb', '--build', $dummy_pkg_dir, $dummy_deb],
 	  USER => $self->get_conf('BUILD_USER'),
 	  PRIORITY => 0});
     if ($?) {
@@ -970,8 +976,8 @@ EOF
     }
 
     # Write the dummy dsc file.
-    my $dummy_dsc_fh;
-    if (!open($dummy_dsc_fh, '>', $dummy_dsc)) {
+    my $dummy_dsc_fh = $session->get_write_file_handle($dummy_dsc);
+    if (!$dummy_dsc_fh) {
         $self->log_warning('Could not open ' . $dummy_dsc . ' for writing: ' . $!);
         $self->cleanup_apt_archive();
         return 0;
@@ -1026,21 +1032,26 @@ EOF
             $self->cleanup_apt_archive();
             return 0;
         }
-        copy($self->get_conf('SBUILD_BUILD_DEPENDS_SECRET_KEY'), $dummy_archive_seckey) unless
-            (-f $dummy_archive_seckey);
-        copy($self->get_conf('SBUILD_BUILD_DEPENDS_PUBLIC_KEY'), $dummy_archive_pubkey) unless
-            (-f $dummy_archive_pubkey);
+	if (!$session->test_regular_file($dummy_archive_seckey)) {
+	    if (!$session->copy_to_chroot($self->get_conf('SBUILD_BUILD_DEPENDS_SECRET_KEY'), $dummy_archive_seckey)) {
+		$self->log_error("Failed to copy secret key");
+		return 0;
+	    }
+	}
+	if (!$session->test_regular_file($dummy_archive_pubkey)) {
+	    if (!$session->copy_to_chroot($self->get_conf('SBUILD_BUILD_DEPENDS_PUBLIC_KEY'), $dummy_archive_pubkey)) {
+		$self->log_error("Failed to copy public key");
+		return 0;
+	    }
+	}
         my @gpg_command = ('gpg', '--yes', '--no-default-keyring',
-                           '--homedir',
-                           $session->strip_chroot_path($dummy_gpghome),
-                           '--secret-keyring',
-                           $session->strip_chroot_path($dummy_archive_seckey),
-                           '--keyring',
-                           $session->strip_chroot_path($dummy_archive_pubkey),
+                           '--homedir', $dummy_gpghome,
+                           '--secret-keyring', $dummy_archive_seckey,
+                           '--keyring', $dummy_archive_pubkey,
                            '--default-key', 'Sbuild Signer', '-abs',
                            '--digest-algo', 'SHA512',
-                           '-o', $session->strip_chroot_path($dummy_release_file) . '.gpg',
-                           $session->strip_chroot_path($dummy_release_file));
+                           '-o', $dummy_release_file . '.gpg',
+                           $dummy_release_file);
         $session->run_command(
             { COMMAND => \@gpg_command,
               USER => $self->get_conf('BUILD_USER'),
@@ -1057,7 +1068,15 @@ EOF
     # build.
     if (@{$self->get_conf('EXTRA_REPOSITORY_KEYS')}) {
         my $dummy_archive_key_file = $self->get('Dummy archive key file');
-        my ($tmpfh, $tmpfilename) = tempfile(DIR => $session->get('Location') . "/tmp");
+
+	my $tmpfilename = $session->mktemp();
+
+	my $tmpfh = $session->get_write_file_handle($tmpfilename);
+	if (!$tmpfh) {
+	    $self->log_error("Cannot open pipe: $!\n");
+	    return 0;
+	}
+
         # Right, so, in order to copy the keys into the chroot (since we may have
         # a bunch of them), we'll append to a tempfile, and write *all* of the
         # given keys to the same tempfile. After we're clear, we'll move that file
@@ -1069,10 +1088,24 @@ EOF
                 $self->log("Failed to add archive key '${repokey}' - it doesn't exist!\n");
                 $self->cleanup_apt_archive();
                 close($tmpfh);
-                unlink $tmpfilename;
+		$session->unlink($tmpfilename);
                 return 0;
             }
-            copy($repokey, $tmpfh);
+	    local *INFILE;
+	    if(!open(INFILE, "<", $repokey)) {
+                $self->log("Failed to add archive key '${repokey}' - it cannot be opened for reading!\n");
+                $self->cleanup_apt_archive();
+                close($tmpfh);
+		$session->unlink($tmpfilename);
+                return 0;
+	    }
+
+	    while ( (read (INFILE, my $buffer, 65536)) != 0 ) {
+		print $tmpfh $buffer;
+	    }
+
+	    close INFILE;
+
             print $tmpfh "\n";
         }
         close($tmpfh);
@@ -1082,14 +1115,18 @@ EOF
         # out the secret ring and home to ensure we don't store anything
         # except for the public keyring.
 
-        my $tmpgpghome = tempdir('extra-repository-keys' . '-XXXXXX',
-            DIR => $session->get('Location') . "/tmp");
+
+	my $tmpgpghome = $session->mktemp({ TEMPLATE => '/tmp/extra-repository-keys-XXXXXX', DIRECTORY => 1});
+	if (!$tmpgpghome) {
+	    $self->log_error("mktemp /tmp/extra-repository-keys-XXXXXX failed\n");
+	    return 0;
+	}
 
         my @gpg_command = ('gpg', '--import', '--no-default-keyring',
-                           '--homedir', $session->strip_chroot_path($tmpgpghome),
+                           '--homedir', $tmpgpghome,
                            '--secret-keyring', '/dev/null',
-                           '--keyring', $session->strip_chroot_path($dummy_archive_key_file),
-                           $session->strip_chroot_path($tmpfilename));
+                           '--keyring', $dummy_archive_key_file,
+                           $tmpfilename);
 
         $session->run_command(
             { COMMAND => \@gpg_command,
@@ -1098,15 +1135,27 @@ EOF
         if ($?) {
             $self->log("Failed to import archive keys to the trusted keyring");
             $self->cleanup_apt_archive();
-            unlink $tmpfilename;
+	    $session->unlink($tmpfilename);
             return 0;
         }
-        unlink $tmpfilename;
+	$session->unlink($tmpfilename);
     }
 
     # Write a list file for the dummy archive if one not create yet.
-    if (! -f $dummy_archive_list_file) {
-        my ($tmpfh, $tmpfilename) = tempfile(DIR => $session->get('Location') . "/tmp");
+    if (!$session->test_regular_file($dummy_archive_list_file)) {
+	my $tmpfilename = $session->mktemp();
+
+	if (!$tmpfilename) {
+	    $self->log_error("Can't create tempfile\n");
+	    return 0;
+	}
+
+	my $tmpfh = $session->get_write_file_handle($tmpfilename);
+	if (!$tmpfh) {
+	    $self->log_error("Cannot open pipe: $!\n");
+	    return 0;
+	}
+
 	# We always trust the dummy apt repositories.
 	# This means that if SBUILD_BUILD_DEPENDS_{SECRET|PUBLIC}_KEY do not
 	# exist and thus the dummy repositories do not get signed, apt will
@@ -1122,8 +1171,8 @@ EOF
 	# launchpad-buildd which directly tries to access
 	# /var/lib/apt/lists/*_Packages and cannot use `apt-get indextargets` as
 	# that apt feature is too new for it.
-        print $tmpfh 'deb [trusted=yes] copy://' . $session->strip_chroot_path($dummy_archive_dir) . " ./\n";
-        print $tmpfh 'deb-src [trusted=yes] copy://' . $session->strip_chroot_path($dummy_archive_dir) . " ./\n";
+        print $tmpfh 'deb [trusted=yes] copy://' . $dummy_archive_dir . " ./\n";
+        print $tmpfh 'deb-src [trusted=yes] copy://' . $dummy_archive_dir . " ./\n";
 
         for my $repospec (@{$self->get_conf('EXTRA_REPOSITORIES')}) {
             print $tmpfh "$repospec\n";
@@ -1131,28 +1180,18 @@ EOF
 
         close($tmpfh);
         # List file needs to be moved with root.
-        $session->run_command(
-            { COMMAND => ['chmod', '0644', $session->strip_chroot_path($tmpfilename)],
-              USER => 'root',
-              PRIORITY => 0});
-        if ($?) {
+        if (!$session->chmod($tmpfilename, '0644')) {
             $self->log("Failed to create apt list file for dummy archive.\n");
             $self->cleanup_apt_archive();
-            unlink $tmpfilename;
+	    $session->unlink($tmpfilename);
             return 0;
         }
-        $session->run_command(
-            { COMMAND => ['mv', $session->strip_chroot_path($tmpfilename),
-                          $session->strip_chroot_path($dummy_archive_list_file)],
-              USER => 'root',
-              PRIORITY => 0});
-        if ($?) {
+        if (!$session->rename($tmpfilename, $dummy_archive_list_file)) {
             $self->log("Failed to create apt list file for dummy archive.\n");
             $self->cleanup_apt_archive();
-            unlink $tmpfilename;
+	    $session->unlink($tmpfilename);
             return 0;
         }
-        unlink $tmpfilename;
     }
 
     if ((-f $self->get_conf('SBUILD_BUILD_DEPENDS_SECRET_KEY')) &&
@@ -1160,7 +1199,7 @@ EOF
 	!$self->get_conf('APT_ALLOW_UNAUTHENTICATED')) {
         # Add the generated key
         $session->run_command(
-            { COMMAND => ['apt-key', 'add', $session->strip_chroot_path($dummy_archive_pubkey)],
+            { COMMAND => ['apt-key', 'add', $dummy_archive_pubkey],
               USER => 'root',
               PRIORITY => 0});
         if ($?) {
@@ -1180,23 +1219,12 @@ sub cleanup_apt_archive {
     my $session = $self->get('Session');
 
     if (defined $self->get('Dummy package path')) {
-	$session->run_command(
-	    { COMMAND => ['rm', '-fr', $session->strip_chroot_path($self->get('Dummy package path'))],
-	      USER => $self->get_conf('BUILD_USER'),
-	      DIR => '/' });
+	$session->unlink($self->get('Dummy package path'), { RECURSIVE => 1, FORCE => 1 });
     }
 
-    $session->run_command(
-	{ COMMAND => ['rm', '-f', $session->strip_chroot_path($self->get('Dummy archive list file'))],
-	  USER => 'root',
-	  DIR => '/',
-	  PRIORITY => 0});
+    $session->unlink($self->get('Dummy archive list file'), { FORCE => 1 });
 
-    $session->run_command(
-	{ COMMAND => ['rm', '-f', $session->strip_chroot_path($self->get('Dummy archive key file'))],
-	  USER => 'root',
-	  DIR => '/',
-	  PRIORITY => 0});
+    $session->unlink($self->get('Dummy archive key file'), { FORCE => 1 });
 
     $self->set('Dummy package path', undef);
     $self->set('Dummy archive directory', undef);
@@ -1228,86 +1256,128 @@ sub run_apt_ftparchive {
     my $self = shift;
 
     my $session = $self->get('Session');
-    my $host = $self->get('Host');
-
-    my ($tmpfh, $tmpfilename) = tempfile();
     my $dummy_archive_dir = $self->get('Dummy archive directory');
 
     for my $deb (@{$self->get_conf('EXTRA_PACKAGES')}) {
-        copy($deb, $dummy_archive_dir);
+        $session->copy_to_chroot($deb, $dummy_archive_dir);
     }
 
-    # Write the conf file.
-    print $tmpfh <<"EOF";
-Dir {
- ArchiveDir "$dummy_archive_dir";
-};
+    # We create the Packages, Sources and Release file inside the chroot.
+    # We cannot use apt-ftparchive as this is not available inside the chroot.
+    # Apt-ftparchive outside the chroot might not have access to the files
+    # inside the chroot (for example when using qemu or ssh backends).
+    # The only alternative would've been to set up the archive outside the
+    # chroot using apt-ftparchive and to then copy Packages, Sources and
+    # Release into the chroot.
+    # We do not do this to avoid copying files from and to the chroot.
+    # At the same time doing it like this has the advantage to have less
+    # dependencies of sbuild itself (no apt-ftparchive needed).
+    # The disadvantage of doing it this way is that we now have to maintain
+    # our own code creating the Release file which might break in the future.
+    my $packagessourcescmd = <<'SCRIPTEND';
+use strict;
+use warnings;
 
-Default {
- Packages::Compress ". gzip";
- Sources::Compress ". gzip";
-};
+use IO::Compress::Gzip qw(gzip $GzipError);
+use Digest::MD5;
+use Digest::SHA;
+use POSIX qw(strftime);
 
-BinDirectory "$dummy_archive_dir" {
- Packages "Packages";
- Sources "Sources";
-};
+# Execute a command without /bin/sh but plain execvp while redirecting its
+# standard output to a file given as the first argument.
+# Using "print $fh `my_command`" has the disadvantage that "my_command" might
+# be executed through /bin/sh (depending on the characters used) or that the
+# output of "my_command" is very long.
+sub system_redir_stdout
+{
+	my ($filename, @args) = @_;
 
-APT::FTPArchive::Release::Origin "sbuild-build-depends-archive";
-APT::FTPArchive::Release::Label "sbuild-build-depends-archive";
-APT::FTPArchive::Release::Suite "invalid";
-APT::FTPArchive::Release::Codename "invalid";
-APT::FTPArchive::Release::Description "Sbuild Build Dependency Temporary Archive";
-EOF
-    close $tmpfh;
+	open(my $saved_stdout, ">&STDOUT") or die "cannot save stdout: $!";
+	open(my $packages, '>', $filename) or die "cannot open Packages for writing: $!";
+	open(STDOUT, '>&', $packages) or die "cannot redirect stdout: $!";
 
-    # Remove APT_CONFIG environment variable here, restore it later.
-    my $env = $self->get('Session')->get('Defaults')->{'ENV'};
-    my $apt_config_value = $env->{'APT_CONFIG'};
-    delete $env->{'APT_CONFIG'};
+	system(@args) == 0 or die "system @args failed: $?";
 
-    # Run apt-ftparchive to generate Packages and Sources files.
-    $host->run_command(
-        { COMMAND => ['apt-ftparchive', '-q=2', 'generate', $tmpfilename],
-          USER => $self->get_conf('USERNAME'),
-          PRIORITY => 0,
-          DIR => '/'});
-    if ($?) {
-        $env->{'APT_CONFIG'} = $apt_config_value;
-	unlink $tmpfilename;
-        return 0;
+	open(STDOUT, '>&', $saved_stdout) or die "cannot restore stdout: $!";
+	close $saved_stdout;
+	close $packages;
+}
+
+sub hash_file($$)
+{
+	my ($filename, $hashobj) = @_;
+	open (my $handle, '<', $filename) or die "cannot open $filename for reading: $!";
+	my $hash = $hashobj->addfile($handle)->hexdigest;
+	close $handle;
+	return $hash;
+}
+
+system_redir_stdout('Packages', 'dpkg-scanpackages', '.', '/dev/null');
+system_redir_stdout('Sources', 'dpkg-scansources', '.', '/dev/null');
+
+gzip 'Packages' => 'Packages.gz' or die "gzip failed: $GzipError\n";
+gzip 'Sources' => 'Sources.gz' or die "gzip failed: $GzipError\n";
+
+my $packages_md5 = hash_file('Packages', Digest::MD5->new);
+my $sources_md5 = hash_file('Sources', Digest::MD5->new);
+my $packagesgz_md5 = hash_file('Packages.gz', Digest::MD5->new);
+my $sourcesgz_md5 = hash_file('Sources.gz', Digest::MD5->new);
+
+my $packages_sha1 = hash_file('Packages', Digest::SHA->new(1));
+my $sources_sha1 = hash_file('Sources', Digest::SHA->new(1));
+my $packagesgz_sha1 = hash_file('Packages.gz', Digest::SHA->new(1));
+my $sourcesgz_sha1 = hash_file('Sources.gz', Digest::SHA->new(1));
+
+my $packages_sha256 = hash_file('Packages', Digest::SHA->new(256));
+my $sources_sha256 = hash_file('Sources', Digest::SHA->new(256));
+my $packagesgz_sha256 = hash_file('Packages.gz', Digest::SHA->new(256));
+my $sourcesgz_sha256 = hash_file('Sources.gz', Digest::SHA->new(256));
+
+my $packages_size = -s 'Packages';
+my $sources_size = -s 'Sources';
+my $packagesgz_size = -s 'Packages.gz';
+my $sourcesgz_size = -s 'Sources.gz';
+
+# time format stolen from apt ftparchive/writer.cc
+my $datestring = strftime "%a, %d %b %Y %H:%M:%S UTC", gmtime();
+
+open(my $releasefh, '>', 'Release') or die "cannot open Release for writing: $!";
+
+print $releasefh <<"END";
+Codename: invalid
+Date: $datestring
+Description: Sbuild Build Dependency Temporary Archive
+Label: sbuild-build-depends-archive
+Origin: sbuild-build-depends-archive
+Suite: invalid
+MD5Sum:
+ $packages_md5 $packages_size Packages
+ $sources_md5 $sources_size Sources
+ $packagesgz_md5 $packagesgz_size Packages.gz
+ $sourcesgz_md5 $sourcesgz_size Sources.gz
+SHA1:
+ $packages_sha1 $packages_size Packages
+ $sources_sha1 $sources_size Sources
+ $packagesgz_sha1 $packagesgz_size Packages.gz
+ $sourcesgz_sha1 $sourcesgz_size Sources.gz
+SHA256:
+ $packages_sha256 $packages_size Packages
+ $sources_sha256 $sources_size Sources
+ $packagesgz_sha256 $packagesgz_size Packages.gz
+ $sourcesgz_sha256 $sourcesgz_size Sources.gz
+END
+
+close $releasefh;
+
+SCRIPTEND
+
+    $session->run_command(
+	{ COMMAND => ['perl', '-e', $packagessourcescmd],
+	    USER => "root", DIR => $dummy_archive_dir});
+    if ($? ne 0) {
+	$self->log_error("cannot create dummy archive");
+	return 0;
     }
-
-    # Get output for Release file
-    my $pipe = $host->pipe_command(
-        { COMMAND => ['apt-ftparchive', '-q=2', '-c', $tmpfilename, 'release', $dummy_archive_dir],
-          USER => $self->get_conf('USERNAME'),
-          PRIORITY => 0,
-          DIR => '/'});
-    if (!defined($pipe)) {
-        $env->{'APT_CONFIG'} = $apt_config_value;
-	unlink $tmpfilename;
-        return 0;
-    }
-    $env->{'APT_CONFIG'} = $apt_config_value;
-
-
-    # Write output to Release file path.
-    my ($releasefh);
-    if (!open($releasefh, '>', $self->get('Dummy Release file'))) {
-        close $pipe;
-	unlink $tmpfilename;
-        return 0;
-    }
-
-    while (<$pipe>) {
-        print $releasefh $_;
-    }
-    close $releasefh;
-    close $pipe;
-
-    # Remove config file.  Note also removed on failure paths above.
-    unlink $tmpfilename;
 
     return 1;
 }

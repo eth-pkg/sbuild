@@ -165,6 +165,7 @@ sub main () {
 	# reported to the admin as failure:
 	exit 1;
     }
+    debug("Error main(): $@") if $@;
     exit 1;
 }
 

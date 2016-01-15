@@ -30,7 +30,6 @@ use POSIX;
 use Errno qw(:POSIX);
 use Fcntl;
 use File::Basename qw(basename dirname);
-use File::Temp qw(tempdir);
 use File::Path qw(make_path);
 use FileHandle;
 use File::Copy qw(); # copy is already exported from Sbuild, so don't export
@@ -45,7 +44,7 @@ use Scalar::Util 'refaddr';
 use MIME::Lite;
 use Term::ANSIColor;
 
-use Sbuild qw($devnull binNMU_version copy isin debug df send_mail
+use Sbuild qw($devnull binNMU_version copy isin debug send_mail
               dsc_files dsc_pkgver);
 use Sbuild::Base;
 use Sbuild::ChrootInfoSchroot;
@@ -78,8 +77,6 @@ sub new {
 
     $self->set('ABORT', undef);
     $self->set('Job', $dsc);
-    $self->set('Chroot Dir', '');
-    $self->set('Chroot Build Dir', '');
     $self->set('Build Dir', '');
     $self->set('Max Lock Trys', 120);
     $self->set('Lock Interval', 5);
@@ -328,6 +325,8 @@ sub run_chroot {
 	$self->run_chroot_session();
     };
 
+    debug("Error run_chroot(): $@") if $@;
+
     # Log exception info and set status and fail stage prior to
     # closing build log.
     my $e;
@@ -397,57 +396,61 @@ sub run_chroot_session {
 		failstage => "create-session");
 	}
 
-	$self->set('Chroot Dir', $session->get('Location'));
 	if (defined($self->get_conf('BUILD_PATH')) && $self->get_conf('BUILD_PATH')) {
-		my $build_path = $session->get('Location') . "/" . $self->get_conf('BUILD_PATH');
-		$self->set('Chroot Build Dir', $build_path);
-		if (!(-d "$build_path")) {
-			make_path($build_path, {error => \my $err} );
-			if (@$err) {
-				my $error;
-				for my $diag (@$err) {
-					my ($file, $message) = %$diag;
-					$error .= "mkdir $file: $message\n";
-				}
-				Sbuild::Exception::Build->throw(
-					error => $error,
-					failstage => "create-session");
-			}
-		} else {
-			my $empty = isEmpty($build_path);
-			if ($empty == 1) {
-				Sbuild::Exception::Build->throw(
-					error => "Buildpath: " . $build_path . " is not empty",
-					failstage => "create-session");
-			}
-			elsif ($empty == 2) {
-				Sbuild::Exception::Build->throw(
-					error => "Buildpath: " . $build_path . " cannot be read. Insufficient permissions?",
-					failstage => "create-session");
-			}
+	    my $build_path = $self->get_conf('BUILD_PATH');
+	    $self->set('Build Dir', $build_path);
+	    if (!($session->test_directory($build_path))) {
+		if (!$session->mkdir($build_path, { PARENTS => 1})) {
+		    Sbuild::Exception::Build->throw(
+			error => "Buildpath: " . $build_path . " cannot be created",
+			failstage => "create-session");
 		}
+	    } else {
+		my $isempty = <<END;
+if (opendir my \$dfh, "$build_path") {
+    while (defined(my \$file=readdir \$dfh)) {
+	next if \$file eq "." or \$file eq "..";
+	closedir \$dfh;
+	exit 1
+    }
+    closedir \$dfh;
+    exit 0
+}
+exit 2
+END
+		$session->run_command({
+			COMMAND => ['perl', '-e', $isempty],
+			USER => 'root',
+			DIR => '/'
+		    });
+		if ($? == 1) {
+		    Sbuild::Exception::Build->throw(
+			error => "Buildpath: " . $build_path . " is not empty",
+			failstage => "create-session");
+		}
+		elsif ($? == 2) {
+		    Sbuild::Exception::Build->throw(
+			error => "Buildpath: " . $build_path . " cannot be read. Insufficient permissions?",
+			failstage => "create-session");
+		}
+	    }
 	} else {
-		$self->set('Chroot Build Dir',
-			   tempdir($self->get('Package') . '-XXXXXX',
-				   DIR =>  $session->get('Location') . "/build"));
-	}
-	sub isEmpty{
-		my ($dirpath) = @_;
-		my $file;
-		if ( opendir my $dfh, $dirpath){
-			while (defined($file = readdir $dfh)){
-				next if $file eq '.' or $file eq '..';
-				closedir $dfh;
-				return 1;
-			}
-			closedir $dfh;
-			return 0;
+		# we run mktemp within the chroot instead of using File::Temp::tempdir because the user
+		# running sbuild might not have permissions creating a directory in /build. This happens
+		# when the chroot was extracted in a different user namespace than the outer user
+		$self->check_abort();
+		my $tmpdir = $session->mktemp({
+			TEMPLATE => "/build/" . $self->get('Package') . '-XXXXXX',
+			DIRECTORY => 1});
+		if (!$tmpdir) {
+			$self->log_error("unable to mktemp\n");
+			Sbuild::Exception::Build->throw(error => "unable to mktemp",
+				failstage => "create-build-dir");
 		}
-		return 2;
+		$self->check_abort();
+		$self->set('Build Dir', $tmpdir);
 	}
 
-
-	$self->set('Build Dir', $session->strip_chroot_path($self->get('Chroot Build Dir')));
 
 	# Run pre build external commands
 	$self->check_abort();
@@ -474,21 +477,12 @@ sub run_chroot_session {
 
 	# Need tempdir to be writable and readable by sbuild group.
 	$self->check_abort();
-	$session->run_command(
-	    { COMMAND => ['chown', $self->get_conf('BUILD_USER') . ':sbuild',
-			  $self->get('Build Dir')],
-	      USER => 'root',
-	      DIR => '/' });
-	if ($?) {
+	if (!$session->chown($self->get('Build Dir'), $self->get_conf('BUILD_USER'), 'sbuild')) {
 	    Sbuild::Exception::Build->throw(error => "Failed to set sbuild group ownership on chroot build dir",
 					    failstage => "create-build-dir");
 	}
 	$self->check_abort();
-	$session->run_command(
-	    { COMMAND => ['chmod', '0770', $self->get('Build Dir')],
-	      USER => 'root',
-	      DIR => '/' });
-	if ($?) {
+	if (!$session->chmod($self->get('Build Dir'), "ug=rwx,o=,a-s")) {
 	    Sbuild::Exception::Build->throw(error => "Failed to set sbuild group ownership on chroot build dir",
 					    failstage => "create-build-dir");
 	}
@@ -515,7 +509,7 @@ sub run_chroot_session {
 	$resolver->set('Host Arch', $self->get_conf('HOST_ARCH'));
 	$resolver->set('Build Arch', $self->get_conf('BUILD_ARCH'));
 	$resolver->set('Build Profiles', $self->get_conf('BUILD_PROFILES'));
-	$resolver->set('Chroot Build Dir', $self->get('Chroot Build Dir'));
+	$resolver->set('Build Dir', $self->get('Build Dir'));
 	$self->set('Dependency Resolver', $resolver);
 
 	# Lock chroot so it won't be tampered with during the build.
@@ -682,6 +676,8 @@ sub run_chroot_update {
 	    }
 	}
     };
+
+    debug("Error run_chroot_update(): $@") if $@;
 
     my $e = Exception::Class->caught('Sbuild::Exception::Build');
     if ($e) {
@@ -873,11 +869,9 @@ sub run_fetch_install_packages {
     if ($purge_build_directory) {
 	# Purge package build directory
 	$self->log("Purging " . $self->get('Build Dir') . "\n");
-	$self->get('Session')->run_command(
-	    { COMMAND => ['rm', '-rf', $self->get('Build Dir')],
-	      USER => 'root',
-	      PRIORITY => 0,
-	      DIR => '/' });
+	if (!$self->get('Session')->unlink($self->get('Build Dir'), { RECURSIVE => 1 })) {
+		$self->log_error("unable to remove build directory\n");
+	}
     }
 
     # Purge non-cloned session
@@ -902,30 +896,22 @@ sub run_fetch_install_packages {
 sub copy_to_chroot {
     my $self = shift;
     my $source = shift;
-    my $dest = shift;
+    my $chrootdest = shift;
+
+    my $session = $self->get('Session');
 
     $self->check_abort();
-    if (! File::Copy::copy($source, $dest)) {
-	$self->log_error("E: Failed to copy '$source' to '$dest': $!\n");
+    if(!$session->copy_to_chroot($source, $chrootdest)) {
+	$self->log_error("E: Failed to copy $source to $chrootdest\n");
 	return 0;
     }
 
-    $self->get('Session')->run_command(
-	{ COMMAND => ['chown', $self->get_conf('BUILD_USER') . ':sbuild',
-		      $self->get('Session')->strip_chroot_path($dest)],
-	  USER => 'root',
-	  DIR => '/' });
-    if ($?) {
-	$self->log_error("E: Failed to set sbuild group ownership on $dest\n");
+    if (!$session->chown($chrootdest, $self->get_conf('BUILD_USER'), 'sbuild')) {
+	$self->log_error("E: Failed to set sbuild group ownership on $chrootdest\n");
 	return 0;
     }
-    $self->get('Session')->run_command(
-	{ COMMAND => ['chmod', '0664',
-		      $self->get('Session')->strip_chroot_path($dest)],
-	  USER => 'root',
-	  DIR => '/' });
-    if ($?) {
-	$self->log_error("E: Failed to set 0644 permissions on $dest\n");
+    if (!$session->chmod($chrootdest, "ug=rw,o=r,a-s")) {
+	$self->log_error("E: Failed to set 0644 permissions on $chrootdest\n");
 	return 0;
     }
 
@@ -934,7 +920,7 @@ sub copy_to_chroot {
 sub fetch_source_files {
     my $self = shift;
 
-    my $build_dir = $self->get('Chroot Build Dir');
+    my $build_dir = $self->get('Build Dir');
     my $host_arch = $self->get('Host Arch');
     my $resolver = $self->get('Dependency Resolver');
 
@@ -1086,12 +1072,20 @@ sub fetch_source_files {
 	}
     }
 
+    my $pipe = $self->get('Session')->get_read_file_handle("$build_dir/$dsc");
+    if (!$pipe) {
+	$self->log_error("unable to open pipe\n");
+	return 0;
+    }
+
     my $pdsc = Dpkg::Control->new(type => CTRL_PKG_SRC);
     $pdsc->set_options(allow_pgp => 1);
-    if (!$pdsc->load("$build_dir/$dsc")) {
+    if (!$pdsc->parse($pipe, "$build_dir/$dsc")) {
 	$self->log_error("Error parsing $build_dir/$dsc");
 	return 0;
     }
+
+    close($pipe);
 
     $build_depends = $pdsc->{'Build-Depends'};
     $build_depends_arch = $pdsc->{'Build-Depends-Arch'};
@@ -1399,9 +1393,14 @@ sub run_external_commands {
 	$percent{SBUILD_PKGBUILD_DIR} = $pkgbuild_dir;
     }
     if ($chroot == 0) {
-	my $chroot_dir = $self->get('Chroot Dir');
+	my $chroot_dir = $self->get('Session')->get('Location');
 	$percent{r} = $chroot_dir;
 	$percent{SBUILD_CHROOT_DIR} = $chroot_dir;
+	# the %SBUILD_CHROOT_EXEC escape is only defined when the command is
+	# to be run outside the chroot
+	my $exec_string = $self->get('Session')->get_internal_exec_string();
+	$percent{e} = $exec_string;
+	$percent{SBUILD_CHROOT_EXEC} = $exec_string;
     }
     # Our escapes pattern, with longer escapes first, then sorted lexically.
     my $keyword_pat = join("|",
@@ -1411,6 +1410,9 @@ sub run_external_commands {
 
 	my $substitute = sub {
 	    foreach(@_) {
+		if (/\%SBUILD_CHROOT_DIR/ || /\%r/) {
+		    $self->log_warning("The %SBUILD_CHROOT_DIR and %r percentage escapes are deprecated and should not be used anymore. Please use %SBUILD_CHROOT_EXEC or %e instead.");
+		}
 		s{
 		     # Match a percent followed by a valid keyword
 		     \%($keyword_pat)
@@ -1450,23 +1452,35 @@ sub run_external_commands {
 
 sub run_lintian {
     my $self = shift;
+    my $session = $self->get('Session');
 
     return 1 unless ($self->get_conf('RUN_LINTIAN'));
 
+    if (!defined($session)) {
+	$self->log_error("Session is undef. Cannot run lintian.\n");
+	return 0;
+    }
+
     $self->log_subsubsection("lintian");
 
-    my $build_dir = $self->get('Chroot Build Dir');
+    my $build_dir = $self->get('Build Dir');
     my $resolver = $self->get('Dependency Resolver');
     my $lintian = $self->get_conf('LINTIAN');
+    my $changes = $self->get_changes($build_dir);
+    if (!defined($changes)) {
+	$self->log_error(".changes is undef. Cannot run lintian.\n");
+	return 0;
+    }
+
     my @lintian_command = ($lintian);
     push @lintian_command, @{$self->get_conf('LINTIAN_OPTIONS')} if
         ($self->get_conf('LINTIAN_OPTIONS'));
-    push @lintian_command, $self->get_changes($build_dir);
+    push @lintian_command, $changes;
 
     $resolver->add_dependencies('LINTIAN', 'lintian', "", "", "", "", "");
     return 1 unless $resolver->install_core_deps('lintian', 'LINTIAN');
 
-    $self->get('Session')->run_command(
+    $session->run_command(
         { COMMAND => \@lintian_command,
           PRIORITY => 0,
           DIR => $self->get('Build Dir')
@@ -1533,9 +1547,10 @@ sub build {
     my $dscfile = $self->get('DSC File');
     my $dscdir = $self->get('DSC Dir');
     my $pkg = $self->get('Package');
-    my $build_dir = $self->get('Chroot Build Dir');
+    my $build_dir = $self->get('Build Dir');
     my $host_arch = $self->get('Host Arch');
     my $build_arch = $self->get('Build Arch');
+    my $session = $self->get('Session');
 
     my( $rv, $changes );
     local( *PIPE, *F, *F2 );
@@ -1548,61 +1563,50 @@ sub build {
     $tmpunpackdir =~ s/_/-/;
     $tmpunpackdir = "$build_dir/$tmpunpackdir";
 
+    $dscdir = "$build_dir/$dscdir";
+
     $self->log_subsubsection("Unpack source");
-    if (-d "$build_dir/$dscdir" && -l "$build_dir/$dscdir") {
+    if ($session->test_directory($dscdir) && $session->test_symlink($dscdir)) {
 	# if the package dir already exists but is a symlink, complain
 	$self->log_error("Cannot unpack source: a symlink to a directory with the\n".
 		   "same name already exists.\n");
 	return 0;
     }
-    if (! -d "$build_dir/$dscdir") {
+    if (!$session->test_directory($dscdir)) {
 	$self->set('Sub Task', "dpkg-source");
-	$self->get('Session')->run_command(
-		    { COMMAND => [$self->get_conf('DPKG_SOURCE'),
-				  '-x', $dscfile, $dscdir],
-		      USER => $self->get_conf('BUILD_USER'),
-		      PRIORITY => 0});
+	$session->run_command({
+		COMMAND => [$self->get_conf('DPKG_SOURCE'),
+		    '-x', $dscfile, $dscdir],
+		USER => $self->get_conf('BUILD_USER'),
+		DIR => $build_dir,
+		PRIORITY => 0});
 	if ($?) {
 	    $self->log_error("FAILED [dpkg-source died]\n");
 	    Sbuild::Exception::Build->throw(error => "FAILED [dpkg-source died]",
 					    failstage => "unpack");
 	}
 
-	$self->get('Session')->run_command(
-	    { COMMAND => ['chmod', '-R', 'g-s,go+rX', $dscdir],
-	      USER => $self->get_conf('BUILD_USER'),
-	      PRIORITY => 0});
-	if ($?) {
+	if (!$session->chmod($dscdir, 'g-s,go+rX', { RECURSIVE => 1 })) {
 	    $self->log_error("chmod -R g-s,go+rX $dscdir failed.\n");
 	    Sbuild::Exception::Build->throw(error => "chmod -R g-s,go+rX $dscdir failed",
 					    failstage => "unpack");
 	}
-
-	$dscdir = "$build_dir/$dscdir"
     }
     else {
-	$dscdir = "$build_dir/$dscdir";
-
 	$self->log_subsubsection("Check unpacked source");
 	# check if the unpacked tree is really the version we need
-	$dscdir = $self->get('Session')->strip_chroot_path($dscdir);
-	my $pipe = $self->get('Session')->pipe_command(
+	my $clog = $session->read_command(
 	    { COMMAND => ['dpkg-parsechangelog'],
 	      USER => $self->get_conf('BUILD_USER'),
 	      PRIORITY => 0,
 	      DIR => $dscdir});
-	$self->set('Sub Task', "dpkg-parsechangelog");
-
-	my $clog = "";
-	while(<$pipe>) {
-	    $clog .= $_;
-	}
-	close($pipe);
-	if ($?) {
-	    $self->log_error("FAILED [dpkg-parsechangelog died]\n");
-	    Sbuild::Exception::Build->throw(error => "FAILED [dpkg-parsechangelog died]",
+	if (!$clog) {
+	    $self->log_error("unable to read from dpkg-parsechangelog");
+	    Sbuild::Exception::Build->throw(error => "unable to read from dpkg-parsechangelog",
 					    failstage => "check-unpacked-version");
 	}
+	$self->set('Sub Task', "dpkg-parsechangelog");
+
 	if ($clog !~ /^Version:\s*(.+)\s*$/mi) {
 	    $self->log_error("dpkg-parsechangelog didn't print Version:\n");
 	    Sbuild::Exception::Build->throw(error => "dpkg-parsechangelog didn't print Version:",
@@ -1611,37 +1615,59 @@ sub build {
     }
 
     $self->log_subsubsection("Check disc space");
-    my $current_usage = `du -k -s "$dscdir"`;
+    chomp(my $current_usage = $session->read_command({ COMMAND => ["du", "-k", "-s", "$dscdir"]}));
+    if ($?) {
+	$self->log_error("du exited with non-zero exit status $?");
+	Sbuild::Exception::Build->throw(error => "du exited with non-zero exit status $?", failstage => "check-space");
+    }
     $current_usage =~ /^(\d+)/;
     $current_usage = $1;
     if ($current_usage) {
-	my $free = df($dscdir);
+	my $pipe = $session->pipe_command({ COMMAND => ["df", "-k", "$dscdir"]});
+	my $free;
+	while (<$pipe>) {
+	    $free = (split /\s+/)[3];
+	}
+	close $pipe;
+	if ($?) {
+	    $self->log_error("df exited with non-zero exit status $?");
+	    Sbuild::Exception::Build->throw(error => "df exited with non-zero exit status $?", failstage => "check-space");
+	}
 	if ($free < 2*$current_usage && $self->get_conf('CHECK_SPACE')) {
 	    Sbuild::Exception::Build->throw(error => "Disc space is probably not sufficient for building.",
-					    info => "Source needs $current_usage KiB, while $free KiB is free.)",
-					    failstage => "check-space");
+		info => "Source needs $current_usage KiB, while $free KiB is free.)",
+		failstage => "check-space");
 	} else {
 	    $self->log("Sufficient free space for build\n");
 	}
     }
 
-    my $cpipe = $self->get('Session')->pipe_command(
+    my $clogpipe = $session->pipe_command(
 	{ COMMAND => ['dpkg-parsechangelog'],
 	  USER => $self->get_conf('BUILD_USER'),
 	  PRIORITY => 0,
-	  DIR => $self->get('Session')->strip_chroot_path($dscdir) });
-    my $clog = do { local $/; <$cpipe> };
-    close($cpipe);
-    if ($?) {
-	$self->log_error("FAILED [dpkg-parsechangelog died]\n");
-	return 0;
+	  DIR => $dscdir });
+    if (!$clogpipe) {
+	    $self->log_error("unable to read from dpkg-parsechangelog");
+	    Sbuild::Exception::Build->throw(error => "unable to read from dpkg-parsechangelog",
+					    failstage => "check-unpacked-version");
     }
 
-    my ($name) = $clog =~ /^Source:\s*(.*)$/m;
-    my ($version) = $clog =~ /^Version:\s*(.*)$/m;
-    my ($dists) = $clog =~ /^Distribution:\s*(.*)$/m;
-    my ($urgency) = $clog =~ /^Urgency:\s*(.*)$/m;
-    my ($date) = $clog =~ /^Date:\s*(.*)$/m;
+    my $clog = Dpkg::Control->new(type => CTRL_CHANGELOG);
+    if (!$clog->parse($clogpipe, "$dscdir/debian/changelog")) {
+	$self->log_error("unable to parse debian/changelog");
+	Sbuild::Exception::Build->throw(error => "unable to parse debian/changelog",
+	    failstage => "check-unpacked-version");
+    }
+
+    close($clogpipe);
+
+    my $name = $clog->{Source};
+    my $version = $clog->{Version};
+    my $dists = $clog->{Distribution};
+    my $urgency = $clog->{Urgency};
+    my $date = $clog->{Date};
+
     if ($dists ne $self->get_conf('DISTRIBUTION')) {
 	$self->build_log_colour('yellow',
 				"^Distribution: " . $self->get_conf('DISTRIBUTION') . "\$");
@@ -1655,49 +1681,50 @@ sub build {
 	}
 
 	$self->log_subsubsection("Hack binNMU version");
-	if (open( F, "<$dscdir/debian/changelog" )) {
-	    my $text = do { local $/; <F> };
-	    close( F );
 
+	my $text = $session->read_file("$dscdir/debian/changelog");
 
-	    my $NMUversion = $self->get('Version');
-	    if (!open( F, ">$dscdir/debian/changelog" )) {
-		$self->log_error("Can't open debian/changelog for binNMU hack: $!\n");
-		Sbuild::Exception::Build->throw(error => "Can't open debian/changelog for binNMU hack: $!",
-						failstage => "hack-binNMU");
-	    }
-	    $dists = $self->get_conf('DISTRIBUTION');
-
-	    print F "$name ($NMUversion) $dists; urgency=low, binary-only=yes\n\n";
-	    if ($self->get_conf('APPEND_TO_VERSION')) {
-		print F "  * Append ", $self->get_conf('APPEND_TO_VERSION'),
-		    " to version number; no source changes\n";
-	    }
-	    if ($self->get_conf('BIN_NMU')) {
-		print F "  * Binary-only non-maintainer upload for $host_arch; ",
-		    "no source changes.\n";
-		print F "  * ", join( "    ", split( "\n", $self->get_conf('BIN_NMU') )), "\n";
-	    }
-	    print F "\n";
-
-	    print F " -- " . $self->get_conf('MAINTAINER_NAME') . "  $date\n\n";
-	    print F $text;
-	    close( F );
-	    $self->log_error("Created changelog entry for binNMU version $NMUversion\n");
-	}
-	else {
+	if (!$text) {
 	    $self->log_error("Can't open debian/changelog -- no binNMU hack!\n");
 	    Sbuild::Exception::Build->throw(error => "Can't open debian/changelog -- no binNMU hack: $!!",
-					    failstage => "hack-binNMU");
+		failstage => "hack-binNMU");
 	}
+
+	my $NMUversion = $self->get('Version');
+
+	my $clogpipe = $session->get_write_file_handle("$dscdir/debian/changelog");
+
+	if (!$clogpipe) {
+	    $self->log_error("Can't open debian/changelog for binNMU hack: $!\n");
+	    Sbuild::Exception::Build->throw(error => "Can't open debian/changelog for binNMU hack: $!",
+		failstage => "hack-binNMU");
+	}
+	$dists = $self->get_conf('DISTRIBUTION');
+
+	print $clogpipe "$name ($NMUversion) $dists; urgency=low, binary-only=yes\n\n";
+	if ($self->get_conf('APPEND_TO_VERSION')) {
+	    print $clogpipe "  * Append ", $self->get_conf('APPEND_TO_VERSION'),
+	    " to version number; no source changes\n";
+	}
+	if ($self->get_conf('BIN_NMU')) {
+	    print $clogpipe "  * Binary-only non-maintainer upload for $host_arch; ",
+	    "no source changes.\n";
+	    print $clogpipe "  * ", join( "    ", split( "\n", $self->get_conf('BIN_NMU') )), "\n";
+	}
+	print $clogpipe "\n";
+
+	print $clogpipe " -- " . $self->get_conf('MAINTAINER_NAME') . "  $date\n\n";
+	print $clogpipe $text;
+	close($clogpipe);
+	$self->log("Created changelog entry for binNMU version $NMUversion\n");
     }
 
-    if (-f "$dscdir/debian/files") {
+    if ($session->test_regular_file("$dscdir/debian/files")) {
 	local( *FILES );
 	my @lines;
-	open( FILES, "<$dscdir/debian/files" );
-	chomp( @lines = <FILES> );
-	close( FILES );
+	my $FILES = $session->get_read_file_handle("$dscdir/debian/files");
+	chomp( @lines = <$FILES> );
+	close( $FILES );
 
 	$self->log_warning("After unpacking, there exists a file debian/files with the contents:\n");
 
@@ -1716,11 +1743,7 @@ sub build {
 
     # Build tree not writable during build (except for the sbuild
     # user performing the build).
-    $self->get('Session')->run_command(
-	{ COMMAND => ['chmod', '-R', 'go-w', $self->get('Build Dir')],
-	  USER => 'root',
-	  PRIORITY => 0});
-    if ($?) {
+    if (!$session->chmod($self->get('Build Dir'), 'go-w', { RECURSIVE => 1 })) {
 	$self->log_error("chmod og-w " . $self->get('Build Dir') . " failed.\n");
 	return 0;
     }
@@ -1733,14 +1756,9 @@ sub build {
     $self->set('Build Start Time', time);
     $self->set('Build End Time', $self->get('Build Start Time'));
 
-    my $bdir = $self->get('Session')->strip_chroot_path($dscdir);
-    if (-f "$self->{'Chroot Dir'}/etc/ld.so.conf" &&
-	! -r "$self->{'Chroot Dir'}/etc/ld.so.conf") {
-	$self->get('Session')->run_command(
-	    { COMMAND => ['chmod', 'a+r', '/etc/ld.so.conf'],
-	      USER => 'root',
-	      PRIORITY => 0,
-	      DIR => '/' });
+    if ($session->test_regular_file("/etc/ld.so.conf") &&
+       ! $session->test_regular_file_readable("/etc/ld.so.conf")) {
+	$session->chmod('/etc/ld.so.conf', 'a+r');
 
 	$self->log_subsubsection("Fix ld.so");
 	$self->log("ld.so.conf was not readable! Fixed.\n");
@@ -1820,23 +1838,24 @@ sub build {
     # Dump build environment
     $self->log_subsubsection("User Environment");
     {
-	my $pipe = $self->get('Session')->pipe_command(
+	my $envcmd = $session->read_command(
 	    { COMMAND => ['env'],
 	      ENV => \%buildenv,
 	      ENV_FILTER => \@env_filter,
 	      USER => $self->get_conf('BUILD_USER'),
 	      SETSID => 1,
 	      PRIORITY => 0,
-	      DIR => $bdir
+	      DIR => $dscdir
 	    });
+	if (!$envcmd) {
+	    $self->log_error("unable to open pipe");
+	    Sbuild::Exception::Build->throw(error => "unable to open pipe",
+					    failstage => "dump-build-env");
+	}
 
-	my (@lines) = <$pipe>;
-	close($pipe);
-
-	@lines=sort(@lines);
+	my @lines=sort(split /\n/, $envcmd);
 	foreach my $line (@lines) {
-	    # $line contains a trailing newline, so don't add one.
-	    $self->log($line);
+	    $self->log("$line\n");
 	}
     }
 
@@ -1849,11 +1868,16 @@ sub build {
 	USER => $self->get_conf('BUILD_USER'),
 	SETSID => 1,
 	PRIORITY => 0,
-	DIR => $bdir,
+	DIR => $dscdir,
 	STREAMERR => \*STDOUT,
     };
 
-    my $pipe = $self->get('Session')->pipe_command($command);
+    my $pipe = $session->pipe_command($command);
+    if (!$pipe) {
+	$self->log_error("unable to open pipe");
+	Sbuild::Exception::Build->throw(error => "unable to open pipe",
+	    failstage => "dpkg-buildpackage");
+    }
 
     $self->set('Sub Task', "dpkg-buildpackage");
 
@@ -1870,7 +1894,7 @@ sub build {
     local $SIG{'ALRM'} = sub {
 	my $pid = $command->{'PID'};
 	my $signal = ($timed_out > 0) ? "KILL" : "TERM";
-	$self->get('Session')->run_command(
+	$session->run_command(
 	    { COMMAND => ['perl',
 			  '-e',
 			  "kill( \"$signal\", -$pid )"],
@@ -1890,7 +1914,7 @@ sub build {
 	$last_time = time;
 	if ($self->get('ABORT')) {
 	    my $pid = $command->{'PID'};
-	    $self->get('Session')->run_command(
+	    $session->run_command(
 		{ COMMAND => ['perl',
 			      '-e',
 			      "kill( \"TERM\", -$pid )"],
@@ -1926,7 +1950,7 @@ sub build {
 	    failstage => "run-finished-build-commands");
     }
 
-    my @space_files = ("$dscdir");
+    my @space_files = ();
 
     $self->log_subsubsection("Finished");
     if ($rv) {
@@ -1934,28 +1958,24 @@ sub build {
     } else {
 	$self->log_info("Built successfully\n");
 
-	if (-r "$dscdir/debian/files" && $self->get('Chroot Build Dir')) {
+	if ($session->test_regular_file_readable("$dscdir/debian/files")) {
 	    my @files = $self->debian_files_list("$dscdir/debian/files");
 
 	    foreach (@files) {
-		if (! -f "$build_dir/$_") {
+		if (!$session->test_regular_file("$build_dir/$_")) {
 		    $self->log_error("Package claims to have built ".basename($_).", but did not.  This is a bug in the packaging.\n");
 		    next;
 		}
 		if (/_all.u?deb$/ and not $self->get_conf('BUILD_ARCH_ALL')) {
 		    $self->log_error("Package builds ".basename($_)." when binary-indep target is not called.  This is a bug in the packaging.\n");
-		    unlink("$build_dir/$_");
+		    $session->unlink("$build_dir/$_");
 		    next;
 		}
 	    }
 	}
 
 	# Restore write access to build tree now build is complete.
-	$self->get('Session')->run_command(
-	    { COMMAND => ['chmod', '-R', 'g+w', $self->get('Build Dir')],
-	      USER => 'root',
-	      PRIORITY => 0});
-	if ($?) {
+	if (!$session->chmod($self->get('Build Dir'), 'g+w', { RECURSIVE => 1 })) {
 	    $self->log_error("chmod g+w " . $self->get('Build Dir') . " failed.\n");
 	    return 0;
 	}
@@ -1970,32 +1990,51 @@ sub build {
 
 	$self->log_subsection("Changes");
 	$changes = $self->get_changes($build_dir);
+	if (!defined($changes)) {
+	    $self->log_error(".changes is undef. Cannot copy build results.\n");
+	    return 0;
+	}
 	my @cfiles;
-	if (-r "$build_dir/$changes") {
+	if ($session->test_regular_file_readable("$build_dir/$changes")) {
 	    my(@do_dists, @saved_dists);
 	    $self->log_subsubsection("$changes:");
-	    open( F, "<$build_dir/$changes" );
+	    my $F = $session->get_read_file_handle("$build_dir/$changes");
+	    if (!$F) {
+		$self->log_error("cannot get read file handle for $build_dir/$changes\n");
+		Sbuild::Exception::Build->throw(error => "cannot get read file handle for $build_dir/$changes",
+		    failstage => "parse-changes");
+	    }
+	    my $pchanges = Dpkg::Control->new(type => CTRL_FILE_CHANGES);
+	    if (!$pchanges->parse($F, "$build_dir/$changes")) {
+		$self->log_error("cannot parse $build_dir/$changes\n");
+		Sbuild::Exception::Build->throw(error => "cannot parse $build_dir/$changes",
+		    failstage => "parse-changes");
+	    }
+	    close($F);
+
+
+	    if ($self->get_conf('OVERRIDE_DISTRIBUTION')) {
+		$pchanges->{Distribution} = $self->get_conf('DISTRIBUTION');
+	    }
+
+	    my $checksums = Dpkg::Checksums->new();
+	    $checksums->add_from_control($pchanges);
+
+	    push(@cfiles, $checksums->get_files());
+
 	    my $sys_build_dir = $self->get_conf('BUILD_DIR');
-	    if (open( F2, ">$sys_build_dir/$changes.new" )) {
-		while( <F> ) {
-		    if (/^Distribution:\s*(.*)\s*$/ and $self->get_conf('OVERRIDE_DISTRIBUTION')) {
-			$self->log("Distribution: " . $self->get_conf('DISTRIBUTION') . "\n");
-			print F2 "Distribution: " . $self->get_conf('DISTRIBUTION') . "\n";
-		    }
-		    else {
-			print F2 $_;
-			while (length $_ > 989)
-			{
-			    my $index = rindex($_,' ',989);
-			    $self->log(substr ($_,0,$index) . "\n");
-			    $_ = '        ' . substr ($_,$index+1);
-			}
-			$self->log($_);
-			if (/^ [a-z0-9]{32} /) {
-			    push(@cfiles, (split( /\s+/, $_ ))[5] );
-			}
+	    if (!open( F2, ">$sys_build_dir/$changes.new" )) {
+		$self->log("Cannot create $sys_build_dir/$changes.new: $!\n");
+		$self->log("Distribution field may be wrong!!!\n");
+		if ($build_dir) {
+		    if(!$session->copy_from_chroot("$build_dir/$changes", ".")) {
+			$self->log_error("Could not copy $build_dir/$changes to .\n");
 		    }
 		}
+	    } else {
+		$pchanges->output(\*STDOUT);
+		$pchanges->output(\*F2);
+
 		close( F2 );
 		rename("$sys_build_dir/$changes.new", "$sys_build_dir/$changes")
 		    or $self->log("$sys_build_dir/$changes.new could not be " .
@@ -2004,15 +2043,6 @@ sub build {
 		unlink("$build_dir/$changes")
 		    if $build_dir;
 	    }
-	    else {
-		$self->log_error("Cannot create $sys_build_dir/$changes.new: $!\n");
-		$self->log_error("Distribution field may be wrong!!!\n");
-		if ($build_dir) {
-		    system "mv", "-f", "$build_dir/$changes", "."
-			and $self->log_error("Could not move ".basename($_)." to .\n");
-		}
-	    }
-	    close( F );
 	}
 	else {
 	    $self->log_error("Can't find $changes -- can't dump info\n");
@@ -2026,28 +2056,29 @@ sub build {
 	    next if $deb !~ /(\Q$host_arch\E|all)\.(udeb|deb)$/;
 
 	    $self->log_subsubsection("$_");
-	    if (!open( PIPE, "dpkg --info $deb 2>&1 |" )) {
+	    my $dpkg_info = $session->read_command({COMMAND => ["dpkg", "--info", $deb]});
+	    if (!$dpkg_info) {
 		$self->log_error("Can't spawn dpkg: $! -- can't dump info\n");
 	    }
 	    else {
-		$self->log($_) while( <PIPE> );
-		close( PIPE ) or ($rv = 1);
+		$self->log($dpkg_info);
 	    }
 	    $self->log("\n");
-	    if (!open( PIPE, "dpkg --contents $deb 2>&1 | sort -k6 |" )) {
+	    my $dpkg_contents = $session->read_command({COMMAND => ["sh", "-c", "dpkg --contents $deb 2>&1 | sort -k6"]});
+	    if (!$dpkg_contents) {
 		$self->log_error("Can't spawn dpkg: $! -- can't dump info\n");
 	    }
 	    else {
-		$self->log($_) while( <PIPE> );
-		close( PIPE ) or ($rv = 1);
+		$self->log($dpkg_contents);
 	    }
 	    $self->log("\n");
 	}
 
 	foreach (@cfiles) {
 	    push( @space_files, $self->get_conf('BUILD_DIR') . "/$_");
-	    system "mv", "-f", "$build_dir/$_", $self->get_conf('BUILD_DIR')
-		and $self->log_error("Could not move $_ to .\n");
+	    if (!$session->copy_from_chroot("$build_dir/$_", $self->get_conf('BUILD_DIR'))) {
+		$self->log_error("Could not copy $build_dir/$_ to " . $self->get_conf('BUILD_DIR') . "\n");
+	    }
 	}
     }
 
@@ -2084,6 +2115,28 @@ sub get_changes {
     my $self=shift;
     my $path=shift;
     my $changes;
+    my $session = $self->get('Session');
+
+    return if not defined($session);
+
+    if ($session->test_regular_file_readable($path . '/' . $self->get('Package_SVersion') . "_source.changes")) {
+	$changes = $self->get('Package_SVersion') . "_source.changes";
+    }
+    elsif ($session->test_regular_file_readable($path . '/' . $self->get('Package_SVersion') . "_all.changes")) {
+	$changes = $self->get('Package_SVersion') . "_all.changes";
+    }
+    else {
+	$changes = $self->get('Package_SVersion') . '_' . $self->get('Host Arch') . '.changes';
+    }
+    return $changes;
+}
+
+# same as get_changes but checks for the .changes file on the host running
+# sbuild instead of inside the chroot
+sub get_changes_host {
+    my $self=shift;
+    my $path=shift;
+    my $changes;
 
     if ( -r $path . '/' . $self->get('Package_SVersion') . "_source.changes") {
 	$changes = $self->get('Package_SVersion') . "_source.changes";
@@ -2102,22 +2155,39 @@ sub check_space {
     my @files = @_;
     my $sum = 0;
 
+    my $dscdir = $self->get('DSC Dir');
+    my $build_dir = $self->get('Build Dir');
+    my $pkgbuilddir = "$build_dir/$dscdir";
+
+    my $pkgbuilddirspc = $self->get('Session')->read_command(
+	{ COMMAND => ['du', '-k', '-s', $pkgbuilddir],
+	    USER => $self->get_conf('USERNAME'),
+	    PRIORITY => 0,
+	    DIR => '/'});
+
+    if (!$pkgbuilddirspc) {
+	$self->log_error("Cannot determine space needed (du failed)\n");
+    }
+    if ($pkgbuilddirspc !~ /^(\d+)/) {
+	$self->log_error("Cannot determine space needed (unexpected du output): $pkgbuilddirspc\n");
+    }
+    $sum += $1;
+
     foreach (@files) {
-	my $pipe = $self->get('Host')->pipe_command(
+	my $space = $self->get('Host')->read_command(
 	    { COMMAND => ['du', '-k', '-s', $_],
 	      USER => $self->get_conf('USERNAME'),
 	      PRIORITY => 0,
 	      DIR => '/'});
 
-	if (!$pipe) {
+	if (!$space) {
 	    $self->log_error("Cannot determine space needed (du failed): $!\n");
-	    return;
+	    next;
 	}
-	while(<$pipe>) {
-	    next if !/^(\d+)/;
-	    $sum += $1;
+	if ($pkgbuilddirspc !~ /^(\d+)/) {
+	    $self->log_error("Cannot determine space needed (unexpected du output): $space\n");
 	}
-	close($pipe);
+	$sum += $1;
     }
 
     $self->set('This Time', $self->get('Pkg End Time') - $self->get('Pkg Start Time'));
@@ -2283,15 +2353,17 @@ sub debian_files_list {
     my @list;
 
     debug("Parsing $files\n");
+    my $session = $self->get('Session');
 
-    if (-r $files && open( FILES, "<$files" )) {
-	while (<FILES>) {
+    my $pipe = $session->get_read_file_handle($files);
+    if ($pipe) {
+	while (<$pipe>) {
 	    chomp;
 	    my $f = (split( /\s+/, $_ ))[0];
 	    push( @list, "$f" );
 	    debug("  $f\n");
 	}
-	close( FILES ) or $self->log_error("Failed to close $files\n") && return 1;
+	close( $pipe ) or $self->log_error("Failed to close $files\n") && return 1;
     }
 
     return @list;
@@ -2301,18 +2373,16 @@ sub debian_files_list {
 sub chroot_arch {
     my $self = shift;
 
-    my $pipe = $self->get('Session')->pipe_command(
+    chomp(my $chroot_arch = $self->get('Session')->read_command(
 	{ COMMAND => ['dpkg', '--print-architecture'],
 	  USER => $self->get_conf('BUILD_USER'),
 	  PRIORITY => 0,
-	  DIR => '/' }) || return undef;
+	  DIR => '/' }));
 
-    chomp(my $chroot_arch = <$pipe>);
-    close($pipe);
-
-    Sbuild::Exception::Build->throw(error => "Can't determine architecture of chroot: $!",
-				    failstage => "chroot-arch")
-	if ($? || !defined($chroot_arch));
+    if (!$chroot_arch) {
+	Sbuild::Exception::Build->throw(error => "Can't determine architecture of chroot: $!",
+	    failstage => "chroot-arch")
+    }
 
     return $chroot_arch;
 }
@@ -2547,8 +2617,12 @@ sub close_build_log {
 	    my $build_dir = $self->get_conf('BUILD_DIR');
 	    my $changes;
 	    $self->log(sprintf("Signature with key '%s' requested:\n", $key_id));
-	    $changes = $self->get_changes($build_dir);
-	    system "debsign", "-k$key_id", "$build_dir/$changes";
+	    $changes = $self->get_changes_host($build_dir);
+	    if (!defined($changes)) {
+		$self->log_error(".changes is undef. Cannot sign .changes.\n");
+	    } else {
+		system "debsign", "-k$key_id", "$build_dir/$changes";
+	    }
 	}
     }
 
@@ -2664,7 +2738,7 @@ sub send_mime_build_log {
 		);
     }
     my $build_dir = $self->get_conf('BUILD_DIR');
-    my $changes = $self->get_changes($build_dir);
+    my $changes = $self->get_changes_host($build_dir);
     if ($self->get_status() eq 'successful' && -r "$build_dir/$changes") {
 	my $log_part = MIME::Lite->new(
 		Type     => 'text/plain',

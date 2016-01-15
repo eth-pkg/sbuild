@@ -696,7 +696,7 @@ unpack source package" stage.
 \}
 .TS
 l l l l l l.
-command/action	root	chroot	%c	%r	%d,%p
+command/action	root	chroot	%c	%e	%d,%p
 _
 Initialise chroot session
 \f[CB]\-\-pre\-build\-commands\fP	yes	outside	no	yes	maybe
@@ -782,10 +782,15 @@ file. This variable is only set after the build is finished, i.e in
 These escapes are converted to the debian name of the architecture the build 
 is being built for (e.g amd64, armhf).
 .TP
-\fB%r\fR, \fB%SBUILD_CHROOT_DIR\fR
-These escapes are converted to the absolute path on the host to the root
-directory of the chroot. This variable is not set if the external command is
-run inside the chroot. Thus this escape is only available for
+\fB%e\fR, \fB%SBUILD_CHROOT_EXEC\fR
+These escapes are converted to a command which can be executed on a host and
+can be given arguments which will then be executed inside the chroot. Standard
+input and output of the process started inside the chroot are connected to the
+program executed on the host. Thus, this command can also be used to copy data
+into the chroot and out of the chroot. The working directory of the process
+started inside the chroot is the root directory of the chroot. The process is
+started as the root user.  This variable is not set if the external command is
+run inside the chroot.  Thus this escape is only available for
 \f[CB]\-\-pre\-build\-commands\fP and \f[CB]\-\-post\-build\-commands\fP.
 .TP
 \fB%b\fR, \fB%SBUILD_BUILD_DIR\fR
@@ -802,7 +807,7 @@ This is converted to a command to spawn an interactive "bash" shell
 Percent escapes are only substituted when an appropriate value is defined for
 them. At other times, it is left unchanged. In practice this means that there
 are only two escapes that are not available in all external commands: \fB%c\fR
-and \fB%r\fR. For example, a .changes file is only defined at the end of a
+and \fB%e\fR. For example, a .changes file is only defined at the end of a
 build, so using \fI%c\fR will only be substituted for post-build-commands.
 .PP
 Here's an example of using an escape to run a program foo on a .changes file
@@ -815,7 +820,13 @@ after a build is done.
 And here's an example that will spawn an interactive shell to investigate the
 problem whenever the build failed:
 .PP
-\f[CB]$ sbuild \-\-build\-failed\-commands '%s'\fP
+\f[CB]$ sbuild \-\-build\-failed\-commands '%SBUILD_SHELL'\fP
+.PP
+The following example would copy a file from the host into the chroot:
+.PP
+\f[CB]$ sbuild \-\-pre\-build\-commands \\\fP
+.br
+\f[CB]      'cat blub.txt | %SBUILD_CHROOT_EXEC sh -c "cat > blub.txt"'\fP
 .PP
 One final note, external commands are processed in the order they are given.
 Also, the commands given in a configuration file are processed first, then the

@@ -73,7 +73,8 @@ sub begin_session {
 	    $self->set('Location', $info->{'Location'});
 	    $self->set('Session Purged', $info->{'Session Purged'});
     } else {
-	die $self->get('Chroot ID') . " chroot does not exist\n";
+	print STDERR $self->get('Chroot ID') . " chroot does not exist\n";
+	return 0;
     }
 
     return 0 if !$self->_setup_options();
@@ -98,9 +99,44 @@ sub end_session {
     return 1;
 }
 
+sub get_internal_exec_string {
+    my $self = shift;
+
+    return if $self->get('Session ID') eq "";
+
+    my $dir = '/';
+    my $user = 'root';
+    my @cmdline = ($self->get_conf('SCHROOT'),
+		   '-d', $dir,
+		   '-c', $self->get('Session ID'),
+		   '--run-session',
+		   @{$self->get_conf('SCHROOT_OPTIONS')},
+		   '-u', "$user", '-p', '--');
+    # avoid dependency on String::ShellQuote by implementing the mechanism
+    # from python's shlex.quote function
+    sub shellescape {
+	my ($string) = @_;
+	if (length $string == 0) {
+	    return "''";
+	}
+	# search for occurrences of characters that are not safe
+	# the 'a' regex modifier makes sure that \w only matches ASCII
+	if ($string !~ m/[^\w@\%+=:,.\/-]/a) {
+	    return $string;
+	}
+	# wrap the string in single quotes and put handle existing single
+	# quotes
+	$string =~ s/'/'"'"'/g;
+	return "'$string'";
+    };
+    return join " ", (map { shellescape $_ } @cmdline);
+}
+
 sub get_command_internal {
     my $self = shift;
     my $options = shift;
+
+    return if $self->get('Session ID') eq "";
 
     # Command to run. If I have a string, use it. Otherwise use the list-ref
     my $command = $options->{'INTCOMMAND_STR'} // $options->{'INTCOMMAND'};
