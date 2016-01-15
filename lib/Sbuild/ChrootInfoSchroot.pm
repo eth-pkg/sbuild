@@ -131,6 +131,11 @@ sub get_info {
 
     my $tmp = $self->get_info_from_stream(\*CHROOT_DATA);
 
+    if (!$tmp) {
+	close CHROOT_DATA;
+	return undef;
+    }
+
     close CHROOT_DATA or die "Can't close schroot pipe getting chroot data";
 
     return $tmp;
