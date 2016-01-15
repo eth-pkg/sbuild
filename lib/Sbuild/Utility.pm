@@ -88,6 +88,8 @@ sub setup ($$$) {
     my $chroot_info;
     if ($conf->get('CHROOT_MODE') eq 'schroot') {
 	$chroot_info = Sbuild::ChrootInfoSchroot->new($conf);
+    } elsif ($conf->get('CHROOT_MODE') eq 'adt') {
+	$chroot_info = Sbuild::ChrootInfoADT->new($conf);
     } else {
 	$chroot_info = Sbuild::ChrootInfoSudo->new($conf);
     }

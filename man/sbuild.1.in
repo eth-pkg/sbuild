@@ -28,6 +28,7 @@ sbuild \- build debian packages from source
 .RB [ \-\-archive=\fIarchive\fP ]
 .RB [ \-d \[or] \-\-dist=\fIdistribution\fP ]
 .RB [ \-c \[or] \-\-chroot=\fIchroot\fP ]
+.RB [ \-\-chroot-mode=\fIschroot|sudo|adt\fP ]
 .RB [ \-\-arch=\fIarchitecture\fP ]
 .RB [ \-\-arch\-any " \[or] " \-\-no\-arch\-any ]
 .RB [ \-\-arch\-all\-only ]
@@ -90,6 +91,8 @@ sbuild \- build debian packages from source
 .RB [ \-\-extra\-repository=\fIspec\fP ]
 .RB [ \-\-extra\-repository\-key=\fIfile.asc\fP ]
 .RB [ \-\-build\-path=\fIstring\fP ]
+.RB [ \-\-adt-virt-server=\fIschroot|lxc|chroot|qemu|ssh\fP ]
+.RB [ \-\-adt-virt-server-opt=\fIstring\fP ]
 .RB [ PACKAGE [ .dsc ]]
 .SH DESCRIPTION
 \fBsbuild\fR rebuilds Debian binary packages from the corresponding Debian
@@ -230,6 +233,12 @@ and files on shutdown to facilitate a clean restart.
 Use the specified chroot. If not specified, the default is the first of
 \fI$distribution\-$arch\-sbuild\fP, \fI$distribution\-sbuild\fP,
 \fI$distribution\-$arch\fP or \fI$distribution\fP that exists.
+.TP
+.BR "\-\-chroot-mode=\fIschroot|sudo|adt\fP"
+Select the desired chroot mode. Four values are possible: schroot (the
+default), sudo (which uses sudo to execute chroot in a directory from
+/etc/sbuild/chroot or ./chroot) and adt which uses the adt-virt-* binaries
+(selectable via the \-\-adt-virt-server option).
 .TP
 .BR \-d ", " "\-\-dist=\fIdistribution\fP"
 Explicitly set the distribution for the package build. This will be selecting
@@ -608,6 +617,13 @@ with a key that's trusted by the base chroot.
 .TP
 .BR \-\-build\-path=\fIstring\fP
 By default the package is built in a path of the following format /build/packagename-XXXXXX/packagename-version/ where XXXXXX is a random ascii string. This option allows one to specify a custom path where the package is built inside the chroot. Notice that the sbuild user in the chroot must have permissions to create the path. Common writable locations are subdirectories of /tmp or /build. The buildpath must be an empty directory because the last component of the path will be removed after the build is finished. If you are running multiple sbuild instances with the same build path in parallel for the same package, make sure that your build path is not in a directory commonly mounted by all sbuild instances (like /tmp or /home). In that case, use for example /build instead. Otherwise, your builds will probably fail or contain wrong content.
+.TP
+.BR \-\-adt-virt-server=\fIschroot|lxc|chroot|qemu|ssh\fP
+The adt virtualization server. Can be specified with or without the adt-virt- prefix.
+.TP
+.BR \-\-adt-virt-server-opt=\fIstring\fP
+Option passed to the adt-virt-* virtualization server. This option can be
+passed multiple times.
 .TP
 .BR \-\-sbuild-mode=\fImode\fP
 Behaviour changes for use in a buildd environment.  This overrides the

@@ -105,6 +105,15 @@ sub set_options {
 		       "c|chroot=s" => sub {
 			   $self->set_conf('CHROOT', $_[1]);
 		       },
+		       "chroot-mode=s" => sub {
+			   $self->set_conf('CHROOT_MODE', $_[1]);
+		       },
+		       "adt-virt-server=s" => sub {
+			   $self->set_conf('ADT_VIRT_SERVER', $_[1]);
+		       },
+		       "adt-virt-server-opt=s" => sub {
+			   push(@{$self->get_conf('ADT_VIRT_SERVER_OPTIONS')}, $_[1]);
+		       },
 		       "apt-clean" => sub {
 			   $self->set_conf('APT_CLEAN', 1);
 		       },
