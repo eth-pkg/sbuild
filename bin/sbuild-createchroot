@@ -148,6 +148,7 @@ use Sbuild::ChrootPlain;
 use Sbuild::ChrootRoot;
 use Sbuild::Sysconfig;
 use Sbuild::Conf qw();
+use File::Basename qw(dirname);
 use File::Path qw(mkpath rmtree);
 use File::Temp qw(tempfile);
 use File::Copy;
@@ -442,6 +443,7 @@ if ($conf->get('MAKE_SBUILD_TARBALL')) {
 
     system(@program_list) == 0 or die "Could not create chroot tarball: $?\n";
 
+    makedir(dirname($conf->get('MAKE_SBUILD_TARBALL')), 0755);
     move("$tmpfile", $conf->get('MAKE_SBUILD_TARBALL'));
     chmod 0644, $conf->get('MAKE_SBUILD_TARBALL');
     if (! $conf->get('KEEP_SBUILD_CHROOT_DIR')) {
