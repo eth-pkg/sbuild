@@ -237,6 +237,11 @@ sub cleanup_foreign_architectures {
 
     my $session = $self->get('Session');
 
+    if (defined ($session->get('Session Purged')) && $session->get('Session Purged') == 1) {
+	$self->log("Not removing foreign architectures: cloned chroot in use\n");
+	return;
+    }
+
     foreach my $arch (keys %{$added_foreign_arches}) {
         $self->log("Removing foreign architecture $arch\n");
         $session->run_command({ COMMAND => ['dpkg', '--remove-architecture', $arch],
