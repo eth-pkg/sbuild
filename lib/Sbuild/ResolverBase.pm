@@ -189,12 +189,20 @@ sub add_foreign_architecture {
     my $arch = shift;
 
     # just skip if dpkg is to old for multiarch
-    if (! $self->get('Multiarch Support')) { return 1 };
+    if (! $self->get('Multiarch Support')) {
+	debug("not adding $arch because of no multiarch support\n");
+	return 1;
+    };
 
     # if we already have this architecture, we're done
-    my $initial_foreign_arches = $self->get('Initial Foreign Arches');
-    my $added_foreign_arches   = $self->get('Added Foreign Arches');
-    return if $initial_foreign_arches->{$arch} || $added_foreign_arches->{$arch};
+    if ($self->get('Initial Foreign Arches')->{$arch}) {
+	debug("not adding $arch because it is an initial arch\n");
+	return 1;
+    }
+    if ($self->get('Added Foreign Arches')->{$arch}) {
+	debug("not adding $arch because it has already been aded");
+	return 1;
+    }
 
     my $session = $self->get('Session');
 
@@ -215,7 +223,7 @@ sub add_foreign_architecture {
     }
     debug("Added foreign arch: $arch\n") if $arch;
 
-    $added_foreign_arches->{$arch} = 1;
+    $self->get('Added Foreign Arches')->{$arch} = 1;
     return 1;
 }
 
