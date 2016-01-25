@@ -626,7 +626,7 @@ sub run_chroot_update {
 	    if ($resolver->clean()) {
 		# Since apt-clean was requested specifically, fail on
 		# error when not in buildd mode.
-		$self->log("apt-get clean failed\n");
+		$self->log_error("apt-get clean failed\n");
 		if ($self->get_conf('SBUILD_MODE') ne 'buildd') {
 		    Sbuild::Exception::Build->throw(error => "apt-get clean failed",
 						    failstage => "apt-get-clean");
@@ -958,7 +958,7 @@ sub fetch_source_files {
     if (!defined($self->get('Package')) ||
 	!defined($self->get('OVersion')) ||
 	!defined($self->get('Source Dir'))) {
-	$self->log("Invalid source: $self->get('DSC')\n");
+	$self->log_error("Invalid source: $self->get('DSC')\n");
 	return 0;
     }
 
@@ -1000,7 +1000,7 @@ sub fetch_source_files {
 	      PRIORITY => 0,
 	      DIR => '/'});
 	if (!$pipe) {
-	    $self->log("Can't open pipe to ".$self->get_conf('APT_UPDATE').": $!\n");
+	    $self->log_error("Can't open pipe to ".$self->get_conf('APT_CACHE').": $!\n");
 	    return 0;
 	}
 
@@ -1023,9 +1023,9 @@ sub fetch_source_files {
 	    }
 
 	    if (! scalar keys %entries) {
-		$self->log($self->get_conf('APT_CACHE') .
+		$self->log_error($self->get_conf('APT_CACHE') .
 			   " returned no information about $pkg source\n");
-		$self->log("Are there any deb-src lines in your /etc/apt/sources.list?\n");
+		$self->log_error("Are there any deb-src lines in your /etc/apt/sources.list?\n");
 		return 0;
 
 	    }
@@ -1033,7 +1033,7 @@ sub fetch_source_files {
 	close($pipe);
 
 	if ($?) {
-	    $self->log($self->get_conf('APT_CACHE') . " exit status $?: $!\n");
+	    $self->log_error($self->get_conf('APT_CACHE') . " exit status $?: $!\n");
 	    return 0;
 	}
 
@@ -1045,9 +1045,9 @@ sub fetch_source_files {
 		$retried = 1;
 		goto retry;
 	    }
-	    $self->log("Can't find source for " .
+	    $self->log_error("Can't find source for " .
 		       $self->get('Package_OVersion') . "\n");
-	    $self->log("(only different version(s) ",
+	    $self->log_error("(only different version(s) ",
 	    join( ", ", sort keys %entries), " found)\n")
 		if %entries;
 	    return 0;
@@ -1069,7 +1069,7 @@ sub fetch_source_files {
 	}
 	close($pipe2);
 	if ($?) {
-	    $self->log($self->get_conf('APT_GET') . " for sources failed\n");
+	    $self->log_error($self->get_conf('APT_GET') . " for sources failed\n");
 	    return 0;
 	}
 	$self->set_dsc((grep { /\.dsc$/ } @fetched)[0]);
@@ -1078,7 +1078,7 @@ sub fetch_source_files {
     my $pdsc = Dpkg::Control->new(type => CTRL_PKG_SRC);
     $pdsc->set_options(allow_pgp => 1);
     if (!$pdsc->load("$build_dir/$dsc")) {
-	$self->log("Error parsing $build_dir/$dsc");
+	$self->log_error("Error parsing $build_dir/$dsc");
 	return 0;
     }
 
@@ -1195,7 +1195,7 @@ sub check_architectures {
 
     # Check package arch makes sense to build
     if (!$dscarchs) {
-	$self->log("dsc has no Architecture: field -- skipping arch check!\n");
+	$self->log_warning("dsc has no Architecture: field -- skipping arch check!\n");
     } else {
 	my $valid_arch;
 	for my $a (split(/\s+/, $dscarchs)) {
@@ -1223,7 +1223,7 @@ EOF
 	if ($dscarchs ne "any" && !($valid_arch) &&
 	    !($dscarchs =~ /\ball\b/ && $self->get_conf('BUILD_ARCH_ALL')) )  {
 	    my $msg = "dsc: $host_arch not in arch list or does not match any arch wildcards: $dscarchs -- skipping\n";
-	    $self->log($msg);
+	    $self->log_error($msg);
 	    Sbuild::Exception::Build->throw(error => "dsc: $host_arch not in arch list or does not match any arch wildcards: $dscarchs -- skipping",
 					    status => "skipped",
 					    failstage => "arch-check");
@@ -1519,7 +1519,7 @@ sub build {
     $self->log_subsubsection("Unpack source");
     if (-d "$build_dir/$dscdir" && -l "$build_dir/$dscdir") {
 	# if the package dir already exists but is a symlink, complain
-	$self->log("Cannot unpack source: a symlink to a directory with the\n".
+	$self->log_error("Cannot unpack source: a symlink to a directory with the\n".
 		   "same name already exists.\n");
 	return 0;
     }
@@ -1531,7 +1531,7 @@ sub build {
 		      USER => $self->get_conf('BUILD_USER'),
 		      PRIORITY => 0});
 	if ($?) {
-	    $self->log("FAILED [dpkg-source died]\n");
+	    $self->log_error("FAILED [dpkg-source died]\n");
 	    Sbuild::Exception::Build->throw(error => "FAILED [dpkg-source died]",
 					    failstage => "unpack");
 	}
@@ -1541,7 +1541,7 @@ sub build {
 	      USER => $self->get_conf('BUILD_USER'),
 	      PRIORITY => 0});
 	if ($?) {
-	    $self->log("chmod -R g-s,go+rX $dscdir failed.\n");
+	    $self->log_error("chmod -R g-s,go+rX $dscdir failed.\n");
 	    Sbuild::Exception::Build->throw(error => "chmod -R g-s,go+rX $dscdir failed",
 					    failstage => "unpack");
 	}
@@ -1567,12 +1567,12 @@ sub build {
 	}
 	close($pipe);
 	if ($?) {
-	    $self->log("FAILED [dpkg-parsechangelog died]\n");
+	    $self->log_error("FAILED [dpkg-parsechangelog died]\n");
 	    Sbuild::Exception::Build->throw(error => "FAILED [dpkg-parsechangelog died]",
 					    failstage => "check-unpacked-version");
 	}
 	if ($clog !~ /^Version:\s*(.+)\s*$/mi) {
-	    $self->log("dpkg-parsechangelog didn't print Version:\n");
+	    $self->log_error("dpkg-parsechangelog didn't print Version:\n");
 	    Sbuild::Exception::Build->throw(error => "dpkg-parsechangelog didn't print Version:",
 					    failstage => "check-unpacked-version");
 	}
@@ -1601,7 +1601,7 @@ sub build {
     my $clog = do { local $/; <$cpipe> };
     close($cpipe);
     if ($?) {
-	$self->log("FAILED [dpkg-parsechangelog died]\n");
+	$self->log_error("FAILED [dpkg-parsechangelog died]\n");
 	return 0;
     }
 
@@ -1630,7 +1630,7 @@ sub build {
 
 	    my $NMUversion = $self->get('Version');
 	    if (!open( F, ">$dscdir/debian/changelog" )) {
-		$self->log("Can't open debian/changelog for binNMU hack: $!\n");
+		$self->log_error("Can't open debian/changelog for binNMU hack: $!\n");
 		Sbuild::Exception::Build->throw(error => "Can't open debian/changelog for binNMU hack: $!",
 						failstage => "hack-binNMU");
 	    }
@@ -1651,10 +1651,10 @@ sub build {
 	    print F " -- " . $self->get_conf('MAINTAINER_NAME') . "  $date\n\n";
 	    print F $text;
 	    close( F );
-	    $self->log("Created changelog entry for binNMU version $NMUversion\n");
+	    $self->log_error("Created changelog entry for binNMU version $NMUversion\n");
 	}
 	else {
-	    $self->log("Can't open debian/changelog -- no binNMU hack!\n");
+	    $self->log_error("Can't open debian/changelog -- no binNMU hack!\n");
 	    Sbuild::Exception::Build->throw(error => "Can't open debian/changelog -- no binNMU hack: $!!",
 					    failstage => "hack-binNMU");
 	}
@@ -1689,7 +1689,7 @@ sub build {
 	  USER => 'root',
 	  PRIORITY => 0});
     if ($?) {
-	$self->log("chmod og-w " . $self->get('Build Dir') . " failed.\n");
+	$self->log_error("chmod og-w " . $self->get('Build Dir') . " failed.\n");
 	return 0;
     }
 
@@ -1874,7 +1874,7 @@ sub build {
 
     my $i;
     for( $i = 0; $i < $timed_out; ++$i ) {
-	$self->log("Build killed with signal " . $timeout_sigs[$i] .
+	$self->log_error("Build killed with signal " . $timeout_sigs[$i] .
 	           " after " . int($timeout_times[$i]/60) .
 	           " minutes of inactivity\n");
     }
@@ -1924,7 +1924,7 @@ sub build {
 	      USER => 'root',
 	      PRIORITY => 0});
 	if ($?) {
-	    $self->log("chmod g+w " . $self->get('Build Dir') . " failed.\n");
+	    $self->log_error("chmod g+w " . $self->get('Build Dir') . " failed.\n");
 	    return 0;
 	}
 
@@ -1973,8 +1973,8 @@ sub build {
 		    if $build_dir;
 	    }
 	    else {
-		$self->log("Cannot create $sys_build_dir/$changes.new: $!\n");
-		$self->log("Distribution field may be wrong!!!\n");
+		$self->log_error("Cannot create $sys_build_dir/$changes.new: $!\n");
+		$self->log_error("Distribution field may be wrong!!!\n");
 		if ($build_dir) {
 		    system "mv", "-f", "$build_dir/$changes", "."
 			and $self->log_error("Could not move ".basename($_)." to .\n");
@@ -1983,7 +1983,7 @@ sub build {
 	    close( F );
 	}
 	else {
-	    $self->log("Can't find $changes -- can't dump info\n");
+	    $self->log_error("Can't find $changes -- can't dump info\n");
 	}
 
 	$self->log_subsection("Package contents");
@@ -1995,7 +1995,7 @@ sub build {
 
 	    $self->log_subsubsection("$_");
 	    if (!open( PIPE, "dpkg --info $deb 2>&1 |" )) {
-		$self->log("Can't spawn dpkg: $! -- can't dump info\n");
+		$self->log_error("Can't spawn dpkg: $! -- can't dump info\n");
 	    }
 	    else {
 		$self->log($_) while( <PIPE> );
@@ -2003,7 +2003,7 @@ sub build {
 	    }
 	    $self->log("\n");
 	    if (!open( PIPE, "dpkg --contents $deb 2>&1 | sort -k6 |" )) {
-		$self->log("Can't spawn dpkg: $! -- can't dump info\n");
+		$self->log_error("Can't spawn dpkg: $! -- can't dump info\n");
 	    }
 	    else {
 		$self->log($_) while( <PIPE> );
@@ -2078,7 +2078,7 @@ sub check_space {
 	      DIR => '/'});
 
 	if (!$pipe) {
-	    $self->log("Cannot determine space needed (du failed): $!\n");
+	    $self->log_error("Cannot determine space needed (du failed): $!\n");
 	    return;
 	}
 	while(<$pipe>) {
@@ -2251,7 +2251,7 @@ sub debian_files_list {
 	    push( @list, "$f" );
 	    debug("  $f\n");
 	}
-	close( FILES ) or $self->log("Failed to close $files\n") && return 1;
+	close( FILES ) or $self->log_error("Failed to close $files\n") && return 1;
     }
 
     return @list;
