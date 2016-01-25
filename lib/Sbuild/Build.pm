@@ -645,6 +645,20 @@ sub run_chroot_update {
 						    failstage => "apt-get-update");
 		}
 	    }
+	} else {
+	    # If it was requested not to do an apt update, the build and host
+	    # architecture must already be part of the chroot. If they are not
+	    # and thus added during the sbuild run, issue a warning because
+	    # then the package build dependencies will likely fail to be
+	    # installable.
+	    #
+	    # The logic which checks which architectures are needed is in
+	    # ResolverBase.pm, so we just check whether any architectures
+	    # where added with 'dpkg --add-architecture' because if any were
+	    # added an update is most likely needed.
+	    if ($resolver->get('Added Foreign Arches')) {
+		$self->log_warning("Additional architectures were added but apt update was disabled. Build dependencies might not be satisfiable.\n");
+	    }
 	}
 
 	# Upgrade using APT.
