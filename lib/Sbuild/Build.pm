@@ -2196,8 +2196,16 @@ sub generate_stats {
 
     $self->add_stat('Job', $self->get('Job'));
     $self->add_stat('Package', $self->get('Package'));
-    $self->add_stat('Version', $self->get('Version'));
-    $self->add_stat('Source-Version', $self->get('OVersion'));
+    # If the package fails early, then the version might not yet be known.
+    # This can happen if the user only specified a source package name on the
+    # command line and then the version will only be known after the source
+    # package was successfully downloaded.
+    if ($self->get('Version')) {
+	$self->add_stat('Version', $self->get('Version'));
+    }
+    if ($self->get('OVersion')) {
+	$self->add_stat('Source-Version', $self->get('OVersion'));
+    }
     $self->add_stat('Machine Architecture', $self->get_conf('ARCH'));
     $self->add_stat('Host Architecture', $self->get('Host Arch'));
     $self->add_stat('Build Architecture', $self->get('Build Arch'));
@@ -2544,8 +2552,12 @@ sub close_build_log {
 	}
     }
 
-    my $subject = "Log for " . $self->get_status() .
-	" build of " . $self->get('Package_Version');
+    my $subject = "Log for " . $self->get_status() . " build of ";
+    if ($self->get('Package_Version')) {
+	$subject .= $self->get('Package_Version');
+    } else {
+	$subject .= $self->get('Package');
+    }
 
     if ($self->get_conf('BUILD_SOURCE') && !$self->get_conf('BUILD_ARCH_ALL') && !$self->get_conf('BUILD_ARCH_ANY')) {
 	$subject .= " source";
