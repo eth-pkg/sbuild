@@ -99,18 +99,18 @@ dedicated clean build environment (chroot), rather than on the host system.
 \fBsbuild\fR can fetch the Debian source over a network, or it can use
 locally available sources.
 .PP
-sbuild is given a packages to process as the argument
-\fBPACKAGE[.dsc]\fR.  This argument is in the form of either a
-debianized package source directory, a source package name along with a
-version in the form \fIpackage_version\fP, or a .dsc file. If no arguments are
-given, the current working directory is passed as an argument.
+sbuild is given a packages to process as the argument \fBPACKAGE[.dsc]\fR.
+This argument is in the form of either a debianized package source directory, a
+source package name along with a version in the form \fIpackage_version\fP, a
+source package name, or a .dsc file. If no arguments are given, the current
+working directory is passed as an argument.
 .PP
-For arguments given as source directories, dpkg-source is first run to produce a
-source .dsc file. Then, the package is built using the .dsc produced. For
-arguments in the form \fIpackage_version\fP, apt is used to download the source
-package. For arguments given as a .dsc file, sbuild builds the source packages
-directly. For .dsc files in remote locations, the source packages are downloaded
-first, then built.
+For arguments given as source directories, dpkg-source is first run to produce
+a source .dsc file. Then, the package is built using the .dsc produced. For
+arguments in the form \fIpackage_version\fP or \fIpackage\fP, apt is used to
+download the source package. For arguments given as a .dsc file, sbuild builds
+the source packages directly. For .dsc files in remote locations, the source
+packages are downloaded first, then built.
 .PP
 It is also possible to run external commands with sbuild. See the section
 \fBEXTERNAL COMMANDS\fR for more on this.
@@ -683,33 +683,40 @@ performs. The column \fIroot\fP shows whether the command is run as root (yes)
 or not (no).  The column \fIchroot\fP shows whether the command is run inside
 our outside the chroot. The remaining columns show the percent escapes that are
 defined in each command. Percent escapes that are available in all commands
-(\fB%%\fR, \fB%d\fR, \fB%a\fR, \fB%b\fR, \fB%p\fR, \fB%s\fR) are omitted.
+(\fB%%\fR, \fB%a\fR, \fB%b\fR, \fB%s\fR) are omitted. The value \fImaybe\fP in
+the column for the \fB%d\fR and \fB%p\fR escapes means that the value can not
+relied upon to be defined in these stages. More specifically, these escapes
+will not be defined at these points if the user specified a source package name
+without a version on the command line. In that case, the version will only
+become known after the source package has been retrieved in the "Fetch and
+unpack source package" stage.
 .PP
 .if t \{\
 .ft CW
 \}
 .TS
-l l l l l.
-command/action	root	chroot	%c	%r
+l l l l l l.
+command/action	root	chroot	%c	%r	%d,%p
 _
 Initialise chroot session
-\f[CB]\-\-pre\-build\-commands\fP	yes	outside	no	yes
+\f[CB]\-\-pre\-build\-commands\fP	yes	outside	no	yes	maybe
 Setup the chroot and variables
-\f[CB]\-\-chroot\-setup\-commands\fP	yes	inside	no	no
+\f[CB]\-\-chroot\-setup\-commands\fP	yes	inside	no	no	maybe
 Update and upgrade packages
-\f[CB]\-\-chroot\-update\-failed\-commands\fP	yes	inside	no	no
+\f[CB]\-\-chroot\-update\-failed\-commands\fP	yes	inside	no	no	maybe
+Fetch and unpack source package
 Install Dependencies
-\f[CB]\-\-build\-deps\-failed\-commands\fP	yes	inside	no	no
-\f[CB]\-\-starting\-build\-commands\fP	no	inside	no	no
+\f[CB]\-\-build\-deps\-failed\-commands\fP	yes	inside	no	no	yes
+\f[CB]\-\-starting\-build\-commands\fP	no	inside	no	no	yes
 Run dpkg-buildpackage
-\f[CB]\-\-build\-failed\-commands\fP	no	inside	no	no
-\f[CB]\-\-finished\-build\-commands\fP	no	inside	no	no
+\f[CB]\-\-build\-failed\-commands\fP	no	inside	no	no	yes
+\f[CB]\-\-finished\-build\-commands\fP	no	inside	no	no	yes
 Run lintian (if configured)
 Cleanup build files and dependencies
-\f[CB]\-\-chroot\-cleanup\-commands\fP	yes	inside	yes	no
+\f[CB]\-\-chroot\-cleanup\-commands\fP	yes	inside	yes	no	yes
 Close schroot session
 Run piuparts (if configured)
-\f[CB]\-\-post\-build\-commands\fP	yes	outside	yes	yes
+\f[CB]\-\-post\-build\-commands\fP	yes	outside	yes	yes	yes
 .TE
 .if t \{\
 .in

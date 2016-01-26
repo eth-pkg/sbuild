@@ -37,6 +37,7 @@ use File::Copy qw(); # copy is already exported from Sbuild, so don't export
 		     # anything.
 use Dpkg::Arch;
 use Dpkg::Control;
+use Dpkg::Index;
 use Dpkg::Version;
 use Dpkg::Deps qw(deps_concat deps_parse);
 use Scalar::Util 'refaddr';
@@ -114,15 +115,16 @@ sub new {
 
     # DSC, package and version information:
     $self->set_dsc($dsc);
-    # Note, will be overwritten by Version: in DSC.
-    $self->set_version($dsc);
 
-    # Can sources be obtained?
-    $self->set('Invalid Source', 0);
-    $self->set('Invalid Source', 1)
-	if (!defined $self->get('Version'));
-
-    debug("Invalid Source = " . $self->get('Invalid Source') . "\n");
+    # If the job name contains an underscore then it is either the filename of
+    # a dsc or a pkgname_version string. In both cases we can already extract
+    # the version number. Otherwise it is a bare source package name and the
+    # version will initially be unknown.
+    if ($dsc =~ m/_/) {
+	$self->set_version($dsc);
+    } else {
+	$self->set('Package', $dsc);
+    }
 
     return $self;
 }
@@ -280,11 +282,6 @@ sub run {
 	my $dist = $self->get_conf('DISTRIBUTION');
 	if (!defined($dist) || !$dist) {
 	    Sbuild::Exception::Build->throw(error => "No distribution defined",
-					    failstage => "init");
-	}
-
-	if ($self->get('Invalid Source')) {
-	    Sbuild::Exception::Build->throw(error => "Invalid source " . $self->get('DSC'),
 					    failstage => "init");
 	}
 
@@ -471,12 +468,6 @@ sub run_chroot_session {
 
 	# Log filtering
 	my $filter;
-	$filter = $self->get('Build Dir') . '/' . $self->get('DSC Dir');
-	$filter =~ s;^/;;;
-	$self->build_log_filter($filter, 'PKGBUILDDIR');
-	$filter = $self->get('Build Dir');
-	$filter =~ s;^/;;;
-	$self->build_log_filter($filter, 'BUILDDIR');
 	$filter = $session->get('Location');
 	$filter =~ s;^/;;;
 	$self->build_log_filter($filter , 'CHROOT');
@@ -529,7 +520,15 @@ sub run_chroot_session {
 
 	# Lock chroot so it won't be tampered with during the build.
 	$self->check_abort();
-	if (!$session->lock_chroot($self->get('Package_SVersion'), $$, $self->get_conf('USERNAME'))) {
+	my $jobname;
+	# the version might not yet be known if the user only passed a package
+	# name without a version to sbuild
+	if ($self->get('Package_SVersion')) {
+	    $jobname = $self->get('Package_SVersion');
+	} else {
+	    $jobname = $self->get('Package');
+	}
+	if (!$session->lock_chroot($jobname, $$, $self->get_conf('USERNAME'))) {
 	    Sbuild::Exception::Build->throw(error => "Error locking chroot session: skipping " .
 					    $self->get('Package'),
 					    failstage => "lock-session");
@@ -935,15 +934,11 @@ sub copy_to_chroot {
 sub fetch_source_files {
     my $self = shift;
 
-    my $dir = $self->get('Source Dir');
-    my $dsc = $self->get('DSC File');
     my $build_dir = $self->get('Chroot Build Dir');
-    my $pkg = $self->get('Package');
-    my $ver = $self->get('OVersion');
     my $host_arch = $self->get('Host Arch');
     my $resolver = $self->get('Dependency Resolver');
 
-    my ($dscarchs, $dscpkg, $dscver, @fetched);
+    my ($dscarchs, $dscpkg, $dscver, $dsc);
 
     my $build_depends = "";
     my $build_depends_arch = "";
@@ -955,17 +950,13 @@ sub fetch_source_files {
 
     $self->log_subsection("Fetch source files");
 
-    if (!defined($self->get('Package')) ||
-	!defined($self->get('OVersion')) ||
-	!defined($self->get('Source Dir'))) {
-	$self->log_error("Invalid source: $self->get('DSC')\n");
-	return 0;
-    }
-
     $self->check_abort();
     if ($self->get('DSC Base') =~ m/\.dsc$/) {
+	my $dir = $self->get('Source Dir');
+
 	# Work with a .dsc file.
 	my $file = $self->get('DSC');
+	$dsc = $self->get('DSC File');
 	if (! -f $file || ! -r $file) {
 	    $self->log_error("Could not find $file\n");
 	    return 0;
@@ -978,24 +969,29 @@ sub fetch_source_files {
 	if (! $self->copy_to_chroot("$file", "$build_dir/$dsc")) {
 	    return 0;
 	}
-	push(@fetched, "$build_dir/$dsc");
 	foreach (@cwd_files) {
 	    if (! $self->copy_to_chroot("$dir/$_", "$build_dir/$_")) {
 		return 0;
 	    }
-	    push(@fetched, "$build_dir/$_");
 	}
     } else {
+	my $pkg = $self->get('DSC');
+	my $ver;
+	my $aptcachequery = $pkg;
+
+	if ($pkg =~ m/_/) {
+	    ($pkg, $ver) = split /_/, $pkg;
+	    $aptcachequery = "$pkg=$ver";
+	}
+
 	# Use apt to download the source files
 	$self->log_subsubsection("Check APT");
 	my %entries = ();
-	my $retried = $self->get_conf('APT_UPDATE'); # Already updated if set
-      retry:
 	$self->log("Checking available source versions...\n");
 
 	my $pipe = $self->get('Dependency Resolver')->pipe_apt_command(
 	    { COMMAND => [$self->get_conf('APT_CACHE'),
-			  '-q', 'showsrc', "$pkg"],
+			  '-q', '--only-source', 'showsrc', $aptcachequery],
 	      USER => $self->get_conf('BUILD_USER'),
 	      PRIORITY => 0,
 	      DIR => '/'});
@@ -1004,32 +1000,17 @@ sub fetch_source_files {
 	    return 0;
 	}
 
-	{
-	    local($/) = "";
-	    my $package;
-	    my $ver;
-	    my $tfile;
-	    while( <$pipe> ) {
-		$package = $1 if /^Package:\s+(\S+)\s*$/mi;
-		$ver = $1 if /^Version:\s+(\S+)\s*$/mi;
-		$tfile = $1 if /^Files:\s*\n((\s+.*\s*\n)+)/mi;
-		if (defined $package && defined $ver && defined $tfile) {
-		    @{$entries{"$package $ver"}} = map { (split( /\s+/, $_ ))[3] }
-		    split( "\n", $tfile );
-		    undef($package);
-		    undef($ver);
-		    undef($tfile);
-		}
-	    }
+	my $key_func = sub {
+	    return $_[0]->{Package} . '_' . $_[0]->{Version};
+	};
 
-	    if (! scalar keys %entries) {
-		$self->log_error($self->get_conf('APT_CACHE') .
-			   " returned no information about $pkg source\n");
-		$self->log_error("Are there any deb-src lines in your /etc/apt/sources.list?\n");
-		return 0;
+	my $index = Dpkg::Index->new(get_key_func=>$key_func);
 
-	    }
+	if (!$index->parse($pipe, 'apt-cache showsrc')) {
+	    $self->log_error("Cannot parse output of apt-cache showsrc: $!\n");
+	    return 0;
 	}
+
 	close($pipe);
 
 	if ($?) {
@@ -1037,30 +1018,61 @@ sub fetch_source_files {
 	    return 0;
 	}
 
-	if (!defined($entries{"$pkg $ver"})) {
-	    if (!$retried) {
-		$self->log_subsubsection("Update APT");
-		# try to update apt's cache if nothing found
-		$self->get('Dependency Resolver')->update();
-		$retried = 1;
-		goto retry;
+	my $highestversion;
+	my $highestdsc;
+
+	foreach my $key ($index->get_keys()) {
+	    my $cdata = $index->get_by_key($key);
+	    my $pkgname = $cdata->{"Package"};
+	    if (not defined($pkgname)) {
+		$self->log_warning("apt-cache output without Package field\n");
+		next;
 	    }
-	    $self->log_error("Can't find source for " .
-		       $self->get('Package_OVersion') . "\n");
-	    $self->log_error("(only different version(s) ",
-	    join( ", ", sort keys %entries), " found)\n")
-		if %entries;
+	    if ($pkg ne $pkgname) {
+		$self->log_warning("apt-cache output for different package\n");
+		next;
+	    }
+	    my $pkgversion = $cdata->{"Version"};
+	    if (not defined($pkgversion)) {
+		$self->log_warning("apt-cache output without Version field\n");
+		next;
+	    }
+	    if (defined($ver) and $ver ne $pkgversion) {
+		$self->log_warning("apt-cache output for different version\n");
+		next;
+	    }
+	    my $checksums = Dpkg::Checksums->new();
+	    $checksums->add_from_control($cdata, use_files_for_md5 => 1);
+	    my @files = grep {/\.dsc$/} $checksums->get_files();
+	    if (scalar @files != 1) {
+		$self->log_warning("apt-cache output with more than one .dsc\n");
+		next;
+	    }
+	    if (!defined $highestdsc) {
+		$highestdsc = $files[0];
+		$highestversion = $pkgversion;
+	    } else {
+		if (version_compare($highestversion, $pkgversion) < 0) {
+		    $highestdsc = $files[0];
+		    $highestversion = $pkgversion;
+		}
+	    }
+	}
+
+	if (!defined $highestdsc) {
+	    $self->log_error($self->get_conf('APT_CACHE') .
+		" returned no information about $pkg source\n");
+	    $self->log_error("Are there any deb-src lines in your /etc/apt/sources.list?\n");
 	    return 0;
 	}
 
+	$self->set_dsc($highestdsc);
+	$dsc = $highestdsc;
+
 	$self->log_subsubsection("Download source files with APT");
 
-	foreach (@{$entries{"$pkg $ver"}}) {
-	    push(@fetched, "$build_dir/$_");
-	}
-
 	my $pipe2 = $self->get('Dependency Resolver')->pipe_apt_command(
-	    { COMMAND => [$self->get_conf('APT_GET'), '--only-source', '-q', '-d', 'source', "$pkg=$ver"],
+	    { COMMAND => [$self->get_conf('APT_GET'), '--only-source', '-q', '-d', 'source', "$pkg=$highestversion"],
 	      USER => $self->get_conf('BUILD_USER'),
 	      PRIORITY => 0}) || return 0;
 
@@ -1072,7 +1084,6 @@ sub fetch_source_files {
 	    $self->log_error($self->get_conf('APT_GET') . " for sources failed\n");
 	    return 0;
 	}
-	$self->set_dsc((grep { /\.dsc$/ } @fetched)[0]);
     }
 
     my $pdsc = Dpkg::Control->new(type => CTRL_PKG_SRC);
@@ -1109,6 +1120,17 @@ sub fetch_source_files {
     $self->set('Build Conflicts Indep', $build_conflicts_indep);
 
     $self->set('Dsc Architectures', $dscarchs);
+
+    # we set up the following filters this late because the user might only
+    # have specified a source package name to build without a version in which
+    # case we only get to know the final build directory now
+    my $filter;
+    $filter = $self->get('Build Dir') . '/' . $self->get('DSC Dir');
+    $filter =~ s;^/;;;
+    $self->build_log_filter($filter, 'PKGBUILDDIR');
+    $filter = $self->get('Build Dir');
+    $filter =~ s;^/;;;
+    $self->build_log_filter($filter, 'BUILDDIR');
 
     return 1;
 }
@@ -1351,21 +1373,31 @@ sub run_external_commands {
 
     # Run each command, substituting the various percent escapes (like
     # %SBUILD_DSC) from the commands to run with the appropriate subsitutions.
-    my $dsc = $self->get('DSC');
-    my $changes = $self->get('Changes File') if ($self->get('Changes File'));
-    my $hostarch = $self->get('Host Arch') if ($self->get('Host Arch'));
+    my $hostarch = $self->get('Host Arch');
     my $build_dir = $self->get('Build Dir');
-    my $pkgbuild_dir = $build_dir . '/' . $self->get('DSC Dir');
     my $shell_cmd = "bash -i </dev/tty >/dev/tty 2>/dev/tty";
     my %percent = (
 	"%" => "%",
-	"d" => $dsc, "SBUILD_DSC" => $dsc,
-	"c" => $changes, "SBUILD_CHANGES" => $changes,
 	"a" => $hostarch, "SBUILD_HOST_ARCH" => $hostarch,
 	"b" => $build_dir, "SBUILD_BUILD_DIR" => $build_dir,
-	"p" => $pkgbuild_dir, "SBUILD_PKGBUILD_DIR" => $pkgbuild_dir,
 	"s" => $shell_cmd, "SBUILD_SHELL" => $shell_cmd,
     );
+    if ($self->get('Changes File')) {
+	my $changes = $self->get('Changes File');
+	$percent{c} = $changes;
+	$percent{SBUILD_CHANGES} = $changes;
+    }
+    # In case set_version has not been run yet, we do not know the dsc file or
+    # directory yet. This can happen if the user only specified a source
+    # package name without a version on the command line.
+    if ($self->get('DSC Dir')) {
+	my $dsc = $self->get('DSC');
+	$percent{d} = $dsc;
+	$percent{SBUILD_DSC} = $dsc;
+	my $pkgbuild_dir = $build_dir . '/' . $self->get('DSC Dir');
+	$percent{p} = $pkgbuild_dir;
+	$percent{SBUILD_PKGBUILD_DIR} = $pkgbuild_dir;
+    }
     if ($chroot == 0) {
 	my $chroot_dir = $self->get('Chroot Dir');
 	$percent{r} = $chroot_dir;
@@ -2307,9 +2339,15 @@ sub open_build_log {
     my $colour_prefix = '__SBUILD_COLOUR_' . $$ . ':';
     $self->set('COLOUR_PREFIX', $colour_prefix);
 
-    my $filename = $self->get_conf('LOG_DIR') . '/' .
-	$self->get('Package_SVersion') . '_' .
-	$self->get('Host Arch') . "-$date";
+    my $filename = $self->get_conf('LOG_DIR') . '/';
+    # we might not know the pkgname_ver string if the user only specified a
+    # package name without version
+    if ($self->get('Package_SVersion')) {
+	$filename .= $self->get('Package_SVersion');
+    } else {
+	$filename .= $self->get('Package');
+    }
+    $filename .= '_' . $self->get('Host Arch') . "-$date";
     $filename .= ".build" if $self->get_conf('SBUILD_MODE') ne 'buildd';
 
     open($saved_stdout, ">&STDOUT") or warn "Can't redirect stdout\n";
@@ -2326,8 +2364,6 @@ sub open_build_log {
 	$SIG{'TERM'} = 'IGNORE';
 	$SIG{'QUIT'} = 'IGNORE';
 	$SIG{'PIPE'} = 'IGNORE';
-
-	$PROGRAM_NAME = 'package log for ' . $self->get('Package_SVersion') . '_' . $self->get('Host Arch');
 
 	$saved_stdout->autoflush(1);
 	if (!$self->get_conf('NOLOG') &&
@@ -2350,10 +2386,16 @@ sub open_build_log {
 		if (Cwd::abs_path($self->get_conf('BUILD_DIR')) eq Cwd::abs_path(dirname($filename))) {
 		    $symlinktarget = basename($filename)
 		}
-		$self->log_symlink($symlinktarget,
-				   $self->get_conf('BUILD_DIR') . '/' .
-				   $self->get('Package_SVersion') . '_' .
-				   $self->get('Host Arch') . ".build");
+		my $symlinkname = $self->get_conf('BUILD_DIR') . '/';
+		# we might not know the pkgname_ver string if the user only specified a
+		# package name without version
+		if ($self->get('Package_SVersion')) {
+		    $symlinkname .= $self->get('Package_SVersion');
+		} else {
+		    $symlinkname .= $self->get('Package');
+		}
+		$symlinkname .= '_' . $self->get('Host Arch') . ".build";
+		$self->log_symlink($symlinktarget, $symlinkname);
 	    }
 	}
 
@@ -2437,8 +2479,11 @@ sub open_build_log {
     $arch_string = 'CROSS host=' . $self->get('Host Arch') .
 	'/build=' . $self->get('Build Arch')
 	if ($self->get('Host Arch') ne $self->get('Build Arch'));
-    my $head1 = $self->get('Package') . ' ' . $self->get('Version') .
-	' (' . $arch_string . ') ';
+    my $head1 = $self->get('Package');
+    if ($self->get('Version')) {
+	$head1 .= ' ' . $self->get('Version');
+    }
+    $head1 .= ' (' . $arch_string . ') ';
     my $head2 = strftime("%d %b %Y %H:%M",
 			 localtime($self->get('Pkg Start Time')));
     my $head = $head1 . ' ' x (80 - 4 - length($head1) - length($head2)) .
@@ -2446,8 +2491,10 @@ sub open_build_log {
     $self->log_section($head);
 
     $self->log("Package: " . $self->get('Package') . "\n");
-    $self->log("Version: " . $self->get('Version') . "\n");
-    $self->log("Source Version: " . $self->get('OVersion') . "\n");
+    if ($self->get('Version') && $self->get('OVersion')) {
+	$self->log("Version: " . $self->get('Version') . "\n");
+	$self->log("Source Version: " . $self->get('OVersion') . "\n");
+    }
     $self->log("Distribution: " . $self->get_conf('DISTRIBUTION') . "\n");
     $self->log("Machine Architecture: " . $self->get_conf('ARCH') . "\n");
     $self->log("Host Architecture: " . $self->get('Host Arch') . "\n");
