@@ -1113,8 +1113,8 @@ EOF
 	# Older apt from squeeze will still require keys to be generated as it
 	# ignores the trusted=yes. Older apt ignoring this is also why we can add
 	# this unconditionally.
-        print $tmpfh 'deb [trusted=yes] file://' . $session->strip_chroot_path($dummy_archive_dir) . " ./\n";
-        print $tmpfh 'deb-src [trusted=yes] file://' . $session->strip_chroot_path($dummy_archive_dir) . " ./\n";
+        print $tmpfh 'deb [trusted=yes] copy://' . $session->strip_chroot_path($dummy_archive_dir) . " ./\n";
+        print $tmpfh 'deb-src [trusted=yes] copy://' . $session->strip_chroot_path($dummy_archive_dir) . " ./\n";
 
         for my $repospec (@{$self->get_conf('EXTRA_REPOSITORIES')}) {
             print $tmpfh "$repospec\n";
