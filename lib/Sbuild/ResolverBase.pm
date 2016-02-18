@@ -1113,6 +1113,13 @@ EOF
 	# Older apt from squeeze will still require keys to be generated as it
 	# ignores the trusted=yes. Older apt ignoring this is also why we can add
 	# this unconditionally.
+	#
+	# We use copy:// instead of file:// as URI because the latter will make
+	# apt use symlinks in /var/lib/apt/lists. These symlinks will become
+	# broken after the dummy archive is removed. This in turn confuses
+	# launchpad-buildd which directly tries to access
+	# /var/lib/apt/lists/*_Packages and cannot use `apt-get indextargets` as
+	# that apt feature is too new for it.
         print $tmpfh 'deb [trusted=yes] copy://' . $session->strip_chroot_path($dummy_archive_dir) . " ./\n";
         print $tmpfh 'deb-src [trusted=yes] copy://' . $session->strip_chroot_path($dummy_archive_dir) . " ./\n";
 
