@@ -1225,7 +1225,7 @@ sub check_architectures {
 		use strict;
 		use warnings;
 		use Dpkg::Arch;
-		if (Dpkg::Arch::debarch_is('$host_arch', '$a')) {
+		if (Dpkg::Arch::debarch_is("$host_arch", "$a")) {
 		    exit 0;
 		}
 		exit 1;
