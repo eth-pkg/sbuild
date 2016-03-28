@@ -94,11 +94,11 @@ sub setup {
 				DIR => $session->get('Location'),
 				UNLINK => 0) } ) {
 	if ($self->get_conf('APT_ALLOW_UNAUTHENTICATED')) {
-	    print $F "APT::Get::AllowUnauthenticated true;\n";
+	    print $F qq(APT::Get::AllowUnauthenticated "true";\n);
 	}
-	print $F "APT::Install-Recommends false;\n";
-	print $F "APT::AutoRemove::SuggestsImportant false;\n";
-	print $F "APT::AutoRemove::RecommendsImportant false;\n";
+	print $F qq(APT::Install-Recommends "false";\n);
+	print $F qq(APT::AutoRemove::SuggestsImportant "false";\n);
+	print $F qq(APT::AutoRemove::RecommendsImportant "false";\n);
 
 	if ($self->get('Split')) {
 	    print $F "Dir \"$chroot_dir\";\n";
