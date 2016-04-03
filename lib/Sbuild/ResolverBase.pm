@@ -99,6 +99,7 @@ sub setup {
 	print $F qq(APT::Install-Recommends "false";\n);
 	print $F qq(APT::AutoRemove::SuggestsImportant "false";\n);
 	print $F qq(APT::AutoRemove::RecommendsImportant "false";\n);
+	print $F qq(Acquire::Languages "none";\n); # do not download translations
 
 	if ($self->get('Split')) {
 	    print $F "Dir \"$chroot_dir\";\n";
