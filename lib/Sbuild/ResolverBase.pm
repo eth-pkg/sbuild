@@ -1037,6 +1037,7 @@ EOF
                            '--keyring',
                            $session->strip_chroot_path($dummy_archive_pubkey),
                            '--default-key', 'Sbuild Signer', '-abs',
+                           '--digest-algo', 'SHA512',
                            '-o', $session->strip_chroot_path($dummy_release_file) . '.gpg',
                            $session->strip_chroot_path($dummy_release_file));
         $session->run_command(
