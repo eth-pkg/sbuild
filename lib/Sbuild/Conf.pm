@@ -892,6 +892,13 @@ $crossbuild_core_depends = {
 	    },
 	    HELP => 'Build dependency resolver.  The \'apt\' resolver is currently the default, and recommended for most users.  This resolver uses apt-get to resolve dependencies.  Alternative resolvers are \'apt\', \'aptitude\' and \'aspcud\'. The \'apt\' resolver uses a built-in resolver module while the \'aptitude\' resolver uses aptitude to resolve build dependencies.  The aptitude resolver is similar to apt, but is useful in more complex situations, such as where multiple distributions are required, for example when building from experimental, where packages are needed from both unstable and experimental, but defaulting to unstable. If the dependency situation is too complex for either apt or aptitude to solve it, you can use the \'aspcud\' resolver which (in contrast to apt and aptitude) is a real solver (in the math sense) and will thus always find a solution if a solution exists.'
 	},
+	'ASPCUD_CRITERIA'			=> {
+	    TYPE => 'STRING',
+	    VARNAME => 'aspcud_criteria',
+	    GROUP => 'Dependency resolution',
+	    DEFAULT => '-removed,-changed,-new',
+	    HELP => 'Optimization criteria in extended MISC 2012 syntax. See the apt-cudf man page help for the --criteria option for more information. Optimization criteria are separated by commas, sorted by decreasing order of priority and are prefixed with a polarity (+ to maximize and - to minimize). The default criteria first minimizes the number of removed packages, then th enumber of changed packages (up or downgrades) and then the number of new packages. To minimize the number of packages from experimental you can add a criteria like \'-count(solution,APT-Release:=/a=experimental/)\'. This will minimize the number of packages in the solution which contain the string \'a=experimental\' in the \'APT-Release\' field of the EDSP output created by apt.'
+	},
 	'CLEAN_SOURCE'				=> {
 	    TYPE => 'BOOL',
 	    VARNAME => 'clean_source',

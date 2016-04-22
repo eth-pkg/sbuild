@@ -86,31 +86,9 @@ sub install_deps {
     my @apt_args = ("-yf", \@instd, \@rmvd);
     push @apt_args, 'install', $dummy_pkg_name;
 
-    # It follows an explanation of the choice of the
-    # APT::Solver::aspcud::Preferences setting
-    #
-    # Since it is assumed that the chroot only contains a base system and
-    # build-essential, from which we assume that no package shall be removed,
-    # we first minimize the number of removed packages. This means that if
-    # there exist solutions that do not remove any packages, then those will
-    # be evaluated further. The second optimization criteria is to minimize
-    # the number of changed packages. This will take care that no packages of
-    # the base system are unnecessarily upgraded to their versions from
-    # experimental. It will also avoid any solutions that do need upgrades to
-    # the experimental versions and keep the upgrades to a minimum if an
-    # upgrade is strictly required. The third criteria minimizes the number of
-    # new packages the solution installs. Here it can happen that installing a
-    # dependency from experimental instead of unstable will lead to less new
-    # packages. But this should only happen if the package in unstable depends
-    # on more additional packages compared to the same package in
-    # experimental. If the solutions are otherwise equal then as the last
-    # criteria, the number of packages from experimental will be minimized by
-    # maximizing the sum of the apt-pin values. Since packages from unstable
-    # have a higher pin value than those in experimental, this should prefer
-    # packages from unstable except if the solution from unstable is so large
-    # compared to the one in experimental that their sum of pin values is
-    # larger in which case the solution in experimental will be preferred.
-    push @apt_args, '--solver',  'aspcud', '-o', 'APT::Solver::Strict-Pinning=false', '-o', 'APT::Solver::aspcud::Preferences=-removed,-changed,-new,+sum(solution,apt-pin)';
+    push @apt_args, '--solver', 'aspcud',
+	'-o', 'APT::Solver::Strict-Pinning=false',
+	'-o', 'APT::Solver::aspcud::Preferences='.$self->get_conf('ASPCUD_CRITERIA');
 
     if (!$self->run_apt(@apt_args)) {
 	$self->log("Package installation failed\n");
