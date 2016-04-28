@@ -307,10 +307,22 @@ root-groups=root,sbuild
 profile=sbuild
 EOF
 } else {
+    # Determine whether system has overlayfs capability
+    my $uniontype = "union-type=none";
+    if (lc("$^O") =~ /linux/) {
+	system("/sbin/modprobe overlay");
+	if (open(FILE, "/proc/filesystems")) {
+	    if (grep {/\soverlay$/} <FILE>) {
+		$uniontype = "union-type=overlay";
+	    }
+	    close(FILE);
+	}
+    }
+
     $config_entry = <<"EOF";
 [$chrootname]
 type=directory
-union-type=overlay
+$uniontype
 description=Debian $suite/$arch autobuilder
 directory=$target
 groups=root,sbuild
