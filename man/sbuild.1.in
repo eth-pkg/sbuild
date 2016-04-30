@@ -91,6 +91,7 @@ sbuild \- build debian packages from source
 .RB [ \-\-extra\-repository\-key=\fIfile.asc\fP ]
 .RB [ \-\-build\-path=\fIstring\fP ]
 .RB [ \-\-adt-virt-server=\fIschroot|lxc|chroot|qemu|ssh\fP ]
+.RB [ \-\-adt\-virt\-server\-opts=\fIoptions\fP ]
 .RB [ \-\-adt-virt-server-opt=\fIstring\fP ]
 .RB [ PACKAGE [ .dsc ]]
 .SH DESCRIPTION
@@ -622,6 +623,12 @@ option becomes the image name of the virtual machine in case of adt-virt-qemu,
 the lxc-container name in case of adt-virt-lxc, the path to the chroot in case
 of adt-virt-chroot, the name of the schroot in case of adt-virt-schroot and so
 on.
+.TP
+.BR \-\-adt\-virt\-server\-opts=\fIoptions\fP
+Append extra options to existing options passed to the adt\-virt\-*
+virtualization server. The argument will be split by whitespaces. To add
+options containing whitespaces use \-\-adt\-virt\-server\-opt.  See the manual
+pages of the respective adt\-virt\-* commands for more information.
 .TP
 .BR \-\-adt-virt-server-opt=\fIstring\fP
 Option passed to the adt-virt-* virtualization server. This option can be

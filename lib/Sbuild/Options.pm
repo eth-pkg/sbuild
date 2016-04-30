@@ -158,6 +158,10 @@ sub set_options {
 		       "adt-virt-server=s" => sub {
 			   $self->set_conf('ADT_VIRT_SERVER', $_[1]);
 		       },
+		       "adt-virt-server-opts=s" => sub {
+			   push(@{$self->get_conf('ADT_VIRT_SERVER_OPTIONS')},
+				split(/\s+/, $_[1]));
+		       },
 		       "adt-virt-server-opt=s" => sub {
 			   push(@{$self->get_conf('ADT_VIRT_SERVER_OPTIONS')}, $_[1]);
 		       },
