@@ -26,6 +26,7 @@ use strict;
 use warnings;
 
 use IPC::Open2;
+use Sbuild qw(shellescape);
 
 BEGIN {
     use Exporter ();
@@ -198,18 +199,17 @@ sub get_command_internal {
 
     my @cmdline = ();
 
-    if (!defined($dir)) {
-	$dir = '/';
-    }
     @cmdline = @{$self->get('ADT Exec Command')};
 
     if ($user ne "root") {
 	push @cmdline, "/sbin/runuser", '-u', $user, '--';
     }
 
-    if ($dir ne "/") {
-	# FIXME: check for special shell characters in $dir
-	push @cmdline, 'sh', '-c', "cd \"$dir\" && exec \"\$@\"", 'exec';
+    if (defined($dir)) {
+	my $shelldir = shellescape $dir;
+	push @cmdline, 'sh', '-c', "cd $shelldir && exec \"\$@\"", 'exec';
+    } else {
+	$dir = '/';
     }
 
     if (ref $command) {

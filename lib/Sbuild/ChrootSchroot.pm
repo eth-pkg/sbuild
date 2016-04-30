@@ -25,6 +25,8 @@ package Sbuild::ChrootSchroot;
 use strict;
 use warnings;
 
+use Sbuild qw(shellescape);
+
 BEGIN {
     use Exporter ();
     use Sbuild::Chroot;
@@ -112,23 +114,6 @@ sub get_internal_exec_string {
 		   '--run-session',
 		   @{$self->get_conf('SCHROOT_OPTIONS')},
 		   '-u', "$user", '-p', '--');
-    # avoid dependency on String::ShellQuote by implementing the mechanism
-    # from python's shlex.quote function
-    sub shellescape {
-	my ($string) = @_;
-	if (length $string == 0) {
-	    return "''";
-	}
-	# search for occurrences of characters that are not safe
-	# the 'a' regex modifier makes sure that \w only matches ASCII
-	if ($string !~ m/[^\w@\%+=:,.\/-]/a) {
-	    return $string;
-	}
-	# wrap the string in single quotes and put handle existing single
-	# quotes
-	$string =~ s/'/'"'"'/g;
-	return "'$string'";
-    };
     return join " ", (map { shellescape $_ } @cmdline);
 }
 

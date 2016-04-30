@@ -43,7 +43,7 @@ BEGIN {
     @EXPORT = qw($debug_level $devnull binNMU_version parse_date isin
 		 copy dump_file check_packages help_text version_text
 		 usage_error send_mail debug debug2 df
-		 check_group_membership dsc_files dsc_pkgver);
+		 check_group_membership dsc_files dsc_pkgver shellescape);
 }
 
 our $devnull;
@@ -69,6 +69,7 @@ sub debug (@);
 sub debug2 (@);
 sub check_group_membership();
 sub dsc_files ($);
+sub shellescape ($);
 
 sub binNMU_version ($$$) {
 	my $v = shift;
@@ -412,5 +413,23 @@ sub dsc_pkgver ($) {
 
     return ($pdsc->{'Source'}, $pdsc->{'Version'});
 }
+
+# avoid dependency on String::ShellQuote by implementing the mechanism
+# from python's shlex.quote function
+sub shellescape ($) {
+    my $string = shift;
+    if (length $string == 0) {
+	return "''";
+    }
+    # search for occurrences of characters that are not safe
+    # the 'a' regex modifier makes sure that \w only matches ASCII
+    if ($string !~ m/[^\w@\%+=:,.\/-]/a) {
+	return $string;
+    }
+    # wrap the string in single quotes and handle existing single quotes by
+    # putting them outside of the single-quoted string
+    $string =~ s/'/'"'"'/g;
+    return "'$string'";
+};
 
 1;
