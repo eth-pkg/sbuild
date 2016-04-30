@@ -610,11 +610,23 @@ with a key that's trusted by the base chroot.
 By default the package is built in a path of the following format /build/packagename-XXXXXX/packagename-version/ where XXXXXX is a random ascii string. This option allows one to specify a custom path where the package is built inside the chroot. Notice that the sbuild user in the chroot must have permissions to create the path. Common writable locations are subdirectories of /tmp or /build. The buildpath must be an empty directory because the last component of the path will be removed after the build is finished. If you are running multiple sbuild instances with the same build path in parallel for the same package, make sure that your build path is not in a directory commonly mounted by all sbuild instances (like /tmp or /home). In that case, use for example /build instead. Otherwise, your builds will probably fail or contain wrong content.
 .TP
 .BR \-\-adt-virt-server=\fIschroot|lxc|chroot|qemu|ssh\fP
-The adt virtualization server. Can be specified with or without the adt-virt- prefix.
+The adt virtualization server. Can be specified with or without the adt-virt-
+prefix.  For instance, the following set of command line options will use the
+adt-virt-schroot backend for a package build:
+.nh
+.B \-\-chroot-mode=adt \-\-adt\-virt\-server=schroot \-\-chroot unstable-amd64-sbuild
+.ny
+The value of the \f[CB]--chroot\fP option will be passed as the last positional
+argument to the adt-virt-* invocation. Thus, the value of the \f[CB]--chroot\fP
+option becomes the image name of the virtual machine in case of adt-virt-qemu,
+the lxc-container name in case of adt-virt-lxc, the path to the chroot in case
+of adt-virt-chroot, the name of the schroot in case of adt-virt-schroot and so
+on.
 .TP
 .BR \-\-adt-virt-server-opt=\fIstring\fP
 Option passed to the adt-virt-* virtualization server. This option can be
-passed multiple times.
+passed multiple times. See the manual pages of the respective adt-virt-*
+commands for more information.
 .TP
 .BR \-\-sbuild-mode=\fImode\fP
 Behaviour changes for use in a buildd environment.  This overrides the
