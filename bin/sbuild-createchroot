@@ -256,9 +256,10 @@ EOF
 
 close POLICY_RC_D or die "Can't close $policy_rc_d";
 
-!system("chown", "root:", "$policy_rc_d")
+my (undef, undef, $uid, undef) = getpwnam('root');
+!chown($uid, -1, $policy_rc_d)
     or die "E: Failed to set root: ownership on $policy_rc_d";
-!system("chmod", "0775", "$policy_rc_d")
+!chmod(0775, $policy_rc_d)
     or die "E: Failed to set 0755 permissions on $policy_rc_d";
 
 # Display /usr/sbin/policy-rc.d.
@@ -310,7 +311,7 @@ EOF
     # Determine whether system has overlayfs capability
     my $uniontype = "union-type=none";
     if (lc("$^O") =~ /linux/) {
-	system("/sbin/modprobe overlay");
+	system(qw(/sbin/modprobe overlay));
 	if (open(FILE, "/proc/filesystems")) {
 	    if (grep {/\soverlay$/} <FILE>) {
 		$uniontype = "union-type=overlay";

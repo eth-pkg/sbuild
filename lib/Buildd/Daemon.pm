@@ -701,11 +701,10 @@ sub move_to_upload {
         unlink( $upload_path );
         $self->log("'$upload_path' removed.\n");
     }
-    system sprintf('dcmd mv %s/build/%s %s/%s/',
-	$self->get_conf('HOME'),
-	$changes_name,
-	$self->get_conf('HOME'),
-	$dist_config->get('DUPLOAD_LOCAL_QUEUE_DIR'));
+    system(qw(dcmd mv --),
+        sprintf('%s/build/%s', $self->get_conf('HOME'), $changes_name),
+        sprintf('%s/%s/', $self->get_conf('HOME'), $dist_config->get('DUPLOAD_LOCAL_QUEUE_DIR'))
+    );
     $self->log("$pv moved to '$upload_dir'\n");
 }
 

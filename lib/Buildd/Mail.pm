@@ -381,9 +381,9 @@ FILE:	foreach (@to_remove) {
 		# that only has build-depends in it.
 		# if that's too much cpu, have buildd use perl-apt if avail to export the
 		# build-depends list, which could then be read in at this point
-		if (system "mv $upload_dir/$_ " .
+		if (system (qw(mv --), "$upload_dir/$_",
 		    $self->get_conf('HOME') .
-		    "/build/chroot-$dist/var/cache/apt/archives/") {
+		    "/build/chroot-$dist/var/cache/apt/archives/")) {
 		    $self->log("Cannot move $upload_dir/$_ to cache dir\n");
 		} else {
 		    next FILE;
@@ -591,7 +591,7 @@ sub prepare_for_upload ($$) {
     for my $upload_dir (@upload_dirs) {
 	lock_file( $upload_dir );
 	foreach (@files) {
-	    if (system "cp " . $self->get_conf('HOME') . "/build/$_ $upload_dir/$_") {
+	    if (system('cp', '--', $self->get_conf('HOME')."/build/$_", "$upload_dir/$_")) {
 		$self->log("Cannot copy $_ to $upload_dir/\n");
 		++$errs;
 	    }
@@ -605,7 +605,7 @@ sub prepare_for_upload ($$) {
     }
 
     foreach (@files) {
-	if (system "rm " . $self->get_conf('HOME') . "/build/$_") {
+	if (!unlink($self->get_conf('HOME') . "/build/$_")) {
 	    $self->log("Cannot remove build/$_\n");
 	    ++$errs;
 	}

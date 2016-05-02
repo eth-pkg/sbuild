@@ -250,7 +250,7 @@ sub help_text ($$) {
     my $section = shift;
     my $page = shift;
 
-    system("/usr/bin/man", "$section", "$page");
+    system(qw('man --'), $section, $page);
     exit 0;
 }
 

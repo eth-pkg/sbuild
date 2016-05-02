@@ -121,7 +121,7 @@ sub run {
 
     foreach (@to_purge) {
 	next if ! -d $_;
-	system "sudo rm -rf $_";
+	system(qw(sudo rm -rf --), $_);
 	$self->log("Purged $_\n");
     }
 
@@ -227,18 +227,18 @@ sub run {
 	-M "old-logs/daemon-stamp" > $self->get_conf('DAEMON_LOG_ROTATE')-$self->get('Fudge')) {
 
 	$self->log("Rotating daemon log file\n");
-	system "touch old-logs/daemon-stamp";
+	system(qw(touch old-logs/daemon-stamp));
 
 	my $d = $self->format_time(time);
 	if (-f $self->get_conf('DAEMON_LOG_FILE') . ".old") {
-	    system "mv " . $self->get_conf('DAEMON_LOG_FILE') . ".old old-logs/daemon-$d.log";
-	    system "gzip -9 old-logs/daemon-$d.log";
+	    system(qw(mv --), $self->get_conf('DAEMON_LOG_FILE') . '.old', "old-logs/daemon-$d.log");
+	    system(qw(gzip -9), "old-logs/daemon-$d.log");
 	}
 
 	rename( $self->get_conf('DAEMON_LOG_FILE'),
 		$self->get_conf('DAEMON_LOG_FILE') . ".old" );
 	my $old_umask = umask 0007;
-	system "touch " . $self->get_conf('DAEMON_LOG_FILE');
+	system(qw(touch --), $self->get_conf('DAEMON_LOG_FILE'));
 	umask $old_umask;
 	kill( 1, $daemon_pid ) if $daemon_pid;
 	$self->reopen_log();
@@ -306,7 +306,7 @@ sub archive_logs ($$$$) {
 
     return if -f "$destpat-stamp" && -M "$destpat-stamp" < $minage-$self->get('Fudge');
     $self->log("Archiving logs in $dir:\n");
-    system "touch $destpat-stamp";
+    system(qw(touch --), "$destpat-stamp");
 
     $olddir = cwd;
     chdir( $dir );
@@ -326,8 +326,8 @@ sub archive_logs ($$$$) {
 	$newt = $self->format_time($newest);
 	$file = $self->get_conf('HOME') . "/$destpat-$oldt-$newt.tar";
 
-	system "tar cf $file @todo";
-	system "gzip -9 $file";
+	system(qw(tar cf), $file, '--', @todo);
+	system(qw(gzip -9 --), $file);
 
 	if ($dir eq "logs") {
 	    local (*F);

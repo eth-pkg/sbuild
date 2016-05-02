@@ -91,7 +91,7 @@ sub end_session {
 
     print STDERR "Cleaning up chroot (session id " . $self->get('Session ID') . ")\n"
 	if $self->get_conf('DEBUG');
-    system($self->get_conf('SCHROOT') . ' -c ' . $self->get('Session ID') . ' --end-session');
+    system($self->get_conf('SCHROOT'), '-c', $self->get('Session ID'), '--end-session');
     $self->set('Session ID', "");
     if ($?) {
 	print STDERR "Chroot cleanup failed\n";

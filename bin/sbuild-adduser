@@ -41,7 +41,7 @@ foreach (@ARGV) {
     my $user = getpwnam($_);
 
     if (defined $user) {
-	$status += system("/usr/sbin/adduser", "$_", "sbuild");
+	$status += system(qw(/usr/sbin/adduser --), $_, 'sbuild');
     } else {
 	print STDERR "W: User \"$_\" does not exist\n";
 	$status++;

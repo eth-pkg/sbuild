@@ -362,7 +362,7 @@ sub process_package {
 
     if ((!$conf->get('NO_LINTIAN')) && (-x '/usr/bin/lintian')) {
 	print "Running lintian.\n";
-	system('/usr/bin/lintian', @{$conf->get('LINTIAN_OPTS')}, $bin_changes);
+	system('/usr/bin/lintian', @{$conf->get('LINTIAN_OPTS')}, '--', $bin_changes);
 	if (($? >> 8) != 0) {
 	    print "Running lintian failed: $?";
 	    chdir($currentdir);
