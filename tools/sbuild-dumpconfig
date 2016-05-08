@@ -104,13 +104,20 @@ foreach my $group (@groups) {
 	    my $help = $conf->_get_help($key);
 	    my $default = $conf->_get_default($key);
 	    my $ignore_default = $conf->_get_ignore_default($key);
+	    my $cli_options = $conf->_get_cli_options($key);
+	    my $example = $conf->_get_example($key);
 	    if ($output eq "config") {
 		print "# $key\n";
 		print "# Type: $type\n";
 		if ($help) {
 		    print wrap("# ", "# ", "$help\n");
 		}
-		my $example = $conf->_get_example($key);
+		if ($cli_options) {
+		    print "# See also related command line options in sbuild(1):\n";
+		    foreach my $opt (@{$cli_options}) {
+			print "#   $opt\n";
+		    }
+		}
 		if ($example) {
 		    foreach my $line (split("\n", $example)) {
 			print "#    $line\n";
@@ -132,7 +139,19 @@ foreach my $group (@groups) {
 		    print "$help\n";
 #		    print wrap("", "", "$help\n");
 		}
-		my $example = $conf->_get_example($key);
+		if ($cli_options) {
+		    print ".IP\n";
+		    print "Related\n";
+		    print ".BR sbuild (1)\n";
+		    print "command line options:\n";
+		    print ".PP\n";
+		    print ".RS\n";
+		    foreach my $opt (@{$cli_options}) {
+			print "\\f[CR]$opt\\fP\n";
+			print ".br\n";
+		    }
+		    print ".RE\n";
+		}
 		if ($example) {
 		    print "Example:\n";
 		    print ".PP\n";

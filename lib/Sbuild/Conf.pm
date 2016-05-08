@@ -130,22 +130,26 @@ sub setup ($) {
 	    VARNAME => 'chroot',
 	    GROUP => 'Chroot options',
 	    DEFAULT => undef,
-	    HELP => 'Default chroot (defaults to distribution[-arch][-sbuild])'
+	    HELP => 'Default chroot (defaults to distribution[-arch][-sbuild])',
+	    CLI_OPTIONS => ['-c', '--chroot']
 	},
 	'BUILD_ARCH_ALL'			=> {
 	    TYPE => 'BOOL',
 	    VARNAME => 'build_arch_all',
 	    GROUP => 'Build options',
 	    DEFAULT => 0,
-	    HELP => 'Build architecture: all packages by default. Set by the --arch-all and --no-arch-all command line options.'
+	    HELP => 'Build architecture: all packages by default.',
+	    CLI_OPTIONS => ['--arch-all', '--no-arch-all']
 	},
 	'BUILD_ARCH_ANY'			=> {
 	    TYPE => 'BOOL',
 	    VARNAME => 'build_arch_any',
 	    GROUP => 'Build options',
 	    DEFAULT => 1,
-	    HELP => 'Build architecture: any packages by default. Set by the --arch-any and --no-arch-any command line options.'
+	    HELP => 'Build architecture: any packages by default.',
+	    CLI_OPTIONS => ['--arch-any', '--no-arch-any']
 	},
+	# FIXME: this config value can be set by the cli. Why is it internal then?
 	'NOLOG'					=> {
 	    TYPE => 'BOOL',
 	    GROUP => '__INTERNAL',
@@ -242,14 +246,16 @@ sub setup ($) {
 		}
 	    },
 	    DEFAULT => 'adt-virt-schroot',
-	    HELP => 'Path to adt-virt-* binary, selecting the virtualization server.'
+	    HELP => 'Path to adt-virt-* binary, selecting the virtualization server.',
+	    CLI_OPTIONS => ['--adt-virt-server']
 	},
 	'ADT_VIRT_SERVER_OPTIONS'			=> {
 	    TYPE => 'ARRAY:STRING',
 	    VARNAME => 'adt_virt_server_options',
 	    GROUP => 'Programs',
 	    DEFAULT => [],
-	    HELP => 'Additional command-line options for adt-virt-*'
+	    HELP => 'Additional command-line options for adt-virt-*',
+	    CLI_OPTIONS => ['--adt-virt-server-opt', '--adt-virt-server-opts']
 	},
 	'FAKEROOT'				=> {
 	    TYPE => 'STRING',
@@ -307,6 +313,7 @@ sub setup ($) {
 	    },
 	    DEFAULT => 'xapt'
 	},
+	# FIXME: this config value can be set by the cli. Why is it internal then?
 	'DPKG_BUILDPACKAGE_USER_OPTIONS'	=> {
 	    TYPE => 'ARRAY:STRING',
 	    GROUP => '__INTERNAL',
@@ -326,7 +333,8 @@ sub setup ($) {
 	    VARNAME => 'dpkg_source_opts',
 	    GROUP => 'Programs',
 	    DEFAULT => [],
-	    HELP => 'Additional command-line options for dpkg-source'
+	    HELP => 'Additional command-line options for dpkg-source',
+	    CLI_OPTIONS => ['--dpkg-source-opt', '--dpkg-source-opts']
 	},
 	'DCMD'					=> {
 	    TYPE => 'STRING',
@@ -349,7 +357,8 @@ sub setup ($) {
 	    VARNAME => 'stats_dir',
 	    GROUP => 'Statistics',
 	    DEFAULT => "$HOME/stats",
-	    HELP => 'Directory for writing build statistics to'
+	    HELP => 'Directory for writing build statistics to',
+	    CLI_OPTIONS => ['--stats-dir']
 	},
 	'PACKAGE_CHECKLIST'			=> {
 	    TYPE => 'STRING',
@@ -479,7 +488,8 @@ sub setup ($) {
 		return $retval;
 	    },
 	    DEFAULT => "",
-	    HELP => 'email address to mail build logs to'
+	    HELP => 'email address to mail build logs to',
+	    CLI_OPTIONS => ['--mail-log-to']
 	},
 	'MAILTO_FORCED_BY_CLI'			=> {
 	    TYPE => 'BOOL',
@@ -498,7 +508,8 @@ sub setup ($) {
 	    VARNAME => 'mailfrom',
 	    GROUP => 'Logging options',
 	    DEFAULT => "Source Builder <sbuild>",
-	    HELP => 'email address set in the From line of build logs'
+	    HELP => 'email address set in the From line of build logs',
+	    CLI_OPTIONS => ['--mailfrom']
 	},
 	'COMPRESS_BUILD_LOG_MAILS'              => {
 	    TYPE => 'BOOL',
@@ -529,7 +540,8 @@ sub setup ($) {
 			     qw(always successful never));
 	    },
 	    DEFAULT => 'always',
-	    HELP => 'When to purge the build dependencies after a build; possible values are "never", "successful", and "always"'
+	    HELP => 'When to purge the build dependencies after a build; possible values are "never", "successful", and "always"',
+	    CLI_OPTIONS => ['-p', '--purge', '--purge-deps']
 	},
 	'PURGE_BUILD_DIRECTORY'			=> {
 	    TYPE => 'STRING',
@@ -546,7 +558,8 @@ sub setup ($) {
 			     qw(always successful never));
 	    },
 	    DEFAULT => 'always',
-	    HELP => 'When to purge the build directory after a build; possible values are "never", "successful", and "always"'
+	    HELP => 'When to purge the build directory after a build; possible values are "never", "successful", and "always"',
+	    CLI_OPTIONS => ['-p', '--purge', '--purge-build']
 	},
 	'PURGE_SESSION'			=> {
 	    TYPE => 'STRING',
@@ -563,7 +576,8 @@ sub setup ($) {
 			     qw(always successful never));
 	    },
 	    DEFAULT => 'always',
-	    HELP => 'Purge the schroot session following a build.  This is useful in conjunction with the --purge and --purge-deps options when using snapshot chroots, since by default the snapshot will be deleted. Possible values are "always" (default), "never", and "successful"'
+	    HELP => 'Purge the schroot session following a build.  This is useful in conjunction with the --purge and --purge-deps options when using snapshot chroots, since by default the snapshot will be deleted. Possible values are "always" (default), "never", and "successful"',
+	    CLI_OPTIONS => ['-p', '--purge', '--purge-session']
 	},
 	'TOOLCHAIN_REGEX'			=> {
 	    TYPE => 'ARRAY:STRING',
@@ -618,7 +632,8 @@ sub setup ($) {
 			     qw(schroot sudo adt));
 	    },
 	    DEFAULT => 'schroot',
-	    HELP => 'Mechanism to use for chroot virtualisation.  Possible value are "schroot" (default), "sudo" and "adt".'
+	    HELP => 'Mechanism to use for chroot virtualisation.  Possible value are "schroot" (default), "sudo" and "adt".',
+	    CLI_OPTIONS => ['--chroot-mode']
 	},
 	'CHROOT_SPLIT'				=> {
 	    TYPE => 'BOOL',
@@ -649,28 +664,32 @@ sub setup ($) {
 	    VARNAME => 'build_path',
 	    GROUP => 'Build options',
 	    DEFAULT => undef,
-	    HELP => 'By default the package is built in a path of the following format /build/packagename-XXXXXX/packagename-version/ where XXXXXX is a random ascii string. This option allows one to specify a custom path where the package is built inside the chroot. Notice that the sbuild user in the chroot must have permissions to create the path. Common writable locations are subdirectories of /tmp or /build. The buildpath must be an empty directory because the last component of the path will be removed after the build is finished. If you are running multiple sbuild instances with the same build path in parallel for the same package, make sure that your build path is not in a directory commonly mounted by all sbuild instances (like /tmp or /home). In that case, use for example /build instead. Otherwise, your builds will probably fail or contain wrong content.'
+	    HELP => 'By default the package is built in a path of the following format /build/packagename-XXXXXX/packagename-version/ where XXXXXX is a random ascii string. This option allows one to specify a custom path where the package is built inside the chroot. Notice that the sbuild user in the chroot must have permissions to create the path. Common writable locations are subdirectories of /tmp or /build. The buildpath must be an empty directory because the last component of the path will be removed after the build is finished. If you are running multiple sbuild instances with the same build path in parallel for the same package, make sure that your build path is not in a directory commonly mounted by all sbuild instances (like /tmp or /home). In that case, use for example /build instead. Otherwise, your builds will probably fail or contain wrong content.',
+	    CLI_OPTIONS => ['--build-path']
 	},
 	'SBUILD_MODE'				=> {
 	    TYPE => 'STRING',
 	    VARNAME => 'sbuild_mode',
 	    GROUP => 'Core options',
 	    DEFAULT => 'user',
-	    HELP => 'sbuild behaviour; possible values are "user" (exit status reports build failures) and "buildd" (exit status does not report build failures) for use in a buildd setup.  "buildd" also currently implies enabling of "legacy features" such as chroot symlinks in the build directory and the creation of current symlinks in the build directory.'
+	    HELP => 'sbuild behaviour; possible values are "user" (exit status reports build failures) and "buildd" (exit status does not report build failures) for use in a buildd setup.  "buildd" also currently implies enabling of "legacy features" such as chroot symlinks in the build directory and the creation of current symlinks in the build directory.',
+	    CLI_OPTIONS => ['--sbuild-mode']
 	},
 	'CHROOT_SETUP_SCRIPT'				=> {
 	    TYPE => 'STRING',
 	    VARNAME => 'chroot_setup_script',
 	    GROUP => 'Chroot options',
 	    DEFAULT => undef,
-	    HELP => 'Script to run to perform custom setup tasks in the chroot.'
+	    HELP => 'Script to run to perform custom setup tasks in the chroot.',
+	    CLI_OPTIONS => ['--setup-hook']
 	},
 	'FORCE_ORIG_SOURCE'			=> {
 	    TYPE => 'BOOL',
 	    VARNAME => 'force_orig_source',
 	    GROUP => 'Build options',
 	    DEFAULT => 0,
-	    HELP => 'By default, the -s option only includes the .orig.tar.gz when needed (i.e. when the Debian revision is 0 or 1).  By setting this option to 1, the .orig.tar.gz will always be included when -s is used.  This is equivalent to --force-orig-source.'
+	    HELP => 'By default, the -s option only includes the .orig.tar.gz when needed (i.e. when the Debian revision is 0 or 1).  By setting this option to 1, the .orig.tar.gz will always be included when -s is used.',
+	    CLI_OPTIONS => ['--force-orig-source']
 	},
 	'INDIVIDUAL_STALLED_PKG_TIMEOUT'	=> {
 	    TYPE => 'HASH:NUMERIC',
@@ -716,7 +735,8 @@ sub setup ($) {
 	    VARNAME => 'ld_library_path',
 	    GROUP => 'Build environment',
 	    DEFAULT => undef,
-	    HELP => 'Library search path to use inside the chroot.'
+	    HELP => 'Library search path to use inside the chroot.',
+	    CLI_OPTIONS => ['--use-snapshot']
 	},
 	'MAINTAINER_NAME'			=> {
 	    TYPE => 'STRING',
@@ -724,7 +744,8 @@ sub setup ($) {
 	    GROUP => 'Maintainer options',
 	    DEFAULT => undef,
 	    SET => $set_signing_option,
-	    HELP => 'Name to use as override in .changes files for the Maintainer field.  The Maintainer field will not be overridden unless set here.'
+	    HELP => 'Name to use as override in .changes files for the Maintainer field.  The Maintainer field will not be overridden unless set here.',
+	    CLI_OPTIONS => ['-m', '--maintainer']
 	},
 	'UPLOADER_NAME'				=> {
 	    VARNAME => 'uploader_name',
@@ -732,14 +753,16 @@ sub setup ($) {
 	    GROUP => 'Maintainer options',
 	    DEFAULT => undef,
 	    SET => $set_signing_option,
-	    HELP => 'Name to use as override in .changes file for the Changed-By: field.'
+	    HELP => 'Name to use as override in .changes file for the Changed-By: field.',
+	    CLI_OPTIONS => ['-e', '--uploader']
 	},
 	'KEY_ID'				=> {
 	    TYPE => 'STRING',
 	    VARNAME => 'key_id',
 	    GROUP => 'Maintainer options',
 	    DEFAULT => undef,
-	    HELP => 'Key ID to use in .changes for the current upload.  It overrides both $maintainer_name and $uploader_name.'
+	    HELP => 'Key ID to use in .changes for the current upload.  It overrides both $maintainer_name and $uploader_name.',
+	    CLI_OPTIONS => ['-k', '--keyid']
 	},
 	'SIGNING_OPTIONS'			=> {
 	    TYPE => 'STRING',
@@ -752,14 +775,16 @@ sub setup ($) {
 	    VARNAME => 'apt_clean',
 	    GROUP => 'Chroot options',
 	    DEFAULT => 0,
-	    HELP => 'APT clean.  1 to enable running "apt-get clean" at the start of each build, or 0 to disable.'
+	    HELP => 'APT clean.  1 to enable running "apt-get clean" at the start of each build, or 0 to disable.',
+	    CLI_OPTIONS => ['--apt-clean', '--no-apt-clean']
 	},
 	'APT_UPDATE'				=> {
 	    TYPE => 'BOOL',
 	    VARNAME => 'apt_update',
 	    GROUP => 'Chroot options',
 	    DEFAULT => 1,
-	    HELP => 'APT update.  1 to enable running "apt-get update" at the start of each build, or 0 to disable.'
+	    HELP => 'APT update.  1 to enable running "apt-get update" at the start of each build, or 0 to disable.',
+	    CLI_OPTIONS => ['--apt-update', '--no-apt-update']
 	},
 	'APT_UPDATE_ARCHIVE_ONLY'		=> {
 	    TYPE => 'BOOL',
@@ -773,14 +798,16 @@ sub setup ($) {
 	    VARNAME => 'apt_upgrade',
 	    GROUP => 'Chroot options',
 	    DEFAULT => 0,
-	    HELP => 'APT upgrade.  1 to enable running "apt-get upgrade" at the start of each build, or 0 to disable.'
+	    HELP => 'APT upgrade.  1 to enable running "apt-get upgrade" at the start of each build, or 0 to disable.',
+	    CLI_OPTIONS => ['--apt-upgrade', '--no-apt-upgrade']
 	},
 	'APT_DISTUPGRADE'			=> {
 	    TYPE => 'BOOL',
 	    VARNAME => 'apt_distupgrade',
 	    GROUP => 'Chroot options',
 	    DEFAULT => 1,
-	    HELP => 'APT distupgrade.  1 to enable running "apt-get dist-upgrade" at the start of each build, or 0 to disable.'
+	    HELP => 'APT distupgrade.  1 to enable running "apt-get dist-upgrade" at the start of each build, or 0 to disable.',
+	    CLI_OPTIONS => ['--apt-distupgrade', '--no-apt-distupgrade']
 	},
 	'APT_ALLOW_UNAUTHENTICATED'		=> {
 	    TYPE => 'BOOL',
@@ -789,6 +816,7 @@ sub setup ($) {
 	    DEFAULT => 0,
 	    HELP => 'Force APT to accept unauthenticated packages.  By default, unauthenticated packages are not allowed.  This is to keep the build environment secure, using apt-secure(8).  By setting this to 1, APT::Get::AllowUnauthenticated is set to "true" when running apt-get. This is disabled by default: only enable it if you know what you are doing.'
 	},
+	# FIXME: this config value can be set by the cli. Why is it internal then?
 	'BATCH_MODE'				=> {
 	    TYPE => 'BOOL',
 	    GROUP => '__INTERNAL',
@@ -802,36 +830,42 @@ sub setup ($) {
 	    DEFAULT => ['build-essential:native', 'fakeroot:native'],
 	    HELP => 'Packages which must be installed in the chroot for all builds.'
 	},
+	# FIXME: this config value can be set by the cli. Why is it internal then?
 	'MANUAL_DEPENDS'			=> {
 	    TYPE => 'ARRAY:STRING',
 	    GROUP => '__INTERNAL',
 	    DEFAULT => [],
 	    HELP => 'Additional per-build dependencies.  Do not set by hand.'
 	},
+	# FIXME: this config value can be set by the cli. Why is it internal then?
 	'MANUAL_CONFLICTS'			=> {
 	    TYPE => 'ARRAY:STRING',
 	    GROUP => '__INTERNAL',
 	    DEFAULT => [],
 	    HELP => 'Additional per-build dependencies.  Do not set by hand.'
 	},
+	# FIXME: this config value can be set by the cli. Why is it internal then?
 	'MANUAL_DEPENDS_ARCH'			=> {
 	    TYPE => 'ARRAY:STRING',
 	    GROUP => '__INTERNAL',
 	    DEFAULT => [],
 	    HELP => 'Additional per-build dependencies.  Do not set by hand.'
 	},
+	# FIXME: this config value can be set by the cli. Why is it internal then?
 	'MANUAL_CONFLICTS_ARCH'			=> {
 	    TYPE => 'ARRAY:STRING',
 	    GROUP => '__INTERNAL',
 	    DEFAULT => [],
 	    HELP => 'Additional per-build dependencies.  Do not set by hand.'
 	},
+	# FIXME: this config value can be set by the cli. Why is it internal then?
 	'MANUAL_DEPENDS_INDEP'			=> {
 	    TYPE => 'ARRAY:STRING',
 	    GROUP => '__INTERNAL',
 	    DEFAULT => [],
 	    HELP => 'Additional per-build dependencies.  Do not set by hand.'
 	},
+	# FIXME: this config value can be set by the cli. Why is it internal then?
 	'MANUAL_CONFLICTS_INDEP'		=> {
 	    TYPE => 'ARRAY:STRING',
 	    GROUP => '__INTERNAL',
@@ -856,15 +890,18 @@ $crossbuild_core_depends = {
 	    GROUP => 'Build options',
 	    DEFAULT => 0,
 	    CHECK => $validate_append_version,
-	    HELP => 'By default, do not build a source package (binary only build).  Set to 1 to force creation of a source package, but note that this is inappropriate for binary NMUs, where the option will always be disabled. Set by the --source and --no-source command line options.'
+	    HELP => 'By default, do not build a source package (binary only build).  Set to 1 to force creation of a source package, but note that this is inappropriate for binary NMUs, where the option will always be disabled.',
+	    CLI_OPTIONS => ['-s', '--source', '--no-source']
 	},
 	'ARCHIVE'				=> {
 	    TYPE => 'STRING',
 	    VARNAME => 'archive',
 	    GROUP => 'Core options',
 	    DEFAULT => undef,
-	    HELP => 'Archive being built.  Only set in build log.  This might be useful for derivative distributions.'
+	    HELP => 'Archive being built.  Only set in build log.  This might be useful for derivative distributions.',
+	    CLI_OPTIONS => ['--archive']
 	},
+	# FIXME: this config value can be set by the cli. Why is it internal then?
 	'BIN_NMU'				=> {
 	    TYPE => 'STRING',
 	    GROUP => '__INTERNAL',
@@ -872,6 +909,7 @@ $crossbuild_core_depends = {
 	    CHECK => $validate_append_version,
 	    HELP => 'Binary NMU changelog entry.  Do not set by hand.'
 	},
+	# FIXME: this config value can be set by the cli. Why is it internal then?
 	'BIN_NMU_VERSION'			=> {
 	    TYPE => 'STRING',
 	    GROUP => '__INTERNAL',
@@ -884,14 +922,16 @@ $crossbuild_core_depends = {
 	    GROUP => 'Build options',
 	    DEFAULT => undef,
 	    CHECK => $validate_append_version,
-	    HELP => 'Suffix to append to version number.  May be useful for derivative distributions.'
+	    HELP => 'Suffix to append to version number.  May be useful for derivative distributions.',
+	    CLI_OPTIONS => ['--append-to-version']
 	},
 	'GCC_SNAPSHOT'				=> {
 	    TYPE => 'BOOL',
 	    VARNAME => 'gcc_snapshot',
 	    GROUP => 'Build options',
 	    DEFAULT => 0,
-	    HELP => 'Build using current GCC snapshot?'
+	    HELP => 'Build using current GCC snapshot?',
+	    CLI_OPTIONS => ['--use-snapshot']
 	},
 	'JOB_FILE'				=> {
 	    TYPE => 'STRING',
@@ -921,21 +961,24 @@ $crossbuild_core_depends = {
 		    if !isin($conf->get($key),
 			     qw(apt aptitude aspcud xapt));
 	    },
-	    HELP => 'Build dependency resolver.  The \'apt\' resolver is currently the default, and recommended for most users.  This resolver uses apt-get to resolve dependencies.  Alternative resolvers are \'apt\', \'aptitude\' and \'aspcud\'. The \'apt\' resolver uses a built-in resolver module while the \'aptitude\' resolver uses aptitude to resolve build dependencies.  The aptitude resolver is similar to apt, but is useful in more complex situations, such as where multiple distributions are required, for example when building from experimental, where packages are needed from both unstable and experimental, but defaulting to unstable. If the dependency situation is too complex for either apt or aptitude to solve it, you can use the \'aspcud\' resolver which (in contrast to apt and aptitude) is a real solver (in the math sense) and will thus always find a solution if a solution exists.'
+	    HELP => 'Build dependency resolver.  The \'apt\' resolver is currently the default, and recommended for most users.  This resolver uses apt-get to resolve dependencies.  Alternative resolvers are \'apt\', \'aptitude\' and \'aspcud\'. The \'apt\' resolver uses a built-in resolver module while the \'aptitude\' resolver uses aptitude to resolve build dependencies.  The aptitude resolver is similar to apt, but is useful in more complex situations, such as where multiple distributions are required, for example when building from experimental, where packages are needed from both unstable and experimental, but defaulting to unstable. If the dependency situation is too complex for either apt or aptitude to solve it, you can use the \'aspcud\' resolver which (in contrast to apt and aptitude) is a real solver (in the math sense) and will thus always find a solution if a solution exists.',
+	    CLI_OPTIONS => ['--build-dep-resolver']
 	},
 	'ASPCUD_CRITERIA'			=> {
 	    TYPE => 'STRING',
 	    VARNAME => 'aspcud_criteria',
 	    GROUP => 'Dependency resolution',
 	    DEFAULT => '-removed,-changed,-new',
-	    HELP => 'Optimization criteria in extended MISC 2012 syntax. See the apt-cudf man page help for the --criteria option for more information. Optimization criteria are separated by commas, sorted by decreasing order of priority and are prefixed with a polarity (+ to maximize and - to minimize). The default criteria first minimizes the number of removed packages, then th enumber of changed packages (up or downgrades) and then the number of new packages. To minimize the number of packages from experimental you can add a criteria like \'-count(solution,APT-Release:=/a=experimental/)\'. This will minimize the number of packages in the solution which contain the string \'a=experimental\' in the \'APT-Release\' field of the EDSP output created by apt.'
+	    HELP => 'Optimization criteria in extended MISC 2012 syntax. See the apt-cudf man page help for the --criteria option for more information. Optimization criteria are separated by commas, sorted by decreasing order of priority and are prefixed with a polarity (+ to maximize and - to minimize). The default criteria first minimizes the number of removed packages, then th enumber of changed packages (up or downgrades) and then the number of new packages. To minimize the number of packages from experimental you can add a criteria like \'-count(solution,APT-Release:=/a=experimental/)\'. This will minimize the number of packages in the solution which contain the string \'a=experimental\' in the \'APT-Release\' field of the EDSP output created by apt.',
+	    CLI_OPTIONS => ['--aspcud-criteria']
 	},
 	'CLEAN_SOURCE'				=> {
 	    TYPE => 'BOOL',
 	    VARNAME => 'clean_source',
 	    GROUP => 'Build options',
 	    DEFAULT => 1,
-	    HELP => 'When running sbuild from within an unpacked source tree, run the \'clean\' target before generating the source package. This might require some of the build dependencies necessary for running the \'clean\' target to be installed on the host machine. Only disable if you start from a clean checkout and you know what you are doing.'
+	    HELP => 'When running sbuild from within an unpacked source tree, run the \'clean\' target before generating the source package. This might require some of the build dependencies necessary for running the \'clean\' target to be installed on the host machine. Only disable if you start from a clean checkout and you know what you are doing.',
+	    CLI_OPTIONS => ['--clean-source', '--no-clean-source']
 	},
 	'LINTIAN'				=> {
 	    TYPE => 'STRING',
@@ -963,14 +1006,16 @@ $crossbuild_core_depends = {
 		$conf->check('LINTIAN');
 	    },
 	    DEFAULT => 0,
-	    HELP => 'Run lintian?'
+	    HELP => 'Run lintian?',
+	    CLI_OPTIONS => ['--run-lintian', '--no-run-lintian']
 	},
 	'LINTIAN_OPTIONS'			=> {
 	    TYPE => 'ARRAY:STRING',
 	    VARNAME => 'lintian_opts',
 	    GROUP => 'Build validation',
 	    DEFAULT => [],
-	    HELP => 'Options to pass to lintian.  Each option is a separate arrayref element.  For example, [\'-i\', \'-v\'] to add -i and -v.'
+	    HELP => 'Options to pass to lintian.  Each option is a separate arrayref element.  For example, [\'-i\', \'-v\'] to add -i and -v.',
+	    CLI_OPTIONS => ['--lintian-opt', '--lintian-opts']
 	},
 	'PIUPARTS'				=> {
 	    TYPE => 'STRING',
@@ -987,7 +1032,8 @@ $crossbuild_core_depends = {
 		}
 	    },
 	    DEFAULT => 'piuparts',
-	    HELP => 'Path to piuparts binary'
+	    HELP => 'Path to piuparts binary',
+	    CLI_OPTIONS => ['--piuparts-opt', '--piuparts-opts']
 	},
 	'RUN_PIUPARTS'				=> {
 	    TYPE => 'BOOL',
@@ -998,7 +1044,8 @@ $crossbuild_core_depends = {
 		$conf->check('PIUPARTS');
 	    },
 	    DEFAULT => 0,
-	    HELP => 'Run piuparts'
+	    HELP => 'Run piuparts',
+	    CLI_OPTIONS => ['--run-piuparts', '--no-run-piuparts']
 	},
 	'PIUPARTS_OPTIONS'			=> {
 	    TYPE => 'ARRAY:STRING',
@@ -1012,7 +1059,8 @@ $crossbuild_core_depends = {
 	    VARNAME => 'piuparts_root_args',
 	    GROUP => 'Build validation',
 	    DEFAULT => [],
-	    HELP => 'Preceding arguments to launch piuparts as root. If no arguments are specified, piuparts will be launched via sudo.'
+	    HELP => 'Preceding arguments to launch piuparts as root. If no arguments are specified, piuparts will be launched via sudo.',
+	    CLI_OPTIONS => ['--piuparts-root-arg', '--piuparts-root-args']
 	},
 	'EXTERNAL_COMMANDS'			=> {
 	    TYPE => 'HASH:ARRAY:STRING',
@@ -1068,21 +1116,24 @@ $crossbuild_core_depends = {
         [\'foo\', \'arg1\', \'arg2\'],
         [\'bar\', \'arg1\', \'arg2\', \'arg3\'],
     ],
-};'
+};',
+	    CLI_OPTIONS => ['--setup-hook', '--pre-build-commands', '--chroot-setup-commands', '--chroot-update-failed-commands', '--build-deps-failed-commands', '--build-failed-commands', '--anything-failed-commands', '--starting-build-commands', '--finished-build-commands', '--chroot-cleanup-commands', '--post-build-commands']
 	},
 	'LOG_EXTERNAL_COMMAND_OUTPUT'		=> {
 	    TYPE => 'BOOL',
 	    VARNAME => 'log_external_command_output',
 	    GROUP => 'Chroot options',
 	    DEFAULT => 1,
-	    HELP => 'Log standard output of commands run by sbuild?'
+	    HELP => 'Log standard output of commands run by sbuild?',
+	    CLI_OPTIONS => ['--log-external-command-output']
 	},
 	'LOG_EXTERNAL_COMMAND_ERROR'		=> {
 	    TYPE => 'BOOL',
 	    VARNAME => 'log_external_command_error',
 	    GROUP => 'Chroot options',
 	    DEFAULT => 1,
-	    HELP => 'Log standard error of commands run by sbuild?'
+	    HELP => 'Log standard error of commands run by sbuild?',
+	    CLI_OPTIONS => ['--log-external-command-error']
 	},
 	'RESOLVE_ALTERNATIVES'				=> {
 	    TYPE => 'BOOL',
@@ -1104,7 +1155,8 @@ $crossbuild_core_depends = {
 		return $retval;
 	    },
 	    EXAMPLE => '$resolve_alternatives = 0;',
-	    HELP => 'Should the dependency resolver use alternatives in Build-Depends, Build-Depends-Arch and Build-Depends-Indep?  By default, using \'apt\' resolver, only the first alternative will be used; all other alternatives will be removed.  When using the \'aptitude\' resolver, it will default to using all alternatives.  Note that this does not include architecture-specific alternatives, which are reduced to the build architecture prior to alternatives removal.  This should be left disabled when building for unstable; it may be useful when building for experimental or backports.  Set to undef to use the default, 1 to enable, or 0 to disable.'
+	    HELP => 'Should the dependency resolver use alternatives in Build-Depends, Build-Depends-Arch and Build-Depends-Indep?  By default, using \'apt\' resolver, only the first alternative will be used; all other alternatives will be removed.  When using the \'aptitude\' resolver, it will default to using all alternatives.  Note that this does not include architecture-specific alternatives, which are reduced to the build architecture prior to alternatives removal.  This should be left disabled when building for unstable; it may be useful when building for experimental or backports.  Set to undef to use the default, 1 to enable, or 0 to disable.',
+	    CLI_OPTIONS => ['--resolve-alternatives', '--no-resolve-alternatives']
 	},
 	'SBUILD_BUILD_DEPENDS_SECRET_KEY'		=> {
 	    TYPE => 'STRING',
@@ -1120,18 +1172,21 @@ $crossbuild_core_depends = {
 	    DEFAULT => '/var/lib/sbuild/apt-keys/sbuild-key.pub',
 	    HELP => 'GPG public key for temporary local apt archive.'
 	},
+	# FIXME: this config value can be set by the cli. Why is it internal then?
 	'EXTRA_PACKAGES'				=> {
 	    TYPE => 'ARRAY:STRING',
 	    GROUP => '__INTERNAL',
 	    DEFAULT => [],
 	    HELP => 'Additional per-build packages available as build dependencies.  Do not set by hand.'
 	},
+	# FIXME: this config value can be set by the cli. Why is it internal then?
 	'EXTRA_REPOSITORY_KEYS'				=> {
 	    TYPE => 'ARRAY:STRING',
 	    GROUP => '__INTERNAL',
 	    DEFAULT => [],
 	    HELP => 'Additional per-build apt repository keys.  Do not set by hand.'
 	},
+	# FIXME: this config value can be set by the cli. Why is it internal then?
 	'EXTRA_REPOSITORIES'				=> {
 	    TYPE => 'ARRAY:STRING',
 	    GROUP => '__INTERNAL',

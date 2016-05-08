@@ -139,6 +139,7 @@ to a chroot with the same name as the distribution specified.  sbuild will use
 a symlink to the chroot located in \fI/etc/sbuild/chroot/$distribution\fP, or
 must be run in a directory containing a \fIchroot\-$distribution\fP symlink to
 the chroot (not recommended, but done for backward compatibility).
+.\" FIXME: document --stats-dir --aspcud-crieria
 .SH OPTIONS
 Options set on the command line overwrite settings made in the configuration
 file.
@@ -175,6 +176,9 @@ in that order of preference.  The chroot must be installed and configured
 appropriately to build as that architecture, e.g. using
 \fIpersonality=linux32\fP to build i386 packages on an amd64 system.  Note that
 this option is equivalent to "\-\-host=architecture \-\-build=architecture".
+This command line option sets the \fBHOST_ARCH\fP and \fBBUILD_ARCH\fP configuration variables. See
+.BR sbuild.conf (5)
+for more information.
 .TP
 .BR "\-\-host=\fIarchitecture\fP"
 Build using the host architecture specified.  If $host and $build don't match, a
@@ -182,17 +186,26 @@ chroot named \fI$distribution\-$build\-$host\-sbuild\fP or \fI$distribution\-$bu
 is searched for, falling back to \fI$distribution\-$build\-sbuild\fP or
 \fI$distribution\-$build\fP, in that order of preference.  This option is only
 useful for cross-building when used together with \-\-build.
+This command line option sets the \fBHOST_ARCH\fP configuration variable. See
+.BR sbuild.conf (5)
+for more information.
 .TP
 .BR "\-\-build=\fIarchitecture\fP"
 Build using the build architecture specified.  This option is only useful for
 cross-building when used together with \-\-host.  If \-\-build is not specified,
 the default system architecture is assumed.
+This command line option sets the \fBBUILD_ARCH\fP configuration variable. See
+.BR sbuild.conf (5)
+for more information.
 .TP
 .BR \-A ", " "\-\-arch\-all"
 Also build Architecture: all packages. This option is the opposite of
 \-\-no\-arch\-all.
 See the section
 .BR "BUILD ARTIFACTS"
+for more information.
+This command line option sets the \fBBUILD_ARCH_ALL\fP configuration variable. See
+.BR sbuild.conf (5)
 for more information.
 .TP
 .BR "\-\-no\-arch\-all"
@@ -201,12 +214,18 @@ option is the opposite of \-\-arch\-all.
 See the section
 .BR "BUILD ARTIFACTS"
 for more information.
+This command line option sets the \fBBUILD_ARCH_ALL\fP configuration variable. See
+.BR sbuild.conf (5)
+for more information.
 .TP
 .BR "\-\-arch\-any"
 Build Architecture: any packages. This is the default behavior. This option is
 the opposite of \-\-no\-arch\-any.
 See the section
 .BR "BUILD ARTIFACTS"
+for more information.
+This command line option sets the \fBBUILD_ARCH_ANY\fP configuration variable. See
+.BR sbuild.conf (5)
 for more information.
 .TP
 .BR "\-\-no\-arch\-any"
@@ -215,6 +234,9 @@ of \-\-arch\-any and only useful when used together with \-\-arch\-all
 or \-\-source.
 See the section
 .BR "BUILD ARTIFACTS"
+for more information.
+This command line option sets the \fBBUILD_ARCH_ANY\fP configuration variable. See
+.BR sbuild.conf (5)
 for more information.
 .TP
 .BR \-b ", " "\-\-batch"
@@ -225,12 +247,18 @@ and files on shutdown to facilitate a clean restart.
 Use the specified chroot. If not specified, the default is the first of
 \fI$distribution\-$arch\-sbuild\fP, \fI$distribution\-sbuild\fP,
 \fI$distribution\-$arch\fP or \fI$distribution\fP that exists.
+This command line option sets the \fBCHROOT\fP configuration variable. See
+.BR sbuild.conf (5)
+for more information.
 .TP
 .BR "\-\-chroot-mode=\fIschroot|sudo|adt\fP"
 Select the desired chroot mode. Four values are possible: schroot (the
 default), sudo (which uses sudo to execute chroot in a directory from
 /etc/sbuild/chroot or ./chroot) and adt which uses the adt-virt-* binaries
 (selectable via the \-\-adt-virt-server option).
+This command line option sets the \fBCHROOT_MODE\fP configuration variable. See
+.BR sbuild.conf (5)
+for more information.
 .TP
 .BR \-d ", " "\-\-dist=\fIdistribution\fP"
 Explicitly set the distribution for the package build. This will be selecting
@@ -238,9 +266,15 @@ the correct chroot to use and also sets the value of the Distribution field in
 the created .changes file. Setting this option is necessary when giving sbuild
 a .dsc file or a plain source package name to build. In the latter case it
 specifies the distribution the source package is fetched from.
+This command line option sets the \fBDISTRIBUTION\fP configuration variable. See
+.BR sbuild.conf (5)
+for more information.
 .TP
 .BR \-\-archive=\fIarchive\fP
 Communicate with specified archive.
+This command line option sets the \fBARCHIVE\fP configuration variable. See
+.BR sbuild.conf (5)
+for more information.
 .TP
 .BR \-D ", " "\-\-debug"
 Enable debug output.
@@ -250,37 +284,58 @@ Enable debug output.
 .BR "\-\-no\-apt\-clean"
 Run (or do not run) apt-get clean in the chroot before executing the build,
 overriding the default setting.
+This command line option sets the \fBAPT_CLEAN\fP configuration variable. See
+.BR sbuild.conf (5)
+for more information.
 .TP
 .BR "\-\-apt\-update"
 .TQ
 .BR "\-\-no\-apt\-update"
 Run (or do not run) apt-get update in the chroot before executing the build,
 overriding the default setting.
+This command line option sets the \fBAPT_UPDATE\fP configuration variable. See
+.BR sbuild.conf (5)
+for more information.
 .TP
 .BR "\-\-apt\-upgrade"
 .TQ
 .BR "\-\-no\-apt\-upgrade"
 Run (or do not run) apt-get upgrade in the chroot before executing the build,
 overriding the default setting.
+This command line option sets the \fBAPT_UPGRADE\fP configuration variable. See
+.BR sbuild.conf (5)
+for more information.
 .TP
 .BR "\-\-apt\-distupgrade"
 .TQ
 .BR "\-\-no\-apt\-distupgrade"
 Run (or do not run) apt-get distupgrade in the chroot before executing the build,
 overriding the default setting.
+This command line option sets the \fBAPT_DISTUPGRADE\fP configuration variable. See
+.BR sbuild.conf (5)
+for more information.
 .TP
 .BR \-m ", " "\-\-maintainer=\fImaintainer\fP"
 Specify the identity to use for GPG signing packages, and also used as the
 maintainer for binary NMUs.  This does not normally require setting (it
 defaults to the uploader).
+This command line option sets the \fBMAINTAINER_NAME\fP configuration variable. See
+.BR sbuild.conf (5)
+for more information.
 .TP
 .BR \-e ", " "\-\-uploader=\fIuploader\fP"
 Passed to dpkg\-genchanges and is used to set the Changed\-by: field in
 the .changes file(s).
+This command line option sets the \fBUPLOADER_NAME\fP configuration variable. See
+.BR sbuild.conf (5)
+for more information.
 .TP
 .BR \-k ", " "\-\-keyid=\fIkey-id\fP"
 Passed to dpkg\-genchanges and is used to set the key to sign the .changes
 file(s).  Default is not using any key.
+This command line option sets the \fBKEY_ID\fP configuration variable. See
+.BR sbuild.conf (5)
+for more information.
 .TP
 .BR \-j ", " "\-\-jobs=\fIn\fP"
 Number of jobs to run simultaneously.  Passed through to dpkg\-buildpackage.
@@ -310,6 +365,9 @@ per dpkg-source option) and can be freely mixed with the \-\-dpkg\-source\-opts
 option. Options will be passed to dpkg-source in the order that the
 \-\-dpkg\-source\-opt and \-\-dpkg\-source\-opts options are given on the
 command line.
+This command line option appends to the \fBDPKG_SOURCE_OPTIONS\fP configuration variable. See
+.BR sbuild.conf (5)
+for more information.
 .br
 \fBNOTE:\fR The '\fI-b\fP' option will always be passed to dpkg-source.
 .TP
@@ -323,43 +381,65 @@ multiple times and can be freely mixed with the \-\-dpkg\-source\-opt option.
 Options will be passed to dpkg\-source in the order that the
 \-\-dpkg\-source\-opt and \-\-dpkg\-source\-opts options are given on the
 command line.
+This command line option appends to the \fBDPKG_SOURCE_OPTIONS\fP configuration variable. See
+.BR sbuild.conf (5)
+for more information.
 .TP
 .BR "\-\-mail\-log\-to=\fIemail-address\fP"
-Send the build log to the specified email address.  This overrides the
-\fI$mailto\fP configuration option.
+Send the build log to the specified email address.
+This command line option sets the \fBMAILTO\fP configuration variable. See
+.BR sbuild.conf (5)
+for more information.
 .TP
 .BR "\-\-mailfrom=\fIemail-address\fP"
-Email address used as the sender address for build logs.  This overrides the
-\fI$mailfrom\fP configuration option.
+Email address used as the sender address for build logs.
+This command line option sets the \fBMAILFROM\fP configuration variable. See
+.BR sbuild.conf (5)
+for more information.
 .TP
 .BR \-n ", " "\-\-nolog"
 Do not create a package log file in the \fI$log_dir\fP directory and no build
 log file, but print everything to stdout. Also do not send any log mails.
 .TP
-.BR \-p ", " "\-\-purge=\fIpurge-mode\fP"
-Convenience option to set \fIpurge-mode\fR for build directory, build
-dependencies and session.
-.TP
 .BR \-\-profiles=\fIprofile[,...]\fP"
 Specify the profile(s) we build, as a comma-separated list. Defaults to the
 space separated list of profiles in the \fBDEB_BUILD_PROFILES\fP environment
 variable.
+This command line option sets the \fBBUILD_PROFILES\fP configuration variable. See
+.BR sbuild.conf (5)
+for more information.
+.TP
+.BR \-p ", " "\-\-purge=\fIpurge-mode\fP"
+Convenience option to set \fIpurge-mode\fR for build directory, build
+dependencies and session.
+This command line option sets the \fBPURGE_BUILD_DEPS\fP, \fBPURGE_BUILD_DIRECTORY\fP and \fBPURGE_SESSION\fP configuration variables. See
+.BR sbuild.conf (5)
+for more information.
 .TP
 .BR "\-\-purge\-build=\fIpurge-mode\fP"
 \fIpurge-mode\fR determines if the build directory will be deleted after a
 build. Possible values are \fBalways\fR (default), \fBnever\fR, and
 \fBsuccessful\fR.
+This command line option sets the \fBPURGE_BUILD_DIRECTORY\fP configuration variable. See
+.BR sbuild.conf (5)
+for more information.
 .TP
 .BR "\-\-purge\-deps=\fIpurge-mode\fP"
 \fIpurge-mode\fR determines if the build dependencies will be removed after a
 build. Possible values are \fBalways\fR (default), \fBnever\fR, and
 \fBsuccessful\fR.
+This command line option sets the \fBPURGE_BUILD_DEPS\fP configuration variable. See
+.BR sbuild.conf (5)
+for more information.
 .TP
 .BR "\-\-purge\-session=\fIpurge-mode\fP"
 Purge the schroot session following a build.  This is useful in conjunction
 with the \fI\-\-purge\-build\fP and \fI\-\-purge\-deps\fP options when using
 snapshot chroots, since by default the snapshot will be deleted.  Possible
 values are \fBalways\fR (default), \fBnever\fR, and \fBsuccessful\fR.
+This command line option sets the \fBPURGE_SESSION\fP configuration variable. See
+.BR sbuild.conf (5)
+for more information.
 .TP
 .BR \-s ", " "\-\-source"
 Build the source package in addition to the other requested build artifacts. By
@@ -371,6 +451,9 @@ doing. This will rewrite the original dsc passed to sbuild.
 See the section
 .BR "BUILD ARTIFACTS"
 for more information.
+This command line option sets the \fBBUILD_SOURCE\fP configuration variable. See
+.BR sbuild.conf (5)
+for more information.
 .TP
 .BR "\-\-no-source"
 Don't rebuild the source package. This is the default. It is the opposite of
@@ -378,15 +461,27 @@ Don't rebuild the source package. This is the default. It is the opposite of
 See the section
 .BR "BUILD ARTIFACTS"
 for more information.
+This command line option sets the \fBBUILD_SOURCE\fP configuration variable. See
+.BR sbuild.conf (5)
+for more information.
 .TP
 .BR "\-\-force\-orig\-source"
 When used with in conjunction with \-s, this option forces the inclusion of the
 orig.tar.gz file in the generated .changes file, even in cases where it would
 not normally be included, i.e. use dpkg\-buildpackage \-sa.
+This command line option sets the \fBFORCE_ORIG_SOURCE\fP configuration variable. See
+.BR sbuild.conf (5)
+for more information.
 .TP
 .BR "\-\-use\-snapshot"
 Installs the latest snapshot gcc compiler from the \fIgcc-snapshot\fP package,
 and alters the build environment to use the snapshot compiler for the build.
+Specifically, this option appends \fI/usr/lib/gcc-snapshot/lib\fP to the value
+of the \fBLD_LIBRARY_PATH\fP configuration variable and
+\fI/usr/lib/gcc-snapshot/bin\fP to the value of the \fBPATH\fP configuration
+variable.  It also sets the \fBGCC_SNAPSHOT\fP configuration variable. See
+.BR sbuild.conf (5)
+for more information.
 .TP
 .BR \-v ", " "\-\-verbose"
 Be verbose, i.e. all information goes to stdout as well as to the log files.
@@ -414,23 +509,38 @@ used for binary NMUs.
 This option is similar to \-\-make\-binNMU except that it allows the user to
 specify an arbitrary string to be appended to the version number (immediately
 before the '+' in the Debian revision if \-\-make\-binNMU is also provided).
+This command line option sets the \fBAPPEND_TO_VERSION\fP configuration variable. See
+.BR sbuild.conf (5)
+for more information.
 .TP
 .BR \-\-clean\-source
 When executing sbuild from within an unpacked source tree, execute the
 debian/rules clean target. This is the default and might require some of the
 build dependencies installed on the host.
+This command line option sets the \fBCLEAN_SOURCE\fP configuration variable. See
+.BR sbuild.conf (5)
+for more information.
 .TP
 .BR \-\-no\-clean\-source
 When executing sbuild from within an unpacked source tree, do not run the
 debian/rules clean target before building the source package. Only set this if
 you start from a clean checkout and you know what you are doing.
+This command line option sets the \fBCLEAN_SOURCE\fP configuration variable. See
+.BR sbuild.conf (5)
+for more information.
 .TP
 .BR \-\-run\-lintian
 Run lintian after a successful build.
+This command line option sets the \fBRUN_LINTIAN\fP configuration variable. See
+.BR sbuild.conf (5)
+for more information.
 .TP
 .BR \-\-no\-run\-lintian
 Don't run lintian after a successful build.  If sbuild is configured to run
 lintian by default, this option will prevent lintian being run.
+This command line option sets the \fBRUN_LINTIAN\fP configuration variable. See
+.BR sbuild.conf (5)
+for more information.
 .TP
 .BR \-\-lintian\-opt=\fIoptions\fP
 Pass the specified option directly to lintian in addition to the options
@@ -438,6 +548,9 @@ already passed by sbuild. This option can be passed multiple times (once per
 lintian option) and can be freely mixed with the \-\-lintian\-opts option.
 Options will be passed to lintian in the order that the \-\-lintian\-opt and
 \-\-lintian\-opts options are given on the command line.
+This command line option appends to the \fBLINTIAN_OPTIONS\fP configuration variable. See
+.BR sbuild.conf (5)
+for more information.
 .TP
 .BR \-\-lintian\-opts=\fIoptions\fP
 Pass the specified options directly to lintian in addition to the options
@@ -447,13 +560,22 @@ spaces, use \-\-lintian\-opt for them.  This option can be passed multiple
 times and can be freely mixed with the \-\-lintian\-opts option. Options will
 be passed to lintian in the order that the \-\-lintian\-opt and
 \-\-lintian\-opts options are given on the command line.
+This command line option appends to the \fBLINTIAN_OPTIONS\fP configuration variable. See
+.BR sbuild.conf (5)
+for more information.
 .TP
 .BR \-\-run\-piuparts
 Run piuparts after a successful build.
+This command line option sets the \fBRUN_PIUPARTS\fP configuration variable. See
+.BR sbuild.conf (5)
+for more information.
 .TP
 .BR \-\-no\-run\-piuparts
 Don't run piuparts after a successful build.  If sbuild is configured to run
 piuparts by default, this option will prevent piuparts being run.
+This command line option sets the \fBRUN_PIUPARTS\fP configuration variable. See
+.BR sbuild.conf (5)
+for more information.
 .TP
 .BR \-\-piuparts\-opt=\fIoptions\fP
 Pass the specified option directly to piuparts in addition to the options
@@ -461,6 +583,9 @@ already passed by sbuild. This option can be passed multiple times (once per
 piuparts option) and can be freely mixed with the \-\-piuparts\-opts option.
 Options will be passed to piuparts in the order that the \-\-piuparts\-opt and
 \-\-piuparts\-opts options are given on the command line.
+This command line option appends to the \fBPIUPARTS_OPTIONS\fP configuration variable. See
+.BR sbuild.conf (5)
+for more information.
 .TP
 .BR \-\-piuparts\-opts=\fIoptions\fP
 Pass the specified options directly to piuparts in addition to the options
@@ -470,17 +595,26 @@ spaces, use \-\-piuparts\-opt for them.  This option can be passed multiple
 times and can be freely mixed with the \-\-piuparts\-opts option. Options will
 be passed to piuparts in the order that the \-\-piuparts\-opt and
 \-\-piuparts\-opts options are given on the command line.
+This command line option appends to the \fBPIUPARTS_OPTIONS\fP configuration variable. See
+.BR sbuild.conf (5)
+for more information.
 .TP
 .BR \-\-piuparts\-root\-arg=\fIoptions\fP
 Add an argument that is used to launch piuparts as root. If no arguments are
 specified, piuparts will be launched via sudo. This option can be specified
 multiple times.
+This command line option appends to the \fBPIUPARTS_ROOT_ARGS\fP configuration variable. See
+.BR sbuild.conf (5)
+for more information.
 .TP
 .BR \-\-piuparts\-root\-args=\fIoptions\fP
 Add arguments that are used to launch piuparts as root. If no arguments are
 specified, piuparts will be launched via sudo. The argument will be split by
 whitespaces. To pass options containing whitespaces use
 the option \-\-piuparts\-root\-arg.
+This command line option appends to the \fBPIUPARTS_ROOT_ARGS\fP configuration variable. See
+.BR sbuild.conf (5)
+for more information.
 .TP
 .BR \-\-pre\-build\-commands=\fIstring\fP
 This is the earliest external command which is run right after the chroot
@@ -488,6 +622,9 @@ session has been initialized and before anything else is done (like installing
 the build dependencies). The command is run as root outside of the chroot. This
 option can be used multiple times to add multiple commands. See the section
 .BR "EXTERNAL COMMANDS"
+for more information.
+This command line option appends to the \fBEXTERNAL_COMMENDS\fP configuration variable. See
+.BR sbuild.conf (5)
 for more information.
 .TP
 .BR \-\-chroot\-setup\-commands=\fIstring\fP
@@ -497,6 +634,9 @@ This option can be used multiple times to add multiple commands. See the
 section
 .BR "EXTERNAL COMMANDS"
 for more information.
+This command line option appends to the \fBEXTERNAL_COMMENDS\fP configuration variable. See
+.BR sbuild.conf (5)
+for more information.
 .TP
 .BR \-\-chroot\-update\-failed\-commands=\fIstring\fP
 Run these commands after any of 'apt-get update', 'apt-get upgrade' or 'apt-get
@@ -504,6 +644,9 @@ dist-upgrade' failed. The environment is intact, and the failure can be
 investigated. Especially %SBUILD_SHELL is useful here. This option can be used
 multiple times to add multiple commands. See the section
 .BR "EXTERNAL COMMANDS"
+for more information.
+This command line option appends to the \fBEXTERNAL_COMMENDS\fP configuration variable. See
+.BR sbuild.conf (5)
 for more information.
 .TP
 .BR \-\-build\-deps\-failed\-commands=\fIstring\fP
@@ -514,6 +657,9 @@ root inside the chroot. This option can be used multiple times to add multiple
 commands. See the section
 .BR "EXTERNAL COMMANDS"
 for more information.
+This command line option appends to the \fBEXTERNAL_COMMENDS\fP configuration variable. See
+.BR sbuild.conf (5)
+for more information.
 .TP
 .BR \-\-starting\-build\-commands=\fIstring\fP
 Run these commands after dependencies are installed, just before the package
@@ -522,12 +668,18 @@ running sbuild inside the chroot. This option can be used multiple times to add
 multiple commands. See the section
 .BR "EXTERNAL COMMANDS"
 for more information.
+This command line option appends to the \fBEXTERNAL_COMMENDS\fP configuration variable. See
+.BR sbuild.conf (5)
+for more information.
 .TP
 .BR \-\-finished\-build\-commands=\fIstring\fP
 Run these commands immediately after the timed package build finishes.  The
 command is run as the (non-root) user running sbuild inside the chroot.  This
 option can be used multiple times to add multiple commands. See the section
 .BR "EXTERNAL COMMANDS"
+for more information.
+This command line option appends to the \fBEXTERNAL_COMMENDS\fP configuration variable. See
+.BR sbuild.conf (5)
 for more information.
 .TP
 .BR \-\-build\-failed\-commands=\fIstring\fP
@@ -538,12 +690,18 @@ user running %sbuild inside the chroot. This option can be used multiple times
 to add multiple commands. See the section
 .BR "EXTERNAL COMMANDS"
 for more information.
+This command line option appends to the \fBEXTERNAL_COMMENDS\fP configuration variable. See
+.BR sbuild.conf (5)
+for more information.
 .TP
 .BR \-\-chroot\-cleanup\-commands=\fIstring\fP
 Run these commands when a chroot is cleaned up, before build directory is
 purged.  The command is run as root inside the chroot. This option can be used
 multiple times to add multiple commands. See the section
 .BR "EXTERNAL COMMANDS"
+for more information.
+This command line option appends to the \fBEXTERNAL_COMMENDS\fP configuration variable. See
+.BR sbuild.conf (5)
 for more information.
 .TP
 .BR \-\-post\-build\-commands=\fIstring\fP
@@ -552,6 +710,9 @@ of the chroot. This option can be used multiple times to add multiple commands.
 See the section
 .BR "EXTERNAL COMMANDS"
 for more information.
+This command line option appends to the \fBEXTERNAL_COMMENDS\fP configuration variable. See
+.BR sbuild.conf (5)
+for more information.
 .TP
 .BR \-\-anything\-failed\-commands=\fIstring\fP
 Run these commands for all the \fI\-\-xxx\-failed\-commands\fP options.
@@ -559,16 +720,28 @@ Especially %SBUILD_SHELL is useful here. This option can be used multiple times
 to add multiple commands. See the section
 .BR "EXTERNAL COMMANDS"
 for more information.
+This command line option appends to the \fBEXTERNAL_COMMENDS\fP configuration variable. See
+.BR sbuild.conf (5)
+for more information.
 .TP
 .BR \-\-log\-external\-command\-output
 Write output from external commands to the build log.
+This command line option sets the \fBLOG_EXTERNAL_COMMAND_OUTPUT\fP configuration variable. See
+.BR sbuild.conf (5)
+for more information.
 .TP
 .BR \-\-log\-external\-command\-error
 Write error output from external commands to the build log.
+This command line option sets the \fBLOG_EXTERNAL_COMMAND_ERROR\fP configuration variable. See
+.BR sbuild.conf (5)
+for more information.
 .TP
 .BR "\-\-setup\-hook=\fIhook-script\fP" " " \fBDEPRECATED\fP
 This option is deprecated. Use of this option will add \fIhook-script\fP to the
 external commands to run via \fIchroot-setup-commands\fP.
+This command line option sets the \fBCHROOT_SETUP_SCRIPT\fP configuration variable and appends to the \fBEXTERNAL_COMMENDS\fP configuration variable. See
+.BR sbuild.conf (5)
+for more information.
 .TP
 .BR "\-\-build\-dep\-resolver=\fIresolver\fP"
 Use the specified resolver to handle selecting the build dependencies.
@@ -591,16 +764,25 @@ The xapt
 resolver is intended only for cross-building, and is a temporary transitional
 feature which will be removed following the complete introduction of multi-arch
 support.
+This command line option sets the \fBBUILD_DEP_RESOLVER\fP configuration variable. See
+.BR sbuild.conf (5)
+for more information.
 .TP
 .BR \-\-resolve\-alternatives
 Allow the use of alternatives in Build-Depends, Build-Depends-Arch and
 Build-Depends-Indep.  This is the default for the aptitude dependency resolver.
+This command line option sets the \fBRESOLVE_ALTERNATIVES\fP configuration variable. See
+.BR sbuild.conf (5)
+for more information.
 .TP
 .BR \-\-no\-resolve\-alternatives
 Do not allow the use of alternatives in Build-Depends, Build-Depends-Arch and
 Build-Depends-Indep.  Note that alternatives for the same package
 (e.g. different versions) are still allowed.  This is the default for the
 apt and xapt dependency resolvers.
+This command line option sets the \fBRESOLVE_ALTERNATIVES\fP configuration variable. See
+.BR sbuild.conf (5)
+for more information.
 .TP
 .BR \-\-extra\-package=\fIpackage.deb\fP
 Make \fIpackage.deb\fP available for build-dependency resolution, by
@@ -642,6 +824,9 @@ with a key that's trusted by the base chroot.
 .TP
 .BR \-\-build\-path=\fIstring\fP
 By default the package is built in a path of the following format /build/packagename-XXXXXX/packagename-version/ where XXXXXX is a random ascii string. This option allows one to specify a custom path where the package is built inside the chroot. Notice that the sbuild user in the chroot must have permissions to create the path. Common writable locations are subdirectories of /tmp or /build. The buildpath must be an empty directory because the last component of the path will be removed after the build is finished. If you are running multiple sbuild instances with the same build path in parallel for the same package, make sure that your build path is not in a directory commonly mounted by all sbuild instances (like /tmp or /home). In that case, use for example /build instead. Otherwise, your builds will probably fail or contain wrong content.
+This command line option sets the \fBBUILD_PATH\fP configuration variable. See
+.BR sbuild.conf (5)
+for more information.
 .TP
 .BR \-\-adt-virt-server=\fIschroot|lxc|chroot|qemu|ssh\fP
 The adt virtualization server. Can be specified with or without the adt-virt-
@@ -656,6 +841,9 @@ option becomes the image name of the virtual machine in case of adt-virt-qemu,
 the lxc-container name in case of adt-virt-lxc, the path to the chroot in case
 of adt-virt-chroot, the name of the schroot in case of adt-virt-schroot and so
 on.
+This command line option sets the \fBADT_VIRT_SERVER\fP configuration variable. See
+.BR sbuild.conf (5)
+for more information.
 .TP
 .BR \-\-adt-virt-server-opt=\fIstring\fP
 Pass the specified option directly to the respective adt-virt-* virtualization
@@ -665,6 +853,9 @@ the \-\-adt-virt-server\-opts option.  Options will be passed to the respective
 adt-virt-* virtualization server in the order that the \-\-adt-virt-server\-opt
 and \-\-adt-virt-server\-opts options are given on the command line.  See the
 manual pages of the respective adt-virt-* commands for more information.
+This command line option appends to the \fBADT_VIRT_SERVER_OPTIONS\fP configuration variable. See
+.BR sbuild.conf (5)
+for more information.
 .TP
 .BR \-\-adt\-virt\-server\-opts=\fIoptions\fP
 Pass the specified options directly to the respective adt-virt-* virtualization
@@ -677,10 +868,15 @@ respective adt-virt-* virtualization server in the order that the
 \-\-adt\-virt\-server\-opt and \-\-adt\-virt\-server\-opts options are given on
 the command line. See the manual pages of the respective adt\-virt\-* commands
 for more information.
+This command line option appends to the \fBADT_VIRT_SERVER_OPTIONS\fP configuration variable. See
+.BR sbuild.conf (5)
+for more information.
 .TP
 .BR \-\-sbuild-mode=\fImode\fP
-Behaviour changes for use in a buildd environment.  This overrides the
-\fI$sbuild_mode\fP configuration option.
+Behaviour changes for use in a buildd environment.
+This command line option sets the \fBSBUILD_MODE\fP configuration variable. See
+.BR sbuild.conf (5)
+for more information.
 .SH BUILD ARTIFACTS
 Sbuild is meant to be used to build architecture specific binary packages from
 a given source package. In addition, sbuild is also able to generate

@@ -111,7 +111,8 @@ sub init_allowed_keys {
 	    VARNAME => 'path',
 	    GROUP => 'Build environment',
 	    DEFAULT => "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games",
-	    HELP => 'PATH to set when running dpkg-buildpackage.'
+	    HELP => 'PATH to set when running dpkg-buildpackage.',
+	    CLI_OPTIONS => ['--use-snapshot']
 	},
 	'DISTRIBUTION'				=> {
 	    TYPE => 'STRING',
@@ -119,7 +120,8 @@ sub init_allowed_keys {
 	    GROUP => 'Build options',
 	    DEFAULT => undef,
 	    SET => $set_distribution,
-	    HELP => 'Default distribution.  By default, no distribution is defined, and the user must specify it with the -d option.  However, a default may be configured here if desired.  Users must take care not to upload to the wrong distribution when this option is set, for example experimental packages will be built for upload to unstable when this is not what is required.'
+	    HELP => 'Default distribution.  By default, no distribution is defined, and the user must specify it with the -d option.  However, a default may be configured here if desired.  Users must take care not to upload to the wrong distribution when this option is set, for example experimental packages will be built for upload to unstable when this is not what is required.',
+	    CLI_OPTIONS => ['-d', '--dist']
 	},
 	'OVERRIDE_DISTRIBUTION'			=> {
 	    TYPE => 'BOOL',
@@ -174,7 +176,8 @@ sub init_allowed_keys {
 	    # the architecture they are built on, so don't show the default for
 	    # example config and man page generation
 	    IGNORE_DEFAULT => 1,
-	    HELP => 'Host architecture (Arch we are building for)'
+	    HELP => 'Host architecture (Arch we are building for)',
+	    CLI_OPTIONS => ['--arch', '--host']
 	},
 	'BUILD_ARCH'				=> {
 	    TYPE => 'STRING',
@@ -186,14 +189,16 @@ sub init_allowed_keys {
 	    # the architecture they are built on, so don't show the default for
 	    # example config and man page generation
 	    IGNORE_DEFAULT => 1,
-	    HELP => 'Build architecture (Arch we are building on).'
+	    HELP => 'Build architecture (Arch we are building on).',
+	    CLI_OPTIONS => ['--arch', '--build']
 	},
 	'BUILD_PROFILES'        => {
 	    TYPE => 'STRING',
 	    VARNAME => 'build_profiles',
 	    GROUP => 'Build options',
 	    DEFAULT => $ENV{'DEB_BUILD_PROFILES'} || '',
-	    HELP => 'Build profiles. Separated by spaces.'
+	    HELP => 'Build profiles. Separated by spaces.',
+	    CLI_OPTIONS => ['--profiles']
 	},
 	'HOSTNAME'				=> {
 	    TYPE => 'STRING',
@@ -354,6 +359,13 @@ sub _get_ignore_default {
     my $key = shift;
 
     return $self->_get_property_value($key, 'IGNORE_DEFAULT');
+}
+
+sub _get_cli_options {
+    my $self = shift;
+    my $key = shift;
+
+    return $self->_get_property_value($key, 'CLI_OPTIONS');
 }
 
 sub _get {
