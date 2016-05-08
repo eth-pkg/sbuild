@@ -966,11 +966,9 @@ sub fetch_source_files {
     } else {
 	my $pkg = $self->get('DSC');
 	my $ver;
-	my $aptcachequery = $pkg;
 
 	if ($pkg =~ m/_/) {
 	    ($pkg, $ver) = split /_/, $pkg;
-	    $aptcachequery = "$pkg=$ver";
 	}
 
 	# Use apt to download the source files
@@ -980,7 +978,7 @@ sub fetch_source_files {
 
 	my $pipe = $self->get('Dependency Resolver')->pipe_apt_command(
 	    { COMMAND => [$self->get_conf('APT_CACHE'),
-			  '-q', '--only-source', 'showsrc', $aptcachequery],
+			  '-q', '--only-source', 'showsrc', $pkg],
 	      USER => $self->get_conf('BUILD_USER'),
 	      PRIORITY => 0,
 	      DIR => '/'});
@@ -1027,7 +1025,6 @@ sub fetch_source_files {
 		next;
 	    }
 	    if (defined($ver) and $ver ne $pkgversion) {
-		$self->log_warning("apt-cache output for different version\n");
 		next;
 	    }
 	    my $checksums = Dpkg::Checksums->new();
