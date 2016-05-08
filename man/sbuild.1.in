@@ -139,7 +139,6 @@ to a chroot with the same name as the distribution specified.  sbuild will use
 a symlink to the chroot located in \fI/etc/sbuild/chroot/$distribution\fP, or
 must be run in a directory containing a \fIchroot\-$distribution\fP symlink to
 the chroot (not recommended, but done for backward compatibility).
-.\" FIXME: document --stats-dir --aspcud-crieria
 .SH OPTIONS
 Options set on the command line overwrite settings made in the configuration
 file.
@@ -768,6 +767,25 @@ This command line option sets the \fBBUILD_DEP_RESOLVER\fP configuration variabl
 .BR sbuild.conf (5)
 for more information.
 .TP
+.BR \-\-aspcud\-criteria=\fIcriteria\fP
+Optimization criteria in extended MISC 2012 syntax passed to aspcud through
+apt-cudf.  Optimization criteria are separated by commas, sorted by decreasing
+order of priority and are prefixed with a polarity (+ to maximize and - to
+minimize).  The default criteria is \fB-removed,-changed,-new\fP which first
+minimizes the number of removed packages, then the number of changed packages
+(up or downgrades) and then the number of new packages. A common task is to
+minimize the number of packages from experimental.  To do this you can add a
+criteria like \fB-count(solution,APT-Release:=/a=experimental/)\fP to the
+default criteria.  This will then minimize the number of packages in the
+solution which contain the string \fIa=experimental\fP in the \fIAPT-Release\fP
+field of the EDSP output created by apt. For more help on how to write
+optimization criteria, see the
+.BR apt-cudf (1)
+man page. Specifically the help on the --criteria option.
+This command line option sets the \fBASPCUD_CRITERIA\fP configuration variable. See
+.BR sbuild.conf (5)
+for more information.
+.TP
 .BR \-\-resolve\-alternatives
 Allow the use of alternatives in Build-Depends, Build-Depends-Arch and
 Build-Depends-Indep.  This is the default for the aptitude dependency resolver.
@@ -875,6 +893,12 @@ for more information.
 .BR \-\-sbuild-mode=\fImode\fP
 Behaviour changes for use in a buildd environment.
 This command line option sets the \fBSBUILD_MODE\fP configuration variable. See
+.BR sbuild.conf (5)
+for more information.
+.TP
+.BR \-\tstats\-dir=\fIdirectory\fP
+Directory for writing build statistics to.
+This command line option sets the \fBSTATS_DIR\fP configuration variable. See
 .BR sbuild.conf (5)
 for more information.
 .SH BUILD ARTIFACTS
