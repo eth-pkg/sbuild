@@ -1,11 +1,58 @@
 NEWS                                                            -*- outline -*-
 ----
 
-Welcome to sbuild 0.68.0.  Please read these release notes carefully.
+Welcome to sbuild 0.69.0.  Please read these release notes carefully.
 
 Full installation instructions are provided in the INSTALL file.  The
 README file also contains more specific notes regarding building and
 configuration.
+
+ * Major changes in 0.69.0:
+
+   1) Decouple chroot from host in terms of filesystem access to allow
+      chroot backends like qemu, ssh or lxc. Deprecate external command
+      percentage escape %SBUILD_CHROOT_DIR in favour of %SBUILD_CHROOT_EXEC.
+
+   2) Experimental adt backend. Enable with --chroot-mode=adt. Choose the
+      virtualization server with --adt-virt-server and add options with
+      --adt-virt-server-opt. This allows sbuild to use qemu, ssh and lxc
+      chroots.
+
+   3) Allow to build packages without specifying a version. Earlier it was
+      possible to let sbuild "apt-get download" a dsc by specifying
+      "package_version" as a command line argument. The version part is not
+      necessary anymore. No manual version lookup by the user is required
+      anymore.
+
+   4) Disallow conflicting command line options, thus making command line
+      switches position independent and remove the deprecated --arch-all-only
+      option in the process.
+
+   5) The aspcud resolver criteria is not hardcoded anymore but can be chosen
+      with --aspcud-criteria. The default criteria is -removed,-changed,-new.
+      To minimize the number of packages from experimental, use:
+      -count(solution,APT-Release:=/a=experimental/),-removed,-changed,-new
+
+   6) Apt doesn't download translations anymore.
+
+   7) Dummy archive is now signed with SHA-512
+
+   8) Cron script etc/sbuild-update-all allows one to periodically update all
+      sbuild chroots.
+
+   9) Add another --*-failed-commands external command:
+      --chroot-update-failed-commands
+
+  10) Documentation of configuration options in sbuild.conf(5) and in
+      /etc/sbuild/sbuild.conf now reference related command line options from
+      sbuild(1).
+
+  11) Documentation of command line options in sbuild(1) now references the
+      respective configuration options from sbuild.conf(5).
+
+  12) Remove configuration options which can be set on the command line from
+      the __INTERNAL group, thus exposing them in sbuild.conf as well and
+      referencing them in sbuild(1).
 
 * Major changes in 0.68.0:
 
