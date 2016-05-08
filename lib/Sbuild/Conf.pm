@@ -149,12 +149,13 @@ sub setup ($) {
 	    HELP => 'Build architecture: any packages by default.',
 	    CLI_OPTIONS => ['--arch-any', '--no-arch-any']
 	},
-	# FIXME: this config value can be set by the cli. Why is it internal then?
 	'NOLOG'					=> {
 	    TYPE => 'BOOL',
-	    GROUP => '__INTERNAL',
+	    VARNAME => 'nolog',
+	    GROUP => 'Logging options',
 	    DEFAULT => 0,
-	    HELP => 'Disable use of log file'
+	    HELP => 'Disable use of log file',
+	    CLI_OPTIONS => ['-n', '--nolog']
 	},
 	'SUDO'					=> {
 	    TYPE => 'STRING',
@@ -313,12 +314,13 @@ sub setup ($) {
 	    },
 	    DEFAULT => 'xapt'
 	},
-	# FIXME: this config value can be set by the cli. Why is it internal then?
 	'DPKG_BUILDPACKAGE_USER_OPTIONS'	=> {
 	    TYPE => 'ARRAY:STRING',
-	    GROUP => '__INTERNAL',
+	    VARNAME => 'dpkg_buildpackage_user_options',
+	    GROUP => 'Programs',
 	    DEFAULT => [],
-	    HELP => 'Additional command-line options for dpkg-buildpackage.  Not settable in config.'
+	    HELP => 'Additional command-line options for dpkg-buildpackage.',
+	    CLI_OPTIONS => ['--debbuildopt', '--debbuildopts', '--jobs']
 	},
 	'DPKG_SOURCE'				=> {
 	    TYPE => 'STRING',
@@ -816,12 +818,13 @@ sub setup ($) {
 	    DEFAULT => 0,
 	    HELP => 'Force APT to accept unauthenticated packages.  By default, unauthenticated packages are not allowed.  This is to keep the build environment secure, using apt-secure(8).  By setting this to 1, APT::Get::AllowUnauthenticated is set to "true" when running apt-get. This is disabled by default: only enable it if you know what you are doing.'
 	},
-	# FIXME: this config value can be set by the cli. Why is it internal then?
 	'BATCH_MODE'				=> {
 	    TYPE => 'BOOL',
-	    GROUP => '__INTERNAL',
+	    VARNAME => 'batch_mode',
+	    GROUP => 'Core options',
 	    DEFAULT => 0,
-	    HELP => 'Enable batch mode?'
+	    HELP => 'Enable batch mode?',
+	    CLI_OPTIONS => ['-b', '--batch']
 	},
 	'CORE_DEPENDS'				=> {
 	    TYPE => 'ARRAY:STRING',
@@ -830,47 +833,53 @@ sub setup ($) {
 	    DEFAULT => ['build-essential:native', 'fakeroot:native'],
 	    HELP => 'Packages which must be installed in the chroot for all builds.'
 	},
-	# FIXME: this config value can be set by the cli. Why is it internal then?
 	'MANUAL_DEPENDS'			=> {
 	    TYPE => 'ARRAY:STRING',
-	    GROUP => '__INTERNAL',
+	    VARNAME => 'manual_depends',
+	    GROUP => 'Core options',
 	    DEFAULT => [],
-	    HELP => 'Additional per-build dependencies.  Do not set by hand.'
+	    HELP => 'Additional per-build dependencies.',
+	    CLI_OPTIONS => ['--add-depends']
 	},
-	# FIXME: this config value can be set by the cli. Why is it internal then?
 	'MANUAL_CONFLICTS'			=> {
 	    TYPE => 'ARRAY:STRING',
-	    GROUP => '__INTERNAL',
+	    VARNAME => 'manual_conflicts',
+	    GROUP => 'Core options',
 	    DEFAULT => [],
-	    HELP => 'Additional per-build dependencies.  Do not set by hand.'
+	    HELP => 'Additional per-build dependencies.',
+	    CLI_OPTIONS => ['--add-conflicts']
 	},
-	# FIXME: this config value can be set by the cli. Why is it internal then?
 	'MANUAL_DEPENDS_ARCH'			=> {
 	    TYPE => 'ARRAY:STRING',
-	    GROUP => '__INTERNAL',
+	    VARNAME => 'manual_depends_arch',
+	    GROUP => 'Core options',
 	    DEFAULT => [],
-	    HELP => 'Additional per-build dependencies.  Do not set by hand.'
+	    HELP => 'Additional per-build dependencies.',
+	    CLI_OPTIONS => ['--add-depends-arch']
 	},
-	# FIXME: this config value can be set by the cli. Why is it internal then?
 	'MANUAL_CONFLICTS_ARCH'			=> {
 	    TYPE => 'ARRAY:STRING',
-	    GROUP => '__INTERNAL',
+	    VARNAME => 'manual_conflicts_arch',
+	    GROUP => 'Core options',
 	    DEFAULT => [],
-	    HELP => 'Additional per-build dependencies.  Do not set by hand.'
+	    HELP => 'Additional per-build dependencies.',
+	    CLI_OPTIONS => ['--add-conflicts-arch']
 	},
-	# FIXME: this config value can be set by the cli. Why is it internal then?
 	'MANUAL_DEPENDS_INDEP'			=> {
 	    TYPE => 'ARRAY:STRING',
-	    GROUP => '__INTERNAL',
+	    VARNAME => 'manual_depends_indep',
+	    GROUP => 'Core options',
 	    DEFAULT => [],
-	    HELP => 'Additional per-build dependencies.  Do not set by hand.'
+	    HELP => 'Additional per-build dependencies.',
+	    CLI_OPTIONS => ['--add-depends-indep']
 	},
-	# FIXME: this config value can be set by the cli. Why is it internal then?
 	'MANUAL_CONFLICTS_INDEP'		=> {
 	    TYPE => 'ARRAY:STRING',
-	    GROUP => '__INTERNAL',
+	    VARNAME => 'manual_conflicts_indep',
+	    GROUP => 'Core options',
 	    DEFAULT => [],
-	    HELP => 'Additional per-build dependencies.  Do not set by hand.'
+	    HELP => 'Additional per-build dependencies.',
+	    CLI_OPTIONS => ['--add-conflicts-indep']
 	},
 	'CROSSBUILD_CORE_DEPENDS'				=> {
 	    TYPE => 'HASH:ARRAY:STRING',
@@ -901,20 +910,22 @@ $crossbuild_core_depends = {
 	    HELP => 'Archive being built.  Only set in build log.  This might be useful for derivative distributions.',
 	    CLI_OPTIONS => ['--archive']
 	},
-	# FIXME: this config value can be set by the cli. Why is it internal then?
 	'BIN_NMU'				=> {
 	    TYPE => 'STRING',
-	    GROUP => '__INTERNAL',
+	    VARNAME => 'bin_nmu',
+	    GROUP => 'Build options',
 	    DEFAULT => undef,
 	    CHECK => $validate_append_version,
-	    HELP => 'Binary NMU changelog entry.  Do not set by hand.'
+	    HELP => 'Binary NMU changelog entry.',
+	    CLI_OPTIONS => ['--make-binNMU']
 	},
-	# FIXME: this config value can be set by the cli. Why is it internal then?
 	'BIN_NMU_VERSION'			=> {
 	    TYPE => 'STRING',
-	    GROUP => '__INTERNAL',
+	    VARNAME => 'bin_nmu_version',
+	    GROUP => 'Build options',
 	    DEFAULT => undef,
-	    HELP => 'Binary NMU version number.  Do not set by hand.'
+	    HELP => 'Binary NMU version number.',
+	    CLI_OPTIONS => ['--binNMU', '--make-binNMU']
 	},
 	'APPEND_TO_VERSION'			=> {
 	    TYPE => 'STRING',
@@ -1172,26 +1183,29 @@ $crossbuild_core_depends = {
 	    DEFAULT => '/var/lib/sbuild/apt-keys/sbuild-key.pub',
 	    HELP => 'GPG public key for temporary local apt archive.'
 	},
-	# FIXME: this config value can be set by the cli. Why is it internal then?
 	'EXTRA_PACKAGES'				=> {
 	    TYPE => 'ARRAY:STRING',
-	    GROUP => '__INTERNAL',
+	    VARNAME => 'extra_packages',
+	    GROUP => 'Dependency resolution',
 	    DEFAULT => [],
-	    HELP => 'Additional per-build packages available as build dependencies.  Do not set by hand.'
+	    HELP => 'Additional per-build packages available as build dependencies.',
+	    CLI_OPTIONS => ['--extra-package']
 	},
-	# FIXME: this config value can be set by the cli. Why is it internal then?
 	'EXTRA_REPOSITORY_KEYS'				=> {
 	    TYPE => 'ARRAY:STRING',
-	    GROUP => '__INTERNAL',
+	    VARNAME => 'extra_repository_keys',
+	    GROUP => 'Dependency resolution',
 	    DEFAULT => [],
-	    HELP => 'Additional per-build apt repository keys.  Do not set by hand.'
+	    HELP => 'Additional per-build apt repository keys.',
+	    CLI_OPTIONS => ['--extra-repository-key']
 	},
-	# FIXME: this config value can be set by the cli. Why is it internal then?
 	'EXTRA_REPOSITORIES'				=> {
 	    TYPE => 'ARRAY:STRING',
-	    GROUP => '__INTERNAL',
+	    VARNAME => 'extra_repositories',
+	    GROUP => 'Dependency resolution',
 	    DEFAULT => [],
-	    HELP => 'Additional per-build apt repositories.  Do not set by hand.'
+	    HELP => 'Additional per-build apt repositories.',
+	    CLI_OPTIONS => ['--extra-repository']
 	},
     );
 
