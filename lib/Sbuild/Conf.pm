@@ -222,7 +222,8 @@ sub setup ($) {
 	},
 	'ADT_VIRT_SERVER'			=> {
 	    TYPE => 'STRING',
-	    GROUP => '__INTERNAL',
+	    VARNAME => 'adt_virt_server',
+	    GROUP => 'Programs',
 	    CHECK => sub {
 		my $conf = shift;
 		my $entry = shift;
