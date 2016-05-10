@@ -1954,7 +1954,8 @@ sub build {
 
     $self->log_subsubsection("Finished");
     if ($rv) {
-	$self->log_error("Build failure (dpkg-buildpackage died)\n");
+	Sbuild::Exception::Build->throw(error => "Build failure (dpkg-buildpackage died)",
+	    failstage => "build");
     } else {
 	$self->log_info("Built successfully\n");
 
