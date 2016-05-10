@@ -183,7 +183,7 @@ sub get_foreign_architectures {
 
     if (!$foreignarchs)
     {
-        $self->log("There are no foreign architectures configured\n");
+        debug("There are no foreign architectures configured\n");
         return {};
     }
 
@@ -252,7 +252,7 @@ sub cleanup_foreign_architectures {
     my $session = $self->get('Session');
 
     if (defined ($session->get('Session Purged')) && $session->get('Session Purged') == 1) {
-	$self->log("Not removing foreign architectures: cloned chroot in use\n");
+	debug("Not removing foreign architectures: cloned chroot in use\n");
 	return;
     }
 
