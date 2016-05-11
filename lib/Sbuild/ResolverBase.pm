@@ -189,9 +189,9 @@ sub get_foreign_architectures {
 
     my %set;
     foreach my $arch (split /\s+/, $foreignarchs) {
-	chomp;
-	next unless $_;
-	$set{$_} = 1;
+	chomp $arch;
+	next unless $arch;
+	$set{$arch} = 1;
     }
 
     return \%set;
