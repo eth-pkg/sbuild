@@ -831,7 +831,7 @@ for more information.
 .BR \-\-extra\-package=\fIpackage.deb\fP
 Make \fIpackage.deb\fP available for build-dependency resolution, by
 adding it to a temporary archive created by sbuild.  This makes it
-easier to build packages against locally-built build depenencies,
+easier to build packages against locally-built build dependencies,
 without waiting for those packages to enter the main archive, or going
 through the hassle of maintaining a local archive and making it
 accessible inside the chroot.  \fIpackage.deb\fP is copied into the
