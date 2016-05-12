@@ -371,7 +371,7 @@ This command line option appends to the \fBDPKG_BUILDPACKAGE_USER_OPTIONS\fP con
 .BR sbuild.conf (5)
 for more information.
 .TP
-.BR \-\-dpkg\-source\-opt=\fIoptions\f
+.BR \-\-dpkg\-source\-opt=\fIoptions\fP
 Pass the specified option directly to dpkg-source in addition to the options
 already passed by sbuild. This is only used when creating a source package from
 a Debianized source directory. This option can be passed multiple times (once
@@ -887,7 +887,7 @@ prefix.  For instance, the following set of command line options will use the
 adt-virt-schroot backend for a package build:
 .nh
 .B \-\-chroot-mode=adt \-\-adt\-virt\-server=schroot \-\-chroot unstable-amd64-sbuild
-.ny
+.hy
 The value of the \f[CB]--chroot\fP option will be passed as the last positional
 argument to the adt-virt-* invocation. Thus, the value of the \f[CB]--chroot\fP
 option becomes the image name of the virtual machine in case of adt-virt-qemu,
