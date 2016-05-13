@@ -103,7 +103,7 @@ sub setup {
 
     # Always write out apt.conf, because it may become outdated.
     if ($self->get_conf('APT_ALLOW_UNAUTHENTICATED')) {
-	print $F qq(APT::Get::AllowUnauthenticated "true";\n");
+	print $F qq(APT::Get::AllowUnauthenticated "true";\n);
     }
     print $F qq(APT::Install-Recommends "false";\n);
     print $F qq(APT::AutoRemove::SuggestsImportant "false";\n);
