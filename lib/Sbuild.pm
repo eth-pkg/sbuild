@@ -250,7 +250,7 @@ sub help_text ($$) {
     my $section = shift;
     my $page = shift;
 
-    system(qw('man --'), $section, $page);
+    system('man', '--', $section, $page);
     exit 0;
 }
 
