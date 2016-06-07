@@ -358,6 +358,7 @@ sub setup ($) {
 	    TYPE => 'STRING',
 	    VARNAME => 'stats_dir',
 	    GROUP => 'Statistics',
+	    IGNORE_DEFAULT => 1, # Don't dump the current home
 	    DEFAULT => "$HOME/stats",
 	    HELP => 'Directory for writing build statistics to',
 	    CLI_OPTIONS => ['--stats-dir']

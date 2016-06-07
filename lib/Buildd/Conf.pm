@@ -122,6 +122,7 @@ sub setup ($) {
 	    TYPE => 'STRING',
 	    VARNAME => 'daemon_log_file',
 	    GROUP => 'Daemon',
+	    IGNORE_DEFAULT => 1, # Don't dump the current home
 	    DEFAULT => "$HOME/daemon.log",
 	    HELP => 'Main buildd daemon log file'
 	},
@@ -215,6 +216,7 @@ sub setup ($) {
 	    GROUP => 'Daemon',
 # Set once running as a system service.
 #          DEFAULT => "${Sbuild::Sysconfig::paths{'LOCALSTATEDIR'}/run/buildd.pid"
+	    IGNORE_DEFAULT => 1, # Don't dump the current home
 	    DEFAULT => "$HOME/build/buildd.pid",
 	    HELP => 'PID file to identify running daemon.'
 	},
