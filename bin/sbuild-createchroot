@@ -173,11 +173,13 @@ $conf->set('INCLUDE', add_items($conf->get('INCLUDE'),
 				"build-essential",
 				"debfoster"));
 
-my $suite = $ARGV[0];
+# Deal with SUITE-VARIANT
+my $suitevariant = $ARGV[0];
+(my $suite = $suitevariant) =~ s/-.*//;
 
 # check if schroot name is already in use
 
-my $chrootname = "${suite}-" . $conf->get('BUILD_ARCH') . $conf->get('CHROOT_SUFFIX');
+my $chrootname = "${suitevariant}-" . $conf->get('BUILD_ARCH') . $conf->get('CHROOT_SUFFIX');
 
 open my $pipe, 'schroot -l --all-source-chroots |';
 while (my $line = <$pipe>) {
@@ -301,7 +303,7 @@ if ($conf->get('MAKE_SBUILD_TARBALL')) {
     $config_entry = <<"EOF";
 [$chrootname]
 type=file
-description=Debian $suite/$arch autobuilder
+description=Debian $suitevariant/$arch autobuilder
 file=$tarball
 groups=root,sbuild
 root-groups=root,sbuild
@@ -324,7 +326,7 @@ EOF
 [$chrootname]
 type=directory
 $uniontype
-description=Debian $suite/$arch autobuilder
+description=Debian $suitevariant/$arch autobuilder
 directory=$target
 groups=root,sbuild
 root-groups=root,sbuild
@@ -467,7 +469,7 @@ if ($conf->get('MAKE_SBUILD_TARBALL')) {
     }
 }
 
-print "I: Successfully set up $suite chroot.\n";
+print "I: Successfully set up $suitevariant chroot.\n";
 print "I: Run \"sbuild-adduser\" to add new sbuild users.\n";
 
 exit 0;
