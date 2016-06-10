@@ -34,6 +34,7 @@ sbuild\-createchroot \- create sbuild chroot
 .RB [ "\-\-setup\-only" ]
 .RB [ "\-\-make\-sbuild\-tarball=\fIfile\fP" ]
 .RB [ "\-\-keep\-sbuild\-chroot\-dir" ]
+.RB [ "\-\-no\-deb\-src" ]
 .B SUITE TARGET-DIRECTORY DEBIAN-MIRROR-URI
 .RB [ SCRIPT ]
 .PP
@@ -171,6 +172,14 @@ details.
 .BR \-\-keep\-sbuild\-chroot\-dir
 Don't delete the directory used for creating a file type chroot. This option
 does nothing if not creating a file type chroot.
+.TP
+.BR \-\-no\-deb\-src
+Don't add a deb-src line to the \fI/etc/apt/sources.list\fP file in the
+\fITARGET-DIRECTORY\fP after the debootstrap process. This is useful in
+situation when it is known that sbuild will never have to download the source
+package itself but is always given an already downloaded dsc. In that case,
+this option will help to save bandwidth and disk space because the source
+indices don't have to be downloaded and later continually updated.
 .SH TARBALL FILE
 When creating an sbuild tarball \fIfile\fP, the compression format used to
 generate the tarball depends on the entension used in \fIfile\fP. Here is a

@@ -72,6 +72,9 @@ sub setup {
 	'KEEP_SBUILD_CHROOT_DIR'			=> {
 	    DEFAULT => 0
 	},
+	'DEB_SRC'				=> {
+	    DEFAULT => 1
+	},
     );
 
     $conf->set_allowed_keys(\%createchroot_keys);
@@ -136,6 +139,9 @@ sub set_options {
 	},
 	"keep-sbuild-chroot-dir" => sub {
 	    $self->set_conf('KEEP_SBUILD_CHROOT_DIR', 1);
+	},
+	"no-deb-src" => sub {
+	    $self->set_conf('DEB_SRC', 0);
 	});
 }
 
@@ -268,16 +274,15 @@ chmod(0775, $policy_rc_d) == 1
 print "I: Configured /usr/sbin/policy-rc.d:\n";
 dump_file("$policy_rc_d");
 
-
-
-# Set up minimal /etc/apt/sources.list
-my $sources = "${target}/etc/apt/sources.list";
-my $comps = join(' ',split(/,/,$conf->get('COMPONENTS')));
-open(SOURCES, ">$sources")
-    or die "Can't open $sources for writing";
-print SOURCES "deb $mirror $suite $comps\n";
-print SOURCES "deb-src $mirror $suite $comps\n";
-close SOURCES or die "Can't close $sources";
+# Add deb-src to /etc/apt/sources.list.
+if ($conf->get('DEB_SRC')) {
+    my $sources = "${target}/etc/apt/sources.list";
+    my $comps = join(' ',split(/,/,$conf->get('COMPONENTS')));
+    open(SOURCES, ">>$sources")
+        or die "E: Can't open $sources for writing";
+    print SOURCES "deb-src $mirror $suite $comps\n";
+    close SOURCES or die "E: Can't close $sources";
+}
 
 # Display /etc/apt/sources.list.
 print "I: Configured APT /etc/apt/sources.list:\n";
