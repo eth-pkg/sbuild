@@ -291,9 +291,16 @@ print "I: Please add any additional APT sources to ${target}/etc/apt/sources.lis
 
 # Write out schroot chroot configuration.
 
-# Determine the schroot chroot configuration to use.
-my $config_entry;
 my $arch = $conf->get('BUILD_ARCH');
+my $config_entry = <<"EOF";
+[$chrootname]
+description=Debian $suitevariant/$arch autobuilder
+groups=root,sbuild
+root-groups=root,sbuild
+profile=sbuild
+EOF
+
+# Determine the schroot chroot configuration to use.
 if ($conf->get('MAKE_SBUILD_TARBALL')) {
     my $tarball = $conf->get('MAKE_SBUILD_TARBALL');
 
@@ -305,37 +312,27 @@ if ($conf->get('MAKE_SBUILD_TARBALL')) {
         $conf->set('MAKE_SBUILD_TARBALL', $tarball);
     }
 
-    $config_entry = <<"EOF";
-[$chrootname]
+    $config_entry .= <<"EOF";
 type=file
-description=Debian $suitevariant/$arch autobuilder
 file=$tarball
-groups=root,sbuild
-root-groups=root,sbuild
-profile=sbuild
 EOF
 } else {
     # Determine whether system has overlayfs capability
-    my $uniontype = "union-type=none";
+    my $uniontype = "none";
     if (lc("$^O") =~ /linux/) {
 	system(qw(/sbin/modprobe overlay));
 	if (open(FILE, "/proc/filesystems")) {
 	    if (grep {/\soverlay$/} <FILE>) {
-		$uniontype = "union-type=overlay";
+		$uniontype = "overlay";
 	    }
 	    close(FILE);
 	}
     }
 
-    $config_entry = <<"EOF";
-[$chrootname]
+    $config_entry .= <<"EOF";
 type=directory
-$uniontype
-description=Debian $suitevariant/$arch autobuilder
 directory=$target
-groups=root,sbuild
-root-groups=root,sbuild
-profile=sbuild
+union-type=$uniontype
 EOF
 }
 
