@@ -1189,6 +1189,26 @@ the regular configured apt sources.
 .PP
 At the end of the build, the local archive is removed, along with the rest of
 the build tree.
+.SH EXAMPLES
+Before you use sbuild for the first time, you have to do some setup depending
+on the chroot backend you are using. The default backend is schroot. To use
+sbuild with the schroot backend, you need to add your user to the sbuild group
+and create a schroot chroot. The latter can be accomplished by using
+sbuild-createchroot(8). If the chroot contains a Debian derivative with apt (<<
+0.8.16~exp3), or a Debian release before Wheezy, then it is also required to
+create gpg key pairs using sbuild-update --keygen. After this one time setup,
+you can now use sbuild to build packages like this:
+.PP
+\f[CR]% \f[CB]sbuild \-d unstable bash\fP\fP
+.PP
+Or on a .dsc:
+.PP
+\f[CR]% \f[CB]sbuild \-d unstable bash.dsc\fP\fP
+.PP
+Or from within an unpacked source package (the -d parameter is not necessary
+here because the distribution is inferred from debian/copyright):
+.PP
+\f[CR]% \f[CB]sbuild\fP\fP
 .SH ENVIRONMENT VARIABLES
 The following environment variables are used by \fBsbuild\fR:
 .IP "HOME"
