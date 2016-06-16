@@ -78,6 +78,9 @@ sub setup {
 	'ALIASES'				=> {
 	    DEFAULT => []
 	},
+	'EXTRA_REPOSITORIES'			=> {
+	    DEFAULT => []
+	},
     );
 
     $conf->set_allowed_keys(\%createchroot_keys);
@@ -148,6 +151,9 @@ sub set_options {
 	},
 	"alias=s" => sub {
 	    push @{$self->get_conf('ALIASES')}, $_[1];
+	},
+	"extra-repository=s" => sub {
+	    push @{$self->get_conf('EXTRA_REPOSITORIES')}, $_[1];
 	});
 }
 
@@ -280,13 +286,21 @@ chmod(0775, $policy_rc_d) == 1
 print "I: Configured /usr/sbin/policy-rc.d:\n";
 dump_file("$policy_rc_d");
 
-# Add deb-src to /etc/apt/sources.list.
-if ($conf->get('DEB_SRC')) {
+if ($conf->get('DEB_SRC') || scalar @{$conf->get('EXTRA_REPOSITORIES')} > 0) {
     my $sources = "${target}/etc/apt/sources.list";
-    my $comps = join(' ',split(/,/,$conf->get('COMPONENTS')));
     open(SOURCES, ">>$sources")
         or die "E: Can't open $sources for writing";
-    print SOURCES "deb-src $mirror $suite $comps\n";
+
+    # Add deb-src to /etc/apt/sources.list.
+    if ($conf->get('DEB_SRC')) {
+	my $comps = join(' ',split(/,/,$conf->get('COMPONENTS')));
+	print SOURCES "deb-src $mirror $suite $comps\n";
+    }
+
+    # Add extra repositories to /etc/apt/sources.list
+    for my $repo (@{$conf->get('EXTRA_REPOSITORIES')}) {
+	print SOURCES "$repo\n";
+    }
     close SOURCES or die "E: Can't close $sources";
 }
 
