@@ -75,6 +75,9 @@ sub setup {
 	'DEB_SRC'				=> {
 	    DEFAULT => 1
 	},
+	'ALIASES'				=> {
+	    DEFAULT => []
+	},
     );
 
     $conf->set_allowed_keys(\%createchroot_keys);
@@ -142,6 +145,9 @@ sub set_options {
 	},
 	"no-deb-src" => sub {
 	    $self->set_conf('DEB_SRC', 0);
+	},
+	"alias=s" => sub {
+	    push @{$self->get_conf('ALIASES')}, $_[1];
 	});
 }
 
@@ -334,6 +340,11 @@ type=directory
 directory=$target
 union-type=$uniontype
 EOF
+}
+
+if (scalar @{$conf->get('ALIASES')} > 0) {
+    my $aliases = join ',', @{$conf->get('ALIASES')};
+    $config_entry .= "aliases=$aliases\n";
 }
 
 if (-d "/etc/schroot/chroot.d") {

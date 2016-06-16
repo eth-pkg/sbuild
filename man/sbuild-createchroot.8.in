@@ -35,6 +35,7 @@ sbuild\-createchroot \- create sbuild chroot
 .RB [ "\-\-make\-sbuild\-tarball=\fIfile\fP" ]
 .RB [ "\-\-keep\-sbuild\-chroot\-dir" ]
 .RB [ "\-\-no\-deb\-src" ]
+.RB [ "\-\-alias=\fIalias\fP" ]
 .B SUITE TARGET-DIRECTORY DEBIAN-MIRROR-URI
 .RB [ SCRIPT ]
 .PP
@@ -180,6 +181,16 @@ situation when it is known that sbuild will never have to download the source
 package itself but is always given an already downloaded dsc. In that case,
 this option will help to save bandwidth and disk space because the source
 indices don't have to be downloaded and later continually updated.
+.TP
+.BR \-\-alias=\fIalias\fP
+Add an alternative name that the chroot will be known by. This option can be
+given multiple times to add more than one alias. Using an alias is useful for
+chroots of distributions that are known by more than one name. For example
+Debian unstable is also known as sid. Additionally, sbuild chooses the
+distribution by the latest changelog entry which could list \fIUNRELEASED\fP
+for packages that the maintainer is currently working on. For Debian it thus
+makes sense to add \fIUNRELEASED\fP as an alias for a Debian unstable chroot.
+See the EXAMPLES section for how to use this option in practice.
 .SH TARBALL FILE
 When creating an sbuild tarball \fIfile\fP, the compression format used to
 generate the tarball depends on the entension used in \fIfile\fP. Here is a
@@ -218,9 +229,12 @@ temporary directory as the target:
 \f[CB]    http://httpredir.debian.org/debian\fP\[CR]
 .PP
 To create a plain type sid (unstable) chroot in \fI/srv/chroot/unstable\fP using
-the \fIhttpredir.debian.org\fP Debian http mirror redirector service:
+the \fIhttpredir.debian.org\fP Debian http mirror redirector service and with
+aliases for \fIunstable\fP and \fIUNRELEASED\fP:
 .PP
 \f[CR]% \f[CB]sudo sbuild\-createchroot sid /srv/chroot/unstable-amd64 \fP\fP\\
+.br
+    \-\-alias=unstable \-\-alias=UNRELEASED \fP\fP\\
 .br
 \f[CB]    http://httpredir.debian.org/debian\fP\[CR]
 .SH HISTORY
