@@ -1027,11 +1027,6 @@ EOF
     if ((-f $self->get_conf('SBUILD_BUILD_DEPENDS_SECRET_KEY')) &&
 	(-f $self->get_conf('SBUILD_BUILD_DEPENDS_PUBLIC_KEY')) &&
 	!$self->get_conf('APT_ALLOW_UNAUTHENTICATED')) {
-        if (!$self->generate_keys()) {
-            $self->log("Failed to generate archive keys.\n");
-            $self->cleanup_apt_archive();
-            return 0;
-        }
 	if (!$session->test_regular_file($dummy_archive_seckey)) {
 	    if (!$session->copy_to_chroot($self->get_conf('SBUILD_BUILD_DEPENDS_SECRET_KEY'), $dummy_archive_seckey)) {
 		$self->log_error("Failed to copy secret key");
@@ -1229,26 +1224,6 @@ sub cleanup_apt_archive {
     $self->set('Dummy package path', undef);
     $self->set('Dummy archive directory', undef);
     $self->set('Dummy Release file', undef);
-}
-
-# Generate a key pair if not already done.
-sub generate_keys {
-    my $self = shift;
-
-    if ((-f $self->get_conf('SBUILD_BUILD_DEPENDS_SECRET_KEY')) &&
-        (-f $self->get_conf('SBUILD_BUILD_DEPENDS_PUBLIC_KEY'))) {
-        return 1;
-    }
-
-    $self->log_error("Local archive GPG signing key not found\n");
-    $self->log_info("Please generate a key with 'sbuild-update --keygen'\n");
-    $self->log_info("Note that on machines with scarce entropy, you may wish ".
-		    "to generate the key with this command on another machine ".
-		    "and copy the public and private keypair to '" .
-		    $self->get_conf('SBUILD_BUILD_DEPENDS_PUBLIC_KEY')
-		    ."' and '".
-		    $self->get_conf('SBUILD_BUILD_DEPENDS_SECRET_KEY') ."'\n");
-    return 0;
 }
 
 # Function that runs apt-ftparchive
