@@ -238,10 +238,8 @@ Name-Real: Sbuild Signer
 Name-Comment: Sbuild Build Dependency Archive Key
 Name-Email: buildd-tools-devel\@lists.alioth.debian.org
 Expire-Date: 0
+%commit
 EOF
-    print $tmpfh '%secring ' . $conf->get('SBUILD_BUILD_DEPENDS_SECRET_KEY') . "\n";
-    print $tmpfh '%pubring ' . $conf->get('SBUILD_BUILD_DEPENDS_PUBLIC_KEY') . "\n";
-    print $tmpfh '%commit' . "\n";
     close($tmpfh);
 
     my $gnupghome = $ENV{'GNUPGHOME'};
@@ -287,10 +285,37 @@ EOF
         return $?;
     }
 
+    # export keys
+    @command = ('gpg', '--batch', '--yes', '--export-secret-keys', '--armor',
+	        '--output', $conf->get('SBUILD_BUILD_DEPENDS_SECRET_KEY_ARMORED'),
+	        'buildd-tools-devel@lists.alioth.debian.org');
+    $host->run_command(
+	{ COMMAND => \@command,
+	  USER => $conf->get('BUILD_USER'),
+	  PRIORITY => 0,
+	  DIR => '/'});
+    if ($?) {
+	print STDERR "E: Unable to export secret key.";
+	return $?;
+    }
+
+    @command = ('gpg', '--batch', '--yes', '--export', '--armor',
+	        '--output', $conf->get('SBUILD_BUILD_DEPENDS_PUBLIC_KEY_ARMORED'),
+	        'buildd-tools-devel@lists.alioth.debian.org');
+    $host->run_command(
+	{ COMMAND => \@command,
+	  USER => $conf->get('BUILD_USER'),
+	  PRIORITY => 0,
+	  DIR => '/'});
+    if ($?) {
+	print STDERR "E: Unable to export public key.";
+	return $?;
+    }
+
     # Keys needs to be readable by 'sbuild' group.
     @command = ('chmod', '640',
-                $conf->get('SBUILD_BUILD_DEPENDS_SECRET_KEY'),
-                $conf->get('SBUILD_BUILD_DEPENDS_PUBLIC_KEY'));
+                $conf->get('SBUILD_BUILD_DEPENDS_SECRET_KEY_ARMORED'),
+                $conf->get('SBUILD_BUILD_DEPENDS_PUBLIC_KEY_ARMORED'));
     $host->run_command(
         { COMMAND => \@command,
 	  USER => $conf->get('BUILD_USER'),

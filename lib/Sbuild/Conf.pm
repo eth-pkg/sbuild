@@ -1175,14 +1175,28 @@ $crossbuild_core_depends = {
 	    VARNAME => 'sbuild_build_depends_secret_key',
 	    GROUP => 'Dependency resolution',
 	    DEFAULT => '/var/lib/sbuild/apt-keys/sbuild-key.sec',
-	    HELP => 'GPG secret key for temporary local apt archive.'
+	    HELP => 'GPG secret key for temporary local apt archive in GPG native format. This setting is deprecated and is superseded by SBUILD_BUILD_DEPENDS_SECRET_KEY_ARMORED.'
 	},
 	'SBUILD_BUILD_DEPENDS_PUBLIC_KEY'		=> {
 	    TYPE => 'STRING',
 	    VARNAME => 'sbuild_build_depends_public_key',
 	    GROUP => 'Dependency resolution',
 	    DEFAULT => '/var/lib/sbuild/apt-keys/sbuild-key.pub',
-	    HELP => 'GPG public key for temporary local apt archive.'
+	    HELP => 'GPG public key for temporary local apt archive in GPG native format. This setting is deprecated and is superseded by SBUILD_BUILD_DEPENDS_PUBLIC_KEY_ARMORED.'
+	},
+	'SBUILD_BUILD_DEPENDS_SECRET_KEY_ARMORED'		=> {
+	    TYPE => 'STRING',
+	    VARNAME => 'sbuild_build_depends_secret_key_armored',
+	    GROUP => 'Dependency resolution',
+	    DEFAULT => '/var/lib/sbuild/apt-keys/sbuild-key.sec.asc',
+	    HELP => 'GPG secret key for temporary local apt archive in armored ASCII format.'
+	},
+	'SBUILD_BUILD_DEPENDS_PUBLIC_KEY_ARMORED'		=> {
+	    TYPE => 'STRING',
+	    VARNAME => 'sbuild_build_depends_public_key_armored',
+	    GROUP => 'Dependency resolution',
+	    DEFAULT => '/var/lib/sbuild/apt-keys/sbuild-key.pub.asc',
+	    HELP => 'GPG public key for temporary local apt archive in armored ASCII format.'
 	},
 	'EXTRA_PACKAGES'				=> {
 	    TYPE => 'ARRAY:STRING',

@@ -1024,38 +1024,112 @@ EOF
     # Once squeeze is not supported anymore, we want to never sign the
     # dummy repository anymore but instead make use of apt's support for
     # [trusted=yes] in wheezy and later.
-    if ((-f $self->get_conf('SBUILD_BUILD_DEPENDS_SECRET_KEY')) &&
-	(-f $self->get_conf('SBUILD_BUILD_DEPENDS_PUBLIC_KEY')) &&
+    if ((((-f $self->get_conf('SBUILD_BUILD_DEPENDS_SECRET_KEY')) &&
+		(-f $self->get_conf('SBUILD_BUILD_DEPENDS_PUBLIC_KEY'))) ||
+	    ((-f $self->get_conf('SBUILD_BUILD_DEPENDS_SECRET_KEY_ARMORED')) &&
+		(-f $self->get_conf('SBUILD_BUILD_DEPENDS_PUBLIC_KEY_ARMORED')))) &&
 	!$self->get_conf('APT_ALLOW_UNAUTHENTICATED')) {
-	if (!$session->test_regular_file($dummy_archive_seckey)) {
-	    if (!$session->copy_to_chroot($self->get_conf('SBUILD_BUILD_DEPENDS_SECRET_KEY'), $dummy_archive_seckey)) {
-		$self->log_error("Failed to copy secret key");
+	my @gpg_command = ('gpg', '--homedir', $dummy_gpghome, '--yes');
+	# if the armored keys exist, we prefer these. Otherwise we fall back
+	# to the keys in gpg format
+	if ((-f $self->get_conf('SBUILD_BUILD_DEPENDS_SECRET_KEY_ARMORED')) &&
+	    (-f $self->get_conf('SBUILD_BUILD_DEPENDS_PUBLIC_KEY_ARMORED'))) {
+	    if (!$session->test_regular_file($dummy_archive_seckey)) {
+		if (!$session->copy_to_chroot($self->get_conf('SBUILD_BUILD_DEPENDS_SECRET_KEY_ARMORED'), $dummy_archive_seckey)) {
+		    $self->log_error("Failed to copy secret key\n");
+		    return 0;
+		}
+	    }
+	    if (!$session->test_regular_file($dummy_archive_pubkey)) {
+		if (!$session->copy_to_chroot($self->get_conf('SBUILD_BUILD_DEPENDS_PUBLIC_KEY_ARMORED'), $dummy_archive_pubkey)) {
+		    $self->log_error("Failed to copy public key\n");
+		    return 0;
+		}
+	    }
+	    # import the armored keys
+	    my @import_command;
+	    @import_command = ('gpg', '--homedir', $dummy_gpghome, '--import', $dummy_archive_pubkey);
+	    $session->run_command(
+		{ COMMAND => \@import_command,
+		    USER => $self->get_conf('BUILD_USER'),
+		    PRIORITY => 0});
+	    if ($?) {
+		$self->log_error("Failed to import public key\n");
+		return 0;
+	    }
+	    @import_command = ('gpg', '--homedir', $dummy_gpghome, '--allow-secret-key-import', '--import', $dummy_archive_seckey);
+	    $session->run_command(
+		{ COMMAND => \@import_command,
+		    USER => $self->get_conf('BUILD_USER'),
+		    PRIORITY => 0});
+	    if ($?) {
+		$self->log_error("Failed to import public key\n");
+		return 0;
+	    }
+	} else {
+	    # Since the armored keys were not present, we fall back to using
+	    # keys in binary gnupg format. This operation can fail if the
+	    # gnupg version with which the keys were generated and the version
+	    # of gnupg inside the chroot are not compatible with each other.
+	    # In that case, the user has to use sbuild-update --keygen to
+	    # create a new armored ASCII keypair.
+	    # This code can be removed once the sbuild version with armored
+	    # ASCII key support is in stable.
+	    if (!$session->test_regular_file($dummy_archive_seckey)) {
+		if (!$session->copy_to_chroot($self->get_conf('SBUILD_BUILD_DEPENDS_SECRET_KEY'), $dummy_archive_seckey)) {
+		    $self->log_error("Failed to copy secret key");
+		    return 0;
+		}
+	    }
+	    if (!$session->test_regular_file($dummy_archive_pubkey)) {
+		if (!$session->copy_to_chroot($self->get_conf('SBUILD_BUILD_DEPENDS_PUBLIC_KEY'), $dummy_archive_pubkey)) {
+		    $self->log_error("Failed to copy public key");
+		    return 0;
+		}
+	    }
+	    push @gpg_command, '--no-default-keyring',
+		'--secret-keyring', $dummy_archive_seckey,
+		'--keyring', $dummy_archive_pubkey;
+	}
+	push @gpg_command, '--default-key', 'Sbuild Signer', '-abs',
+		'--digest-algo', 'SHA512',
+		'-o', $dummy_release_file . '.gpg',
+		$dummy_release_file;
+	$session->run_command(
+	    { COMMAND => \@gpg_command,
+		USER => $self->get_conf('BUILD_USER'),
+		PRIORITY => 0});
+	if ($?) {
+	    $self->log_error("Failed to sign dummy archive Release file.\n");
+	    # output a helpful message in case the keys were not present in
+	    # armored format
+	    if ((! -f $self->get_conf('SBUILD_BUILD_DEPENDS_SECRET_KEY_ARMORED')) ||
+		(! -f $self->get_conf('SBUILD_BUILD_DEPENDS_PUBLIC_KEY_ARMORED'))) {
+		$self->log_warning("The keys were not found in armored format and thus, a version skew \n" .
+				   "between gnupg on your host and in the chroot might be responsible \n" .
+				   "for this failure. Try running sbuild-update --keygen again to \n" .
+				   "generate a keypair in armored ASCII format.\n");
+	    }
+	    $self->cleanup_apt_archive();
+	    return 0;
+	}
+	# check if gpgconf exists
+	if ($session->can_run("gpgconf")) {
+	    # run gpgconf --kill gpg-agent (for gpg > 2.1) to kill any
+	    # remaining gpg-agent
+	    $session->run_command(
+		{ COMMAND => ['gpgconf', '--kill', 'gpg-agent'],
+		    ENV => { GNUPGHOME => $dummy_gpghome }, # gpgconf (< 2.1.12) doesn't have a --homedir argument
+		    USER => $self->get_conf('BUILD_USER'),
+		    PRIORITY => 0});
+	    if ($?) {
+		my $err = $? >> 8;
+		$self->log_error("before conversion: $?\n");
+		$self->log_error("gpgconf --kill gpg-agent died with exit $err\n");
+		$self->cleanup_apt_archive();
 		return 0;
 	    }
 	}
-	if (!$session->test_regular_file($dummy_archive_pubkey)) {
-	    if (!$session->copy_to_chroot($self->get_conf('SBUILD_BUILD_DEPENDS_PUBLIC_KEY'), $dummy_archive_pubkey)) {
-		$self->log_error("Failed to copy public key");
-		return 0;
-	    }
-	}
-        my @gpg_command = ('gpg', '--yes', '--no-default-keyring',
-                           '--homedir', $dummy_gpghome,
-                           '--secret-keyring', $dummy_archive_seckey,
-                           '--keyring', $dummy_archive_pubkey,
-                           '--default-key', 'Sbuild Signer', '-abs',
-                           '--digest-algo', 'SHA512',
-                           '-o', $dummy_release_file . '.gpg',
-                           $dummy_release_file);
-        $session->run_command(
-            { COMMAND => \@gpg_command,
-              USER => $self->get_conf('BUILD_USER'),
-              PRIORITY => 0});
-        if ($?) {
-            $self->log("Failed to sign dummy archive Release file.\n");
-            $self->cleanup_apt_archive();
-            return 0;
-        }
     }
 
     # Now, we'll add in any provided OpenPGP keys into the archive, so that
