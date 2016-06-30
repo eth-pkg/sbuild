@@ -26,6 +26,7 @@ use Sbuild qw(copy debug debug2);
 use Sbuild::Base;
 use Sbuild::ChrootInfo;
 use Sbuild::ChrootSetup qw(basesetup);
+use Sbuild qw(shellescape);
 
 use strict;
 use warnings;
@@ -249,8 +250,10 @@ sub get_read_file_handle {
     my $dir = "/";
     $dir = $options->{'DIR'} if defined $options->{'DIR'};
 
+    my $escapedsource = shellescape $source;
+
     my $pipe = $self->pipe_command({
-	    COMMAND => [ "sh", "-c", "cat \"$source\"" ],
+	    COMMAND => [ "sh", "-c", "cat $escapedsource" ],
 	    DIR => $dir,
 	    USER => $user,
 	    PIPE => 'in'
@@ -293,8 +296,10 @@ sub get_write_file_handle {
     my $dir = "/";
     $dir = $options->{'DIR'} if defined $options->{'DIR'};
 
+    my $escapeddest = shellescape $dest;
+
     my $pipe = $self->pipe_command({
-	    COMMAND => [ "sh", "-c", "cat > \"$dest\"" ],
+	    COMMAND => [ "sh", "-c", "cat > $escapeddest" ],
 	    DIR => $dir,
 	    USER => $user,
 	    PIPE => 'out'
