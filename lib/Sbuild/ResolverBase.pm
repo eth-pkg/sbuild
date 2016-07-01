@@ -67,6 +67,10 @@ sub new {
         '/etc/apt/sources.list.d/sbuild-build-depends-archive.list';
     $self->set('Dummy archive list file', $dummy_archive_list_file);
 
+    my $extra_repositories_list_file =
+        '/etc/apt/sources.list.d/sbuild-extra-repositories.list';
+    $self->set('Extra repositories list file', $extra_repositories_list_file);
+
     my $dummy_archive_key_file =
         '/etc/apt/trusted.gpg.d/sbuild-build-depends-archive.gpg';
     $self->set('Dummy archive key file', $dummy_archive_key_file);
@@ -152,6 +156,44 @@ sub setup {
 	$self->set('Aptitude Options', []);
 	$session->get('Defaults')->{'ENV'}->{'APT_CONFIG'} =
 	    $self->get('APT Conf');
+    }
+
+    # Add specified extra repositories into /etc/apt/sources.list.d/.
+    # This has to be done this early so that the early apt
+    # update/upgrade/distupgrade steps also consider the extra repositories.
+    # If this step would be done too late, extra repositories would only be
+    # considered when resolving build dependencies but not for upgrading the
+    # base chroot.
+    if (scalar @{$self->get_conf('EXTRA_REPOSITORIES')} > 0) {
+	my $extra_repositories_list_file = $self->get('Extra repositories list file');
+	if ($session->test_regular_file($extra_repositories_list_file)) {
+	    $self->log_error("$extra_repositories_list_file exists - will not write extra repositories to it\n");
+	} else {
+	    my $tmpfilename = $session->mktemp();
+
+	    my $tmpfh = $session->get_write_file_handle($tmpfilename);
+	    if (!$tmpfh) {
+		$self->log_error("Cannot open pipe: $!\n");
+		return 0;
+	    }
+	    for my $repospec (@{$self->get_conf('EXTRA_REPOSITORIES')}) {
+		print $tmpfh "$repospec\n";
+	    }
+	    close $tmpfh;
+	    # List file needs to be moved with root.
+	    if (!$session->chmod($tmpfilename, '0644')) {
+		$self->log("Failed to create apt list file for dummy archive.\n");
+		$self->cleanup_apt_archive();
+		$session->unlink($tmpfilename);
+		return 0;
+	    }
+	    if (!$session->rename($tmpfilename, $extra_repositories_list_file)) {
+		$self->log("Failed to create apt list file for dummy archive.\n");
+		$self->cleanup_apt_archive();
+		$session->unlink($tmpfilename);
+		return 0;
+	    }
+	}
     }
 
     $self->cleanup_apt_archive();
@@ -1243,10 +1285,6 @@ EOF
         print $tmpfh 'deb [trusted=yes] copy://' . $dummy_archive_dir . " ./\n";
         print $tmpfh 'deb-src [trusted=yes] copy://' . $dummy_archive_dir . " ./\n";
 
-        for my $repospec (@{$self->get_conf('EXTRA_REPOSITORIES')}) {
-            print $tmpfh "$repospec\n";
-        }
-
         close($tmpfh);
         # List file needs to be moved with root.
         if (!$session->chmod($tmpfilename, '0644')) {
@@ -1294,6 +1332,8 @@ sub cleanup_apt_archive {
     $session->unlink($self->get('Dummy archive list file'), { FORCE => 1 });
 
     $session->unlink($self->get('Dummy archive key file'), { FORCE => 1 });
+
+    $session->unlink($self->get('Extra repositories list file'), { FORCE => 1 });
 
     $self->set('Dummy package path', undef);
     $self->set('Dummy archive directory', undef);
