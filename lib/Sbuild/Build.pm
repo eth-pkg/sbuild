@@ -2083,7 +2083,10 @@ sub build {
 	}
     }
 
-    $self->check_space(@space_files);
+    $self->set('This Time', $self->get('Pkg End Time') - $self->get('Pkg Start Time'));
+    $self->get('This Time') = 0 if $self->get('This Time') < 0;
+
+    $self->set('This Space', $self->check_space(@space_files));
 
     return $rv == 0 ? 1 : 0;
 }
@@ -2159,41 +2162,50 @@ sub check_space {
     my $dscdir = $self->get('DSC Dir');
     my $build_dir = $self->get('Build Dir');
     my $pkgbuilddir = "$build_dir/$dscdir";
+    my ($space, $spacenum);
 
-    my $pkgbuilddirspc = $self->get('Session')->read_command(
+    # get the required space for the unpacked source package in the chroot
+    $space = $self->get('Session')->read_command(
 	{ COMMAND => ['du', '-k', '-s', $pkgbuilddir],
 	    USER => $self->get_conf('USERNAME'),
 	    PRIORITY => 0,
 	    DIR => '/'});
 
-    if (!$pkgbuilddirspc) {
-	$self->log_error("Cannot determine space needed (du failed)\n");
+    if (!$space) {
+	$self->log_error("Cannot determine space needed for $pkgbuilddir (du failed)\n");
+	return -1;
     }
-    if ($pkgbuilddirspc !~ /^(\d+)/) {
-	$self->log_error("Cannot determine space needed (unexpected du output): $pkgbuilddirspc\n");
+    # remove the trailing path from the du output
+    if (($spacenum) = $space =~ /^(\d+)/) {
+	$sum += $spacenum;
+    } else {
+	$self->log_error("Cannot determine space needed for $pkgbuilddir (unexpected du output): $space\n");
+	return -1;
     }
-    $sum += $1;
 
-    foreach (@files) {
-	my $space = $self->get('Host')->read_command(
-	    { COMMAND => ['du', '-k', '-s', $_],
+    # get the required space for all produced build artifacts on the host
+    # running sbuild
+    foreach my $file (@files) {
+	$space = $self->get('Host')->read_command(
+	    { COMMAND => ['du', '-k', '-s', $file],
 	      USER => $self->get_conf('USERNAME'),
 	      PRIORITY => 0,
 	      DIR => '/'});
 
 	if (!$space) {
-	    $self->log_error("Cannot determine space needed (du failed): $!\n");
-	    next;
+	    $self->log_error("Cannot determine space needed for $file (du failed): $!\n");
+	    return -1;
 	}
-	if ($space !~ /^(\d+)/) {
-	    $self->log_error("Cannot determine space needed (unexpected du output): $space\n");
+	# remove the trailing path from the du output
+	if (($spacenum) = $space =~ /^(\d+)/) {
+	    $sum += $spacenum;
+	} else {
+	    $self->log_error("Cannot determine space needed for $file (unexpected du output): $space\n");
+	    return -1;
 	}
-	$sum += $1;
     }
 
-    $self->set('This Time', $self->get('Pkg End Time') - $self->get('Pkg Start Time'));
-    $self->get('This Time') = 0 if $self->get('This Time') < 0;
-    $self->set('This Space', $sum);
+    return $sum;
 }
 
 sub lock_file {
