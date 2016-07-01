@@ -1331,6 +1331,7 @@ use IO::Compress::Gzip qw(gzip $GzipError);
 use Digest::MD5;
 use Digest::SHA;
 use POSIX qw(strftime);
+use POSIX qw(locale_h);
 
 # Execute a command without /bin/sh but plain execvp while redirecting its
 # standard output to a file given as the first argument.
@@ -1387,8 +1388,17 @@ my $sources_size = -s 'Sources';
 my $packagesgz_size = -s 'Packages.gz';
 my $sourcesgz_size = -s 'Sources.gz';
 
-# time format stolen from apt ftparchive/writer.cc
-my $datestring = strftime "%a, %d %b %Y %H:%M:%S UTC", gmtime();
+# The timestamp format of release files is documented here:
+#   https://wiki.debian.org/RepositoryFormat#Date.2CValid-Until
+# It is specified to be the same format as described in Debian Policy §4.4
+#   https://www.debian.org/doc/debian-policy/ch-source.html#s-dpkgchangelog
+# or the same as in debian/changelog or the Date field in .changes files.
+# or the same format as `date -R`
+# To adhere to the specified format, the C or C.UTF-8 locale must be used.
+my $old_locale = setlocale(LC_TIME);
+setlocale(LC_TIME, "C.UTF-8");
+my $datestring = strftime "%a, %d %b %Y %H:%M:%S +0000", gmtime();
+setlocale(LC_TIME, $old_locale);
 
 open(my $releasefh, '>', 'Release') or die "cannot open Release for writing: $!";
 
