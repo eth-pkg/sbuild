@@ -33,6 +33,7 @@ use IO::Zlib;
 use MIME::Base64;
 use Dpkg::Control;
 use Dpkg::Checksums;
+use POSIX qw(locale_h);
 
 BEGIN {
     use Exporter ();
@@ -43,7 +44,7 @@ BEGIN {
     @EXPORT = qw($debug_level $devnull binNMU_version parse_date isin
 		 copy dump_file check_packages help_text version_text
 		 usage_error send_mail debug debug2 df
-		 check_group_membership dsc_files dsc_pkgver shellescape);
+		 check_group_membership dsc_files dsc_pkgver shellescape strftime_c);
 }
 
 our $devnull;
@@ -70,6 +71,7 @@ sub debug2 (@);
 sub check_group_membership();
 sub dsc_files ($);
 sub shellescape ($);
+sub strftime_c ($@);
 
 sub binNMU_version ($$$) {
 	my $v = shift;
@@ -431,5 +433,19 @@ sub shellescape ($) {
     $string =~ s/'/'"'"'/g;
     return "'$string'";
 };
+
+# this function uses strftime to format a timestamp as a string but makes sure
+# to use the C locale to do so instead of the system locale
+sub strftime_c ($@) {
+	my $format = shift;
+	my @time = @_;
+
+	my $old_locale = setlocale(LC_TIME);
+	setlocale(LC_TIME, "C.UTF-8");
+	my $ret = strftime $format, @time;
+	setlocale(LC_TIME, $old_locale);
+
+	return $ret;
+}
 
 1;

@@ -45,7 +45,7 @@ use MIME::Lite;
 use Term::ANSIColor;
 
 use Sbuild qw($devnull binNMU_version copy isin debug send_mail
-              dsc_files dsc_pkgver);
+              dsc_files dsc_pkgver strftime_c);
 use Sbuild::Base;
 use Sbuild::ChrootInfoSchroot;
 use Sbuild::ChrootInfoSudo;
@@ -1940,7 +1940,7 @@ sub build {
 		       $self->get('Build End Time')-$self->get('Build Start Time'));
     $self->write_stats('install-download-time',
 		       $self->get('Install End Time')-$self->get('Install Start Time'));
-    my $finish_date = strftime("%Y%m%d-%H%M",localtime($self->get('Build End Time')));
+    my $finish_date = strftime_c "%FT%TZ", gmtime($self->get('Build End Time'));
     $self->log_sep();
     $self->log("Build finished at $finish_date\n");
 
@@ -2423,7 +2423,7 @@ sub build_log_colour {
 sub open_build_log {
     my $self = shift;
 
-    my $date = strftime("%Y%m%d-%H%M", localtime($self->get('Pkg Start Time')));
+    my $date = strftime_c "%FT%TZ", gmtime($self->get('Pkg Start Time'));
 
     my $filter_prefix = '__SBUILD_FILTER_' . $$ . ':';
     $self->set('FILTER_PREFIX', $filter_prefix);
@@ -2575,8 +2575,8 @@ sub open_build_log {
 	$head1 .= ' ' . $self->get('Version');
     }
     $head1 .= ' (' . $arch_string . ') ';
-    my $head2 = strftime("%d %b %Y %H:%M",
-			 localtime($self->get('Pkg Start Time')));
+    my $head2 = strftime_c "%a, %d %b %Y %H:%M:%S +0000",
+			 gmtime($self->get('Pkg Start Time'));
     my $head = $head1 . ' ' x (80 - 4 - length($head1) - length($head2)) .
 	$head2;
     $self->log_section($head);
@@ -2601,7 +2601,7 @@ sub close_build_log {
     if ($time == 0) {
         $time = time;
     }
-    my $date = strftime("%Y%m%d-%H%M", localtime($time));
+    my $date = strftime_c "%FT%TZ", gmtime($time);
 
     my $hours = int($self->get('This Time')/3600);
     my $minutes = int(($self->get('This Time')%3600)/60),
