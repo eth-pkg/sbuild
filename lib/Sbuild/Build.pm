@@ -2185,7 +2185,7 @@ sub check_space {
 	    $self->log_error("Cannot determine space needed (du failed): $!\n");
 	    next;
 	}
-	if ($pkgbuilddirspc !~ /^(\d+)/) {
+	if ($space !~ /^(\d+)/) {
 	    $self->log_error("Cannot determine space needed (unexpected du output): $space\n");
 	}
 	$sum += $1;
