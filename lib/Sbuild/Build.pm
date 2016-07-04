@@ -2566,10 +2566,7 @@ sub open_build_log {
     my $hostname = $self->get_conf('HOSTNAME');
     $self->log("sbuild (Debian sbuild) $version ($release_date) on $hostname\n");
 
-    my $arch_string = $self->get('Build Arch');
-    $arch_string = 'CROSS host=' . $self->get('Host Arch') .
-	'/build=' . $self->get('Build Arch')
-	if ($self->get('Host Arch') ne $self->get('Build Arch'));
+    my $arch_string = $self->get('Host Arch');
     my $head1 = $self->get('Package');
     if ($self->get('Version')) {
 	$head1 .= ' ' . $self->get('Version');
