@@ -1138,6 +1138,15 @@ sub check_architectures {
     $self->log_subsection("Check architectures");
     # Check for cross-arch dependencies
     # parse $build_depends* for explicit :arch and add the foreign arches, as needed
+    #
+    # This check only looks at the immediate build dependencies. This could
+    # fail in a future where a foreign architecture direct build dependency of
+    # architecture X depends on another foreign architecture package of
+    # architecture Y. Architecture Y would not be added through this check as
+    # sbuild will not traverse the dependency graph. Doing so would be very
+    # complicated as new architectures would have to be added to a dependency
+    # solver like dose3 as the graph is traversed and new architectures are
+    # found.
     sub get_explicit_arches
     {
         my $visited_deps = pop;
