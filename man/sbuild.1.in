@@ -1005,15 +1005,20 @@ command hook
 The following table shows each command hook in the context of the tasks sbuild
 performs. The column \fIroot\fP shows whether the command is run as root (yes)
 or not (no).  The column \fIchroot\fP shows whether the command is run inside
-our outside the chroot. The remaining columns show the percent escapes that are
-defined in each command. Percent escapes that are available in all commands
-(\fB%%\fR, \fB%a\fR, \fB%b\fR, \fB%s\fR) are omitted. The value \fImaybe\fP in
-the column for the \fB%d\fR and \fB%p\fR escapes means that the value can not
-relied upon to be defined in these stages. More specifically, these escapes
-will not be defined at these points if the user specified a source package name
-without a version on the command line. In that case, the version will only
-become known after the source package has been retrieved in the "Fetch and
-unpack source package" stage.
+our outside the chroot. The working directory inside the chroot is the one
+marked with \f[CB]<<BUILDDIR>>\fR inside the log. By default, this is a
+directory of the format \f[CB]/build/packagename-XXXXXX/\f[R] where
+\f[CB]XXXXXX\fR is a random ascii string.  Otherwise, it is the directory set
+by \f[CB]--build-path\fR or by the \f[CB]BUILD_PATH\fR configuration option.
+The working directory outside of the chroot is $HOME. The remaining columns
+show the percent escapes that are defined in each command.  Percent escapes
+that are available in all commands (\fB%%\fR, \fB%a\fR, \fB%b\fR, \fB%s\fR) are
+omitted.  The value \fImaybe\fP in the column for the \fB%d\fR and \fB%p\fR
+escapes means that the value can not relied upon to be defined in these stages.
+More specifically, these escapes will not be defined at these points if the
+user specified a source package name without a version on the command line. In
+that case, the version will only become known after the source package has been
+retrieved in the "Fetch and unpack source package" stage.
 .PP
 .if t \{\
 .ft CW
