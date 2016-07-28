@@ -2616,7 +2616,7 @@ sub close_build_log {
 	    if (!defined($changes)) {
 		$self->log_error(".changes is undef. Cannot sign .changes.\n");
 	    } else {
-		system('debsign', "-k$key_id", '--', "$build_dir/$changes");
+		system('debsign', '--re-sign', "-k$key_id", '--', "$build_dir/$changes");
 	    }
 	}
     }
