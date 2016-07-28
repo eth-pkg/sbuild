@@ -1475,7 +1475,7 @@ sub run_lintian {
     my $build_dir = $self->get('Build Dir');
     my $resolver = $self->get('Dependency Resolver');
     my $lintian = $self->get_conf('LINTIAN');
-    my $changes = $self->get_changes($build_dir);
+    my $changes = $self->get_changes();
     if (!defined($changes)) {
 	$self->log_error(".changes is undef. Cannot run lintian.\n");
 	return 0;
@@ -1999,7 +1999,7 @@ sub build {
 	}
 
 	$self->log_subsection("Changes");
-	$changes = $self->get_changes($build_dir);
+	$changes = $self->get_changes();
 	if (!defined($changes)) {
 	    $self->log_error(".changes is undef. Cannot copy build results.\n");
 	    return 0;
@@ -2126,40 +2126,16 @@ sub get_env ($$) {
 
 sub get_changes {
     my $self=shift;
-    my $path=shift;
-    my $changes;
-    my $session = $self->get('Session');
-
-    return if not defined($session);
-
-    if ($session->test_regular_file_readable($path . '/' . $self->get('Package_SVersion') . "_source.changes")) {
-	$changes = $self->get('Package_SVersion') . "_source.changes";
-    }
-    elsif ($session->test_regular_file_readable($path . '/' . $self->get('Package_SVersion') . "_all.changes")) {
-	$changes = $self->get('Package_SVersion') . "_all.changes";
-    }
-    else {
-	$changes = $self->get('Package_SVersion') . '_' . $self->get('Host Arch') . '.changes';
-    }
-    return $changes;
-}
-
-# same as get_changes but checks for the .changes file on the host running
-# sbuild instead of inside the chroot
-sub get_changes_host {
-    my $self=shift;
-    my $path=shift;
     my $changes;
 
-    if ( -r $path . '/' . $self->get('Package_SVersion') . "_source.changes") {
+    if ($self->get_conf('BUILD_ARCH_ANY')) {
+	$changes = $self->get('Package_SVersion') . '_' . $self->get('Host Arch') . '.changes';
+    } elsif ($self->get_conf('BUILD_ARCH_ALL')) {
+	$changes = $self->get('Package_SVersion') . "_all.changes";
+    } elsif ($self->get_conf('BUILD_SOURCE')) {
 	$changes = $self->get('Package_SVersion') . "_source.changes";
     }
-    elsif ( -r $path . '/' . $self->get('Package_SVersion') . "_all.changes") {
-	$changes = $self->get('Package_SVersion') . "_all.changes";
-    }
-    else {
-	$changes = $self->get('Package_SVersion') . '_' . $self->get('Host Arch') . '.changes';
-    }
+
     return $changes;
 }
 
@@ -2636,7 +2612,7 @@ sub close_build_log {
 	    my $build_dir = $self->get_conf('BUILD_DIR');
 	    my $changes;
 	    $self->log(sprintf("Signature with key '%s' requested:\n", $key_id));
-	    $changes = $self->get_changes_host($build_dir);
+	    $changes = $self->get_changes();
 	    if (!defined($changes)) {
 		$self->log_error(".changes is undef. Cannot sign .changes.\n");
 	    } else {
@@ -2757,7 +2733,7 @@ sub send_mime_build_log {
 		);
     }
     my $build_dir = $self->get_conf('BUILD_DIR');
-    my $changes = $self->get_changes_host($build_dir);
+    my $changes = $self->get_changes();
     if ($self->get_status() eq 'successful' && -r "$build_dir/$changes") {
 	my $log_part = MIME::Lite->new(
 		Type     => 'text/plain',
