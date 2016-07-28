@@ -336,8 +336,8 @@ This command line option sets the \fBUPLOADER_NAME\fP configuration variable. Se
 for more information.
 .TP
 .BR \-k ", " "\-\-keyid=\fIkey-id\fP"
-Passed to dpkg\-genchanges and is used to set the key to sign the .changes
-file(s).  Default is not using any key.
+Passed to debsign and is used to set the key to sign the .changes
+file(s).  Default is not using any key and not signing the .changes file(s).
 This command line option sets the \fBKEY_ID\fP configuration variable. See
 .BR sbuild.conf (5)
 for more information.
