@@ -506,6 +506,9 @@ sub set_options {
 			"build-path=s" => sub {
 			   $self->set_conf('BUILD_PATH', $_[1]);
 			},
+			"source-only-changes" => sub {
+			   $self->set_conf('SOURCE_ONLY_CHANGES', 1);
+			},
 	);
 }
 

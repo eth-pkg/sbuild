@@ -1222,6 +1222,14 @@ $crossbuild_core_depends = {
 	    HELP => 'Additional per-build apt repositories.',
 	    CLI_OPTIONS => ['--extra-repository']
 	},
+	'SOURCE_ONLY_CHANGES'				=> {
+	    TYPE => 'BOOL',
+	    VARNAME => 'source_only_changes',
+	    GROUP => 'Build options',
+	    DEFAULT => 0,
+	    HELP => 'Also produce a changes file suitable for a source-only upload.',
+	    CLI_OPTIONS => ['--source-only-changes']
+	},
     );
 
     $conf->set_allowed_keys(\%sbuild_keys);

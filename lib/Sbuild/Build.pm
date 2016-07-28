@@ -1999,15 +1999,10 @@ sub build {
 	}
 
 	$self->log_subsection("Changes");
-	$changes = $self->get_changes();
-	if (!defined($changes)) {
-	    $self->log_error(".changes is undef. Cannot copy build results.\n");
-	    return 0;
-	}
-	my @cfiles;
-	if ($session->test_regular_file_readable("$build_dir/$changes")) {
-	    my(@do_dists, @saved_dists);
-	    $self->log_subsubsection("$changes:");
+
+	my $copy_changes = sub {
+	    my $changes = shift;
+
 	    my $F = $session->get_read_file_handle("$build_dir/$changes");
 	    if (!$F) {
 		$self->log_error("cannot get read file handle for $build_dir/$changes\n");
@@ -2026,11 +2021,6 @@ sub build {
 	    if ($self->get_conf('OVERRIDE_DISTRIBUTION')) {
 		$pchanges->{Distribution} = $self->get_conf('DISTRIBUTION');
 	    }
-
-	    my $checksums = Dpkg::Checksums->new();
-	    $checksums->add_from_control($pchanges);
-
-	    push(@cfiles, $checksums->get_files());
 
 	    my $sys_build_dir = $self->get_conf('BUILD_DIR');
 	    if (!open( F2, ">$sys_build_dir/$changes.new" )) {
@@ -2053,9 +2043,61 @@ sub build {
 		unlink("$build_dir/$changes")
 		    if $build_dir;
 	    }
+
+	    return $pchanges;
+	};
+
+	$changes = $self->get_changes();
+	if (!defined($changes)) {
+	    $self->log_error(".changes is undef. Cannot copy build results.\n");
+	    return 0;
+	}
+	my @cfiles;
+	if ($session->test_regular_file_readable("$build_dir/$changes")) {
+	    my(@do_dists, @saved_dists);
+	    $self->log_subsubsection("$changes:");
+
+	    my $pchanges = &$copy_changes($changes);
+
+	    my $checksums = Dpkg::Checksums->new();
+	    $checksums->add_from_control($pchanges);
+
+	    push(@cfiles, $checksums->get_files());
+
 	}
 	else {
 	    $self->log_error("Can't find $changes -- can't dump info\n");
+	}
+
+	if ($self->get_conf('SOURCE_ONLY_CHANGES')) {
+	    my $so_changes = $self->get('Package_SVersion') . "_source.changes";
+	    $self->log_subsubsection("$so_changes:");
+	    my $genchangescmd = ['dpkg-genchanges', '--build=source'];
+	    if (defined($self->get_conf('SIGNING_OPTIONS')) &&
+		$self->get_conf('SIGNING_OPTIONS')) {
+		if (ref($self->get_conf('SIGNING_OPTIONS')) eq 'ARRAY') {
+		    push (@{$genchangescmd}, @{$self->get_conf('SIGNING_OPTIONS')});
+		} else {
+		    push (@{$genchangescmd}, $self->get_conf('SIGNING_OPTIONS'));
+		}
+	    }
+	    my $cfile = $session->read_command(
+		{ COMMAND => $genchangescmd,
+		    USER => $self->get_conf('BUILD_USER'),
+		    PRIORITY => 0,
+		    DIR => $dscdir});
+	    if (!$cfile) {
+		$self->log_error("dpkg-genchanges --build=source failed\n");
+		Sbuild::Exception::Build->throw(error => "dpkg-genchanges --build=source failed",
+		    failstage => "source-only-changes");
+	    }
+	    if (!$session->write_file("$build_dir/$so_changes", $cfile)) {
+		$self->log_error("cannot write content to $build_dir/$so_changes\n");
+		Sbuild::Exception::Build->throw(error => "cannot write content to $build_dir/$so_changes",
+		    failstage => "source-only-changes");
+	    }
+
+	    my $pchanges = &$copy_changes($so_changes);
 	}
 
 	$self->log_subsection("Package contents");
@@ -2617,6 +2659,14 @@ sub close_build_log {
 		$self->log_error(".changes is undef. Cannot sign .changes.\n");
 	    } else {
 		system('debsign', '--re-sign', "-k$key_id", '--', "$build_dir/$changes");
+	    }
+	    if ($self->get_conf('SOURCE_ONLY_CHANGES')) {
+		my $so_changes = $build_dir . '/' . $self->get('Package_SVersion') . "_source.changes";
+		if (-r $so_changes) {
+		    system('debsign', '--re-sign', "-k$key_id", '--', "$so_changes");
+		} else {
+		    $self->log_error("$so_changes unreadable. Cannot sign .changes.\n");
+		}
 	    }
 	}
     }
