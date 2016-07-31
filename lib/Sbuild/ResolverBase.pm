@@ -1055,6 +1055,20 @@ EOF
 	    ((-f $self->get_conf('SBUILD_BUILD_DEPENDS_SECRET_KEY_ARMORED')) &&
 		(-f $self->get_conf('SBUILD_BUILD_DEPENDS_PUBLIC_KEY_ARMORED')))) &&
 	!$self->get_conf('APT_ALLOW_UNAUTHENTICATED')) {
+	if (!$session->can_run("gpg")) {
+	    $self->log_error("Signing the internal dummy package repository was implicitly enabled because\n");
+	    $self->log_error("a GPG key pair was found on the host. An error occurred because the gnupg\n");
+	    $self->log_error("executable was not found inside the chroot. Signing the internal dummy\n");
+	    $self->log_error("repository is only required for chroots with versions of apt versions before\n");
+	    $self->log_error("version 0.8.16~exp3 (so Debian squeeze or older).\n");
+	    $self->log_error("To fix this problem, either (if you don't need squeeze):\n");
+	    $self->log_error(" - disable signing by removing /var/lib/sbuild/apt-keys/ from the host\n");
+	    $self->log_error("or (if you need squeeze) either:\n");
+	    $self->log_error(" - install the gnupg package into your chroot\n");
+	    $self->log_error(" - or add gnupg:native to the CORE_DEPENDS configuration variable\n");
+	    return 0;
+	}
+
 	my @gpg_command = ('gpg', '--homedir', $dummy_gpghome, '--yes');
 	# if the armored keys exist, we prefer these. Otherwise we fall back
 	# to the keys in gpg format
@@ -1131,10 +1145,14 @@ EOF
 	    # armored format
 	    if ((! -f $self->get_conf('SBUILD_BUILD_DEPENDS_SECRET_KEY_ARMORED')) ||
 		(! -f $self->get_conf('SBUILD_BUILD_DEPENDS_PUBLIC_KEY_ARMORED'))) {
-		$self->log_warning("The keys were not found in armored format and thus, a version skew \n" .
-				   "between gnupg on your host and in the chroot might be responsible \n" .
-				   "for this failure. Try running sbuild-update --keygen again to \n" .
-				   "generate a keypair in armored ASCII format.\n");
+		$self->log_warning("The keys were not found in armored format and thus, a version skew \n");
+		$self->log_warning("between gnupg on your host and in the chroot might be responsible \n");
+		$self->log_warning("for this failure. Try running sbuild-update --keygen again to \n");
+		$self->log_warning("generate a keypair in armored ASCII format.\n");
+		$self->log_warning("Alternatively, if you are using sbuild with chroots containing apt\n");
+		$self->log_warning("versions of 0.8.16~exp3 or newer (Debian wheezy and later) then\n");
+		$self->log_warning("signing isn't required at all and you can just delete\n");
+		$self->log_warning("/var/lib/sbuild/apt-keys/ from the host to disable signing.\n");
 	    }
 	    return 0;
 	}
