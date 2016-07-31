@@ -183,20 +183,16 @@ sub setup {
 	    # List file needs to be moved with root.
 	    if (!$session->chmod($tmpfilename, '0644')) {
 		$self->log("Failed to create apt list file for dummy archive.\n");
-		$self->cleanup_apt_archive();
 		$session->unlink($tmpfilename);
 		return 0;
 	    }
 	    if (!$session->rename($tmpfilename, $extra_repositories_list_file)) {
 		$self->log("Failed to create apt list file for dummy archive.\n");
-		$self->cleanup_apt_archive();
 		$session->unlink($tmpfilename);
 		return 0;
 	    }
 	}
     }
-
-    $self->cleanup_apt_archive();
 
     return 1;
 }
@@ -365,7 +361,6 @@ sub update_archive {
 	my $dummy_sources_list_d = $self->get('Dummy package path') . '/sources.list.d';
 	if (!($session->test_directory($dummy_sources_list_d) || $session->mkdir($dummy_sources_list_d, { MODE => "00700"}))) {
 	    $self->log_warning('Could not create build-depends dummy sources.list directory ' . $dummy_sources_list_d . ': ' . $!);
-	    $self->cleanup_apt_archive();
 	    return 0;
 	}
 
@@ -813,12 +808,10 @@ sub setup_apt_archive {
 
     if (!$session->test_directory($dummy_dir)) {
         $self->log_warning('Could not create build-depends dummy dir ' . $dummy_dir . ': ' . $!);
-        $self->cleanup_apt_archive();
         return 0;
     }
     if (!($session->test_directory($dummy_gpghome) || $session->mkdir($dummy_gpghome, { MODE => "00700"}))) {
         $self->log_warning('Could not create build-depends dummy gpg home dir ' . $dummy_gpghome . ': ' . $!);
-        $self->cleanup_apt_archive();
         return 0;
     }
     if (!$session->chown($dummy_gpghome, $self->get_conf('BUILD_USER'), 'sbuild')) {
@@ -828,7 +821,6 @@ sub setup_apt_archive {
     }
     if (!($session->test_directory($dummy_archive_dir) || $session->mkdir($dummy_archive_dir, { MODE => "00775"}))) {
         $self->log_warning('Could not create build-depends dummy archive dir ' . $dummy_archive_dir . ': ' . $!);
-        $self->cleanup_apt_archive();
         return 0;
     }
 
@@ -838,20 +830,17 @@ sub setup_apt_archive {
 
     if (!($session->mkdir("$dummy_pkg_dir", { MODE => "00775"}))) {
 	$self->log_warning('Could not create build-depends dummy dir ' . $dummy_pkg_dir . $!);
-        $self->cleanup_apt_archive();
 	return 0;
     }
 
     if (!($session->mkdir("$dummy_pkg_dir/DEBIAN", { MODE => "00775"}))) {
 	$self->log_warning('Could not create build-depends dummy dir ' . $dummy_pkg_dir . '/DEBIAN: ' . $!);
-        $self->cleanup_apt_archive();
 	return 0;
     }
 
     my $DUMMY_CONTROL = $session->get_write_file_handle("$dummy_pkg_dir/DEBIAN/control");
     if (!$DUMMY_CONTROL) {
 	$self->log_warning('Could not open ' . $dummy_pkg_dir . '/DEBIAN/control for writing: ' . $!);
-        $self->cleanup_apt_archive();
 	return 0;
     }
 
@@ -908,7 +897,6 @@ EOF
     if( !defined $positive ) {
         my $msg = "Error! deps_parse() couldn't parse the positive Build-Depends '$positive_build_deps'";
         $self->log_error("$msg\n");
-        $self->cleanup_apt_archive();
         return 0;
     }
 
@@ -925,7 +913,6 @@ EOF
     if( !defined $negative ) {
         my $msg = "Error! deps_parse() couldn't parse the negative Build-Depends '$negative_build_deps'";
         $self->log_error("$msg\n");
-        $self->cleanup_apt_archive();
         return 0;
     }
 
@@ -1013,7 +1000,6 @@ EOF
 	  PRIORITY => 0});
     if ($?) {
 	$self->log("Dummy package creation failed\n");
-        $self->cleanup_apt_archive();
 	return 0;
     }
 
@@ -1021,7 +1007,6 @@ EOF
     my $dummy_dsc_fh = $session->get_write_file_handle($dummy_dsc);
     if (!$dummy_dsc_fh) {
         $self->log_warning('Could not open ' . $dummy_dsc . ' for writing: ' . $!);
-        $self->cleanup_apt_archive();
         return 0;
     }
 
@@ -1057,7 +1042,6 @@ EOF
     # Do code to run apt-ftparchive
     if (!$self->run_apt_ftparchive()) {
         $self->log("Failed to run apt-ftparchive.\n");
-        $self->cleanup_apt_archive();
         return 0;
     }
 
@@ -1152,7 +1136,6 @@ EOF
 				   "for this failure. Try running sbuild-update --keygen again to \n" .
 				   "generate a keypair in armored ASCII format.\n");
 	    }
-	    $self->cleanup_apt_archive();
 	    return 0;
 	}
 	# check if gpgconf exists
@@ -1197,7 +1180,6 @@ EOF
             debug("Adding archive key: $repokey\n");
             if (!-f $repokey) {
                 $self->log("Failed to add archive key '${repokey}' - it doesn't exist!\n");
-                $self->cleanup_apt_archive();
                 close($tmpfh);
 		$session->unlink($tmpfilename);
                 return 0;
@@ -1205,7 +1187,6 @@ EOF
 	    local *INFILE;
 	    if(!open(INFILE, "<", $repokey)) {
                 $self->log("Failed to add archive key '${repokey}' - it cannot be opened for reading!\n");
-                $self->cleanup_apt_archive();
                 close($tmpfh);
 		$session->unlink($tmpfilename);
                 return 0;
@@ -1245,7 +1226,6 @@ EOF
               PRIORITY => 0});
         if ($?) {
             $self->log("Failed to import archive keys to the trusted keyring");
-            $self->cleanup_apt_archive();
 	    $session->unlink($tmpfilename);
             return 0;
         }
@@ -1289,13 +1269,11 @@ EOF
         # List file needs to be moved with root.
         if (!$session->chmod($tmpfilename, '0644')) {
             $self->log("Failed to create apt list file for dummy archive.\n");
-            $self->cleanup_apt_archive();
 	    $session->unlink($tmpfilename);
             return 0;
         }
         if (!$session->rename($tmpfilename, $dummy_archive_list_file)) {
             $self->log("Failed to create apt list file for dummy archive.\n");
-            $self->cleanup_apt_archive();
 	    $session->unlink($tmpfilename);
             return 0;
         }
@@ -1311,7 +1289,6 @@ EOF
               PRIORITY => 0});
         if ($?) {
             $self->log("Failed to add dummy archive key.\n");
-            $self->cleanup_apt_archive();
             return 0;
         }
     }
