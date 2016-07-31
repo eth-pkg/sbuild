@@ -1068,6 +1068,28 @@ EOF
 	    $self->log_error(" - or add gnupg:native to the CORE_DEPENDS configuration variable\n");
 	    return 0;
 	}
+	my $kill_gpgagent = sub {
+	    if (((((-f $self->get_conf('SBUILD_BUILD_DEPENDS_SECRET_KEY')) &&
+			    (-f $self->get_conf('SBUILD_BUILD_DEPENDS_PUBLIC_KEY'))) ||
+			((-f $self->get_conf('SBUILD_BUILD_DEPENDS_SECRET_KEY_ARMORED')) &&
+			    (-f $self->get_conf('SBUILD_BUILD_DEPENDS_PUBLIC_KEY_ARMORED')))) &&
+		    !$self->get_conf('APT_ALLOW_UNAUTHENTICATED')) &&
+		$session->can_run("gpgconf")) {
+		# run gpgconf --kill gpg-agent (for gpg > 2.1) to kill any
+		# remaining gpg-agent
+		$session->run_command(
+		    { COMMAND => ['gpgconf', '--kill', 'gpg-agent'],
+			ENV => { GNUPGHOME => $dummy_gpghome }, # gpgconf (< 2.1.12) doesn't have a --homedir argument
+			USER => $self->get_conf('BUILD_USER'),
+			PRIORITY => 0});
+		if ($?) {
+		    my $err = $? >> 8;
+		    $self->log_error("before conversion: $?\n");
+		    $self->log_error("gpgconf --kill gpg-agent died with exit $err\n");
+		    return 0;
+		}
+	    }
+	};
 
 	my @gpg_command = ('gpg', '--homedir', $dummy_gpghome, '--yes');
 	# if the armored keys exist, we prefer these. Otherwise we fall back
@@ -1095,6 +1117,7 @@ EOF
 		    PRIORITY => 0});
 	    if ($?) {
 		$self->log_error("Failed to import public key\n");
+		&$kill_gpgagent();
 		return 0;
 	    }
 	    @import_command = ('gpg', '--homedir', $dummy_gpghome, '--allow-secret-key-import', '--import', $dummy_archive_seckey);
@@ -1104,6 +1127,7 @@ EOF
 		    PRIORITY => 0});
 	    if ($?) {
 		$self->log_error("Failed to import public key\n");
+		&$kill_gpgagent();
 		return 0;
 	    }
 	} else {
@@ -1154,25 +1178,10 @@ EOF
 		$self->log_warning("signing isn't required at all and you can just delete\n");
 		$self->log_warning("/var/lib/sbuild/apt-keys/ from the host to disable signing.\n");
 	    }
+	    &$kill_gpgagent();
 	    return 0;
 	}
-	# check if gpgconf exists
-	if ($session->can_run("gpgconf")) {
-	    # run gpgconf --kill gpg-agent (for gpg > 2.1) to kill any
-	    # remaining gpg-agent
-	    $session->run_command(
-		{ COMMAND => ['gpgconf', '--kill', 'gpg-agent'],
-		    ENV => { GNUPGHOME => $dummy_gpghome }, # gpgconf (< 2.1.12) doesn't have a --homedir argument
-		    USER => $self->get_conf('BUILD_USER'),
-		    PRIORITY => 0});
-	    if ($?) {
-		my $err = $? >> 8;
-		$self->log_error("before conversion: $?\n");
-		$self->log_error("gpgconf --kill gpg-agent died with exit $err\n");
-		$self->cleanup_apt_archive();
-		return 0;
-	    }
-	}
+	&$kill_gpgagent();
     }
 
     # Now, we'll add in any provided OpenPGP keys into the archive, so that
