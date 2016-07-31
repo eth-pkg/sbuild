@@ -1310,6 +1310,13 @@ EOF
 	(-f $self->get_conf('SBUILD_BUILD_DEPENDS_PUBLIC_KEY')) &&
 	!$self->get_conf('APT_ALLOW_UNAUTHENTICATED')) {
         # Add the generated key
+	# Until recently (commit 4039798d971752325d097bfbdc9011b5e9efd29c in
+	# the apt git) apt-key did not clean up any remaining gpg-agent that
+	# might be running after it ran gpg. Sbuild is unable to kill that
+	# gpg-agent itself because doing so requires access to the gpg home
+	# directory that apt-key uses but that one is a temporary one and
+	# removed by apt-key on exit. Thus, remaining gpg-agent processes left
+	# over by apt-key require a newer apt in the chroot.
         $session->run_command(
             { COMMAND => ['apt-key', 'add', $dummy_archive_pubkey],
               USER => 'root',
