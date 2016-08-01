@@ -187,7 +187,7 @@ You only need to run dpkg-reconfigure if you weren't asked the questions during
 the debconf install.  Next, install the packages required for building
 packages:
 .PP
-\f[CR]# \f[CB]apt\-get install debfoster fakeroot build\-essential\fP\fP
+\f[CR]# \f[CB]apt\-get install fakeroot build\-essential\fP\fP
 .br
 \f[CR]# \f[CB]apt\-get install makedev\fP\fP
 .br

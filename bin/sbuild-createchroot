@@ -188,8 +188,7 @@ usage_error("sbuild-createchroot",
 # Make sure fakeroot and build-essential are installed
 $conf->set('INCLUDE', add_items($conf->get('INCLUDE'),
 				"fakeroot",
-				"build-essential",
-				"debfoster"));
+				"build-essential"));
 
 # Deal with SUITE-VARIANT
 my $suitevariant = $ARGV[0];
