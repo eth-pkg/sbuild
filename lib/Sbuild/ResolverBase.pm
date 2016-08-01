@@ -194,6 +194,42 @@ sub setup {
 	}
     }
 
+    # Now, we'll add in any provided OpenPGP keys into the archive, so that
+    # builds can (optionally) trust an external key for the duration of the
+    # build.
+    #
+    # Keys have to be in a format that apt expects to land in
+    # /etc/apt/trusted.gpg.d as they are just copied to there. We could also
+    # support more formats by first importing them using gpg and then
+    # exporting them but that would require gpg to be installed inside the
+    # chroot.
+    if (@{$self->get_conf('EXTRA_REPOSITORY_KEYS')}) {
+	for my $repokey (@{$self->get_conf('EXTRA_REPOSITORY_KEYS')}) {
+	    debug("Adding archive key: $repokey\n");
+	    if (!-f $repokey) {
+		$self->log("Failed to add archive key '${repokey}' - it doesn't exist!\n");
+		return 0;
+	    }
+	    my $tmpfilename = $session->mktemp({TEMPLATE => "/etc/apt/trusted.gpg.d/sbuild-extra-repository-XXXXXXXXXX.gpg"});
+	    if (!$tmpfilename) {
+		$self->log_error("Can't create tempfile for external repository key\n");
+		$session->unlink($tmpfilename);
+		return 0;
+	    }
+	    if (!$session->copy_to_chroot($repokey, $tmpfilename)) {
+		$self->log_error("Failed to copy external repository key $repokey into chroot $tmpfilename\n");
+		$session->unlink($tmpfilename);
+		return 0;
+	    }
+	    if (!$session->chmod($tmpfilename, '0644')) {
+		$self->log_error("Failed to chmod $tmpfilename inside the chroot\n");
+		$session->unlink($tmpfilename);
+		return 0;
+	    }
+	}
+
+    }
+
     return 1;
 }
 
@@ -1198,42 +1234,6 @@ EOF
 	}
 	$session->rename($tmpfilename, $self->get('Dummy archive key file'));
 	&$kill_gpgagent();
-    }
-
-    # Now, we'll add in any provided OpenPGP keys into the archive, so that
-    # builds can (optionally) trust an external key for the duration of the
-    # build.
-    #
-    # Keys have to be in a format that apt expects to land in
-    # /etc/apt/trusted.gpg.d as they are just copied to there. We could also
-    # support more formats by first importing them using gpg and then
-    # exporting them but that would require gpg to be installed inside the
-    # chroot.
-    if (@{$self->get_conf('EXTRA_REPOSITORY_KEYS')}) {
-	for my $repokey (@{$self->get_conf('EXTRA_REPOSITORY_KEYS')}) {
-	    debug("Adding archive key: $repokey\n");
-	    if (!-f $repokey) {
-		$self->log("Failed to add archive key '${repokey}' - it doesn't exist!\n");
-		return 0;
-	    }
-	    my $tmpfilename = $session->mktemp({TEMPLATE => "/etc/apt/trusted.gpg.d/sbuild-extra-repository-XXXXXXXXXX.gpg"});
-	    if (!$tmpfilename) {
-		$self->log_error("Can't create tempfile for external repository key\n");
-		$session->unlink($tmpfilename);
-		return 0;
-	    }
-	    if (!$session->copy_to_chroot($repokey, $tmpfilename)) {
-		$self->log_error("Failed to copy external repository key $repokey into chroot $tmpfilename\n");
-		$session->unlink($tmpfilename);
-		return 0;
-	    }
-	    if (!$session->chmod($tmpfilename, '0644')) {
-		$self->log_error("Failed to chmod $tmpfilename inside the chroot\n");
-		$session->unlink($tmpfilename);
-		return 0;
-	    }
-	}
-
     }
 
     # Write a list file for the dummy archive if one not create yet.
