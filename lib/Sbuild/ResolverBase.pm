@@ -1181,6 +1181,22 @@ EOF
 	    &$kill_gpgagent();
 	    return 0;
 	}
+
+	# Add the imported key to apt's trusted keys
+	#
+	# Write into a temporary file first so that we can run gpg as the
+	# BUILD_USER instead of root (gpg will complain otherwise)
+	my $tmpfilename = $session->mktemp({USER => $self->get_conf('BUILD_USER')});
+	$session->run_command(
+	    { COMMAND => ['gpg', '--homedir', $dummy_gpghome, '--batch', '--yes', '--export', '--output', $tmpfilename, 'Sbuild Signer'],
+		USER => $self->get_conf('BUILD_USER'),
+		PRIORITY => 0});
+	if ($?) {
+	    $self->log("Failed to add dummy archive key.\n");
+	    &$kill_gpgagent();
+	    return 0;
+	}
+	$session->rename($tmpfilename, $self->get('Dummy archive key file'));
 	&$kill_gpgagent();
     }
 
@@ -1302,27 +1318,6 @@ EOF
         if (!$session->rename($tmpfilename, $dummy_archive_list_file)) {
             $self->log("Failed to create apt list file for dummy archive.\n");
 	    $session->unlink($tmpfilename);
-            return 0;
-        }
-    }
-
-    if ((-f $self->get_conf('SBUILD_BUILD_DEPENDS_SECRET_KEY')) &&
-	(-f $self->get_conf('SBUILD_BUILD_DEPENDS_PUBLIC_KEY')) &&
-	!$self->get_conf('APT_ALLOW_UNAUTHENTICATED')) {
-        # Add the generated key
-	# Until recently (commit 4039798d971752325d097bfbdc9011b5e9efd29c in
-	# the apt git) apt-key did not clean up any remaining gpg-agent that
-	# might be running after it ran gpg. Sbuild is unable to kill that
-	# gpg-agent itself because doing so requires access to the gpg home
-	# directory that apt-key uses but that one is a temporary one and
-	# removed by apt-key on exit. Thus, remaining gpg-agent processes left
-	# over by apt-key require a newer apt in the chroot.
-        $session->run_command(
-            { COMMAND => ['apt-key', 'add', $dummy_archive_pubkey],
-              USER => 'root',
-              PRIORITY => 0});
-        if ($?) {
-            $self->log("Failed to add dummy archive key.\n");
             return 0;
         }
     }
