@@ -1203,76 +1203,37 @@ EOF
     # Now, we'll add in any provided OpenPGP keys into the archive, so that
     # builds can (optionally) trust an external key for the duration of the
     # build.
+    #
+    # Keys have to be in a format that apt expects to land in
+    # /etc/apt/trusted.gpg.d as they are just copied to there. We could also
+    # support more formats by first importing them using gpg and then
+    # exporting them but that would require gpg to be installed inside the
+    # chroot.
     if (@{$self->get_conf('EXTRA_REPOSITORY_KEYS')}) {
-        my $dummy_archive_key_file = $self->get('Dummy archive key file');
-
-	my $tmpfilename = $session->mktemp();
-
-	my $tmpfh = $session->get_write_file_handle($tmpfilename);
-	if (!$tmpfh) {
-	    $self->log_error("Cannot open pipe: $!\n");
-	    return 0;
+	for my $repokey (@{$self->get_conf('EXTRA_REPOSITORY_KEYS')}) {
+	    debug("Adding archive key: $repokey\n");
+	    if (!-f $repokey) {
+		$self->log("Failed to add archive key '${repokey}' - it doesn't exist!\n");
+		return 0;
+	    }
+	    my $tmpfilename = $session->mktemp({TEMPLATE => "/etc/apt/trusted.gpg.d/sbuild-extra-repository-XXXXXXXXXX.gpg"});
+	    if (!$tmpfilename) {
+		$self->log_error("Can't create tempfile for external repository key\n");
+		$session->unlink($tmpfilename);
+		return 0;
+	    }
+	    if (!$session->copy_to_chroot($repokey, $tmpfilename)) {
+		$self->log_error("Failed to copy external repository key $repokey into chroot $tmpfilename\n");
+		$session->unlink($tmpfilename);
+		return 0;
+	    }
+	    if (!$session->chmod($tmpfilename, '0644')) {
+		$self->log_error("Failed to chmod $tmpfilename inside the chroot\n");
+		$session->unlink($tmpfilename);
+		return 0;
+	    }
 	}
 
-        # Right, so, in order to copy the keys into the chroot (since we may have
-        # a bunch of them), we'll append to a tempfile, and write *all* of the
-        # given keys to the same tempfile. After we're clear, we'll move that file
-        # into the correct location by importing the .asc into a .gpg file.
-
-        for my $repokey (@{$self->get_conf('EXTRA_REPOSITORY_KEYS')}) {
-            debug("Adding archive key: $repokey\n");
-            if (!-f $repokey) {
-                $self->log("Failed to add archive key '${repokey}' - it doesn't exist!\n");
-                close($tmpfh);
-		$session->unlink($tmpfilename);
-                return 0;
-            }
-	    local *INFILE;
-	    if(!open(INFILE, "<", $repokey)) {
-                $self->log("Failed to add archive key '${repokey}' - it cannot be opened for reading!\n");
-                close($tmpfh);
-		$session->unlink($tmpfilename);
-                return 0;
-	    }
-
-	    while ( (read (INFILE, my $buffer, 65536)) != 0 ) {
-		print $tmpfh $buffer;
-	    }
-
-	    close INFILE;
-
-            print $tmpfh "\n";
-        }
-        close($tmpfh);
-
-        # Now that we've concat'd all the keys into the chroot, we're going
-        # to use GPG to import the keys into a single keyring. We've stubbed
-        # out the secret ring and home to ensure we don't store anything
-        # except for the public keyring.
-
-
-	my $tmpgpghome = $session->mktemp({ TEMPLATE => '/tmp/extra-repository-keys-XXXXXX', DIRECTORY => 1});
-	if (!$tmpgpghome) {
-	    $self->log_error("mktemp /tmp/extra-repository-keys-XXXXXX failed\n");
-	    return 0;
-	}
-
-        my @gpg_command = ('gpg', '--import', '--no-default-keyring',
-                           '--homedir', $tmpgpghome,
-                           '--secret-keyring', '/dev/null',
-                           '--keyring', $dummy_archive_key_file,
-                           $tmpfilename);
-
-        $session->run_command(
-            { COMMAND => \@gpg_command,
-              USER => 'root',
-              PRIORITY => 0});
-        if ($?) {
-            $self->log("Failed to import archive keys to the trusted keyring");
-	    $session->unlink($tmpfilename);
-            return 0;
-        }
-	$session->unlink($tmpfilename);
     }
 
     # Write a list file for the dummy archive if one not create yet.
