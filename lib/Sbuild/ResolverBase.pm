@@ -25,8 +25,9 @@ use strict;
 use warnings;
 use POSIX;
 use Fcntl;
-use File::Temp qw(tempfile);
+use File::Temp qw(mktemp);
 use File::Copy;
+use MIME::Base64;
 
 use Dpkg::Deps;
 use Sbuild::Base;
@@ -204,26 +205,95 @@ sub setup {
     # exporting them but that would require gpg to be installed inside the
     # chroot.
     if (@{$self->get_conf('EXTRA_REPOSITORY_KEYS')}) {
+	my $host = $self->get('Host');
+	# remember whether running gpg worked or not
+	my $has_gpg = 1;
 	for my $repokey (@{$self->get_conf('EXTRA_REPOSITORY_KEYS')}) {
 	    debug("Adding archive key: $repokey\n");
 	    if (!-f $repokey) {
 		$self->log("Failed to add archive key '${repokey}' - it doesn't exist!\n");
 		return 0;
 	    }
-	    my $tmpfilename = $session->mktemp({TEMPLATE => "/etc/apt/trusted.gpg.d/sbuild-extra-repository-XXXXXXXXXX.gpg"});
-	    if (!$tmpfilename) {
+	    # key might be armored but apt requires keys in binary format
+	    # We first try to run gpg from the host to convert the key into
+	    # binary format (this works even when the key already is in binary
+	    # format).
+	    my $tmpfilename = mktemp("/tmp/tmp.XXXXXXXXXX");
+	    if ($has_gpg == 1) {
+		$host->run_command({
+			COMMAND => ['gpg', '--yes', '--batch', '--output', $tmpfilename, '--dearmor', $repokey],
+			USER => $self->get_conf('BUILD_USER'),
+		    });
+		if ($?) {
+		    # don't try to use gpg again in later loop iterations
+		    $has_gpg = 0;
+		}
+	    }
+	    # If that doesn't work, then we manually convert the key
+	    # as it is just base64 encoded data with a header and footer.
+	    #
+	    # The decoding of armored gpg keys can even be done from a shell
+	    # script by using:
+	    #
+	    #    awk '/^$/{ x = 1; } /^[^=-]/{ if (x) { print $0; } ; }' | base64 -d
+	    #
+	    # As explained by dkg here: https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=831409#67
+	    if ($has_gpg == 0) {
+		# Test if we actually have an armored key. Otherwise, no
+		# conversion is needed.
+		open my $fh, '<', $repokey;
+		read $fh, my $first_line, 36;
+		if ($first_line eq "-----BEGIN PGP PUBLIC KEY BLOCK-----") {
+		    # Read the remaining part of the line until the newline.
+		    # We do it like this because the line might contain
+		    # additional whitespace characters or \r\n newlines.
+		    <$fh>;
+		    open my $out, '>', $tmpfilename;
+		    # the file is an armored gpg key, so we convert it to the
+		    # binary format
+		    my $header = 1;
+		    while( my $line = <$fh>) {
+			chomp $line;
+			# an empty line marks the end of the header
+			if ($line eq "") {
+			    $header = 0;
+			    next;
+			}
+			if ($header == 1) {
+			    next;
+			}
+			# the footer might contain lines starting with an
+			# equal sign or minuses
+			if ($line =~ /^[=-]/) {
+			    last;
+			}
+			print $out (decode_base64($line));
+		    }
+		    close $out;
+		}
+		close $fh;
+	    }
+	    # we could use incrementing integers to number the extra
+	    # repository keys but mktemp will also make sure that the new name
+	    # doesn't exist yet and avoids the complexity of an additional
+	    # variable
+	    my $keyfilename = $session->mktemp({TEMPLATE => "/etc/apt/trusted.gpg.d/sbuild-extra-repository-XXXXXXXXXX.gpg"});
+	    if (!$keyfilename) {
 		$self->log_error("Can't create tempfile for external repository key\n");
-		$session->unlink($tmpfilename);
+		$session->unlink($keyfilename);
+		unlink $tmpfilename;
 		return 0;
 	    }
-	    if (!$session->copy_to_chroot($repokey, $tmpfilename)) {
-		$self->log_error("Failed to copy external repository key $repokey into chroot $tmpfilename\n");
-		$session->unlink($tmpfilename);
+	    if (!$session->copy_to_chroot($tmpfilename, $keyfilename)) {
+		$self->log_error("Failed to copy external repository key $repokey into chroot $keyfilename\n");
+		$session->unlink($keyfilename);
+		unlink $tmpfilename;
 		return 0;
 	    }
-	    if (!$session->chmod($tmpfilename, '0644')) {
-		$self->log_error("Failed to chmod $tmpfilename inside the chroot\n");
-		$session->unlink($tmpfilename);
+	    unlink $tmpfilename;
+	    if (!$session->chmod($keyfilename, '0644')) {
+		$self->log_error("Failed to chmod $keyfilename inside the chroot\n");
+		$session->unlink($keyfilename);
 		return 0;
 	    }
 	}
