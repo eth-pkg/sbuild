@@ -821,6 +821,10 @@ sub run_fetch_install_packages {
 	    $self->check_abort();
 	    $self->run_piuparts();
 
+	    # Run autopkgtest.
+	    $self->check_abort();
+	    $self->run_autopkgtest();
+
 	    # Run post build external commands
 	    $self->check_abort();
 	    if(!$self->run_external_commands("post-build-commands")) {
@@ -1547,6 +1551,49 @@ sub run_piuparts {
     }
 
     $self->log_info("Piuparts run was successful.\n");
+    return 1;
+}
+
+sub run_autopkgtest {
+    my $self = shift;
+
+    return 1 unless ($self->get_conf('RUN_AUTOPKGTEST'));
+
+    $self->log_subsubsection("autopkgtest");
+
+    my $autopkgtest = $self->get_conf('AUTOPKGTEST');
+    my @autopkgtest_command;
+    if (scalar(@{$self->get_conf('AUTOPKGTEST_ROOT_ARGS')})) {
+	push @autopkgtest_command, @{$self->get_conf('AUTOPKGTEST_ROOT_ARGS')};
+    } else {
+	push @autopkgtest_command, 'sudo', '--';
+    }
+    push @autopkgtest_command, $autopkgtest;
+    if (!$self->get_conf('BUILD_SOURCE')) {
+	push @autopkgtest_command, $self->get('DSC');
+    }
+    push @autopkgtest_command, $self->get('Changes File');
+    if (scalar(@{$self->get_conf('AUTOPKGTEST_OPTIONS')})) {
+	push @autopkgtest_command, @{$self->get_conf('AUTOPKGTEST_OPTIONS')};
+    } else {
+	push @autopkgtest_command, '--', 'null';
+    }
+    $self->get('Host')->run_command(
+        { COMMAND => \@autopkgtest_command,
+          PRIORITY => 0,
+        });
+    my $status = $? >> 8;
+    $self->set('Autopkgtest Reason', 'pass');
+
+    $self->log("\n");
+    # fail if neither all tests passed nor was the package without tests
+    if ($status != 0 && $status != 8) {
+        $self->log_error("Autopkgtest run failed.\n");
+	$self->set('Autopkgtest Reason', 'fail');
+        return 0;
+    }
+
+    $self->log_info("Autopkgtest run was successful.\n");
     return 1;
 }
 
@@ -2345,6 +2392,8 @@ sub generate_stats {
 	if $self->get('Lintian Reason');
     $self->add_stat('Piuparts', $self->get('Piuparts Reason'))
 	if $self->get('Piuparts Reason');
+    $self->add_stat('Autopkgtest', $self->get('Autopkgtest Reason'))
+	if $self->get('Autopkgtest Reason');
 }
 
 sub log_stats {

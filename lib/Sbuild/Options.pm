@@ -50,6 +50,7 @@ sub set_options {
     my ($opt_clean_source, $opt_no_clean_source);
     my ($opt_run_lintian, $opt_no_run_lintian);
     my ($opt_run_piuparts, $opt_no_run_piuparts);
+    my ($opt_run_autopkgtest, $opt_no_run_autopkgtest);
 
     $self->add_options("arch=s" => sub {
 			   if (defined $opt_arch && $opt_arch ne $_[1]) {
@@ -438,6 +439,36 @@ sub set_options {
 		       },
 		       "piuparts-root-arg=s" => sub {
 			   push(@{$self->get_conf('PIUPARTS_ROOT_ARGS')},
+				$_[1]);
+		       },
+		       "run-autopkgtest" => sub {
+			    if ($opt_no_run_autopkgtest) {
+				die "--run-autopkgtest cannot be used together with --no-run-autopkgtest";
+			    }
+			    $self->set_conf('RUN_AUTOPKGTEST', 1);
+			    $opt_run_autopkgtest = 1;
+		       },
+		       "no-run-autopkgtest" => sub {
+			    if ($opt_run_autopkgtest) {
+				die "--no-run-autopkgtest cannot be used together with --run-autopkgtest";
+			    }
+			    $self->set_conf('RUN_AUTOPKGTEST', 0);
+			    $opt_no_run_autopkgtest = 1;
+		       },
+		       "autopkgtest-opts=s" => sub {
+			   push(@{$self->get_conf('AUTOPKGTEST_OPTIONS')},
+				split(/\s+/, $_[1]));
+		       },
+		       "autopkgtest-opt=s" => sub {
+			   push(@{$self->get_conf('AUTOPKGTEST_OPTIONS')},
+				$_[1]);
+		       },
+		       "autopkgtest-root-args=s" => sub {
+			   push(@{$self->get_conf('AUTOPKGTEST_ROOT_ARGS')},
+				split(/\s+/, $_[1]));
+		       },
+		       "autopkgtest-root-arg=s" => sub {
+			   push(@{$self->get_conf('AUTOPKGTEST_ROOT_ARGS')},
 				$_[1]);
 		       },
 			"pre-build-commands=s" => sub {

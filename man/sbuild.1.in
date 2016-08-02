@@ -72,6 +72,12 @@ sbuild \- build debian packages from source
 .RB [ \-\-piuparts\-opts=\fIoptions\fP ]
 .RB [ \-\-piuparts\-root\-arg=\fIoptions\fP ]
 .RB [ \-\-piuparts\-root\-args=\fIoptions\fP ]
+.RB [ \-\-run\-autopkgtest ]
+.RB [ \-\-no\-run\-autopkgtest ]
+.RB [ \-\-autopkgtest\-opt=\fIoptions\fP ]
+.RB [ \-\-autopkgtest\-opts=\fIoptions\fP ]
+.RB [ \-\-autopkgtest\-root\-arg=\fIoptions\fP ]
+.RB [ \-\-autopkgtest\-root\-args=\fIoptions\fP ]
 .RB [ \-\-pre\-build\-commands=\fIstring\fP ]
 .RB [ \-\-chroot\-setup\-commands=\fIstring\fP ]
 .RB [ \-\-chroot\-update\-failed\-commands=\fIstring\fP ]
@@ -649,6 +655,59 @@ This command line option appends to the \fBPIUPARTS_ROOT_ARGS\fP configuration v
 .BR sbuild.conf (5)
 for more information.
 .TP
+.BR \-\-run\-autopkgtest
+Run autopkgtest after a successful build.  This command line option sets the
+\fBRUN_AUTOPKGTEST\fP configuration variable. See
+.BR sbuild.conf (5)
+for more information.
+.TP
+.BR \-\-no\-run\-autopkgtest
+Don't run autopkgtest after a successful build.  If sbuild is configured to run
+autopkgtest by default, this option will prevent autopkgtest being run.  This
+command line option sets the \fBRUN_AUTOPKGTEST\fP configuration variable. See
+.BR sbuild.conf (5)
+for more information.
+.TP
+.BR \-\-autopkgtest\-opt=\fIoptions\fP
+Pass the specified option directly to autopkgtest in addition to the options
+already passed by sbuild. This option can be passed multiple times (once per
+autopkgtest option) and can be freely mixed with the \-\-autopkgtest\-opts
+option.  Options will be passed to autopkgtest in the order that the
+\-\-autopkgtest\-opt and \-\-autopkgtest\-opts options are given on the command
+line.  This command line option appends to the \fBAUTOPKGTEST_OPTIONS\fP
+configuration variable. See
+.BR sbuild.conf (5)
+for more information.
+.TP
+.BR \-\-autopkgtest\-opts=\fIoptions\fP
+Pass the specified options directly to autopkgtest in addition to the options
+already passed by sbuild. The argument will be split by whitespaces and the
+resulting array passed to the autopkgtest invocation. If any options contain
+spaces, use \-\-autopkgtest\-opt for them.  This option can be passed multiple
+times and can be freely mixed with the \-\-autopkgtest\-opts option. Options
+will be passed to autopkgtest in the order that the \-\-autopkgtest\-opt and
+\-\-autopkgtest\-opts options are given on the command line.  This command line
+option appends to the \fBAUTOPKGTEST_OPTIONS\fP configuration variable. See
+.BR sbuild.conf (5)
+for more information.
+.TP
+.BR \-\-autopkgtest\-root\-arg=\fIoptions\fP
+Add an argument that is used to launch autopkgtest as root. If no arguments are
+specified, autopkgtest will be launched via sudo. This option can be specified
+multiple times.  This command line option appends to the
+\fBAUTOPKGTEST_ROOT_ARGS\fP configuration variable. See
+.BR sbuild.conf (5)
+for more information.
+.TP
+.BR \-\-autopkgtest\-root\-args=\fIoptions\fP
+Add arguments that are used to launch autopkgtest as root. If no arguments are
+specified, autopkgtest will be launched via sudo. The argument will be split by
+whitespaces. To pass options containing whitespaces use the option
+\-\-autopkgtest\-root\-arg.  This command line option appends to the
+\fBAUTOPKGTEST_ROOT_ARGS\fP configuration variable. See
+.BR sbuild.conf (5)
+for more information.
+.TP
 .BR \-\-pre\-build\-commands=\fIstring\fP
 This is the earliest external command which is run right after the chroot
 session has been initialized and before anything else is done (like installing
@@ -1055,6 +1114,7 @@ Cleanup build files and dependencies
 \f[CB]\-\-chroot\-cleanup\-commands\fP	yes	inside	yes	no	yes
 Close schroot session
 Run piuparts (if configured)
+Run autopkgtest (if configured)
 \f[CB]\-\-post\-build\-commands\fP	yes	outside	yes	yes	yes
 .TE
 .if t \{\

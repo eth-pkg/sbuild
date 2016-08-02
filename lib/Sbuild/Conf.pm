@@ -1074,6 +1074,51 @@ $crossbuild_core_depends = {
 	    HELP => 'Preceding arguments to launch piuparts as root. If no arguments are specified, piuparts will be launched via sudo.',
 	    CLI_OPTIONS => ['--piuparts-root-arg', '--piuparts-root-args']
 	},
+	'AUTOPKGTEST'				=> {
+	    TYPE => 'STRING',
+	    VARNAME => 'autopkgtest',
+	    GROUP => 'Build validation',
+	    CHECK => sub {
+		my $conf = shift;
+		my $entry = shift;
+		my $key = $entry->{'NAME'};
+
+		# Only validate if needed.
+		if ($conf->get('RUN_AUTOPKGTEST')) {
+		    $validate_program->($conf, $entry);
+		}
+	    },
+	    DEFAULT => 'autopkgtest',
+	    HELP => 'Path to autopkgtest binary',
+	    CLI_OPTIONS => ['--autopkgtest-opt', '--autopkgtest-opts']
+	},
+	'RUN_AUTOPKGTEST'				=> {
+	    TYPE => 'BOOL',
+	    VARNAME => 'run_autopkgtest',
+	    GROUP => 'Build validation',
+	    CHECK => sub {
+		my $conf = shift;
+		$conf->check('AUTOPKGTEST');
+	    },
+	    DEFAULT => 0,
+	    HELP => 'Run autopkgtest',
+	    CLI_OPTIONS => ['--run-autopkgtest', '--no-run-autopkgtest']
+	},
+	'AUTOPKGTEST_OPTIONS'			=> {
+	    TYPE => 'ARRAY:STRING',
+	    VARNAME => 'autopkgtest_opts',
+	    GROUP => 'Build validation',
+	    DEFAULT => [],
+	    HELP => 'Options to pass to autopkgtest.  Each option is a separate arrayref element.  For example, [\'-b\', \'<chroot_tarball>\'] to add -b and <chroot_tarball>.'
+	},
+	'AUTOPKGTEST_ROOT_ARGS'			=> {
+	    TYPE => 'ARRAY:STRING',
+	    VARNAME => 'autopkgtest_root_args',
+	    GROUP => 'Build validation',
+	    DEFAULT => [],
+	    HELP => 'Preceding arguments to launch autopkgtest as root. If no arguments are specified, autopkgtest will be launched via sudo.',
+	    CLI_OPTIONS => ['--autopkgtest-root-arg', '--autopkgtest-root-args']
+	},
 	'EXTERNAL_COMMANDS'			=> {
 	    TYPE => 'HASH:ARRAY:STRING',
 	    VARNAME => 'external_commands',
