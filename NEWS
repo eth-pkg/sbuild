@@ -1,11 +1,65 @@
 NEWS                                                            -*- outline -*-
 ----
 
-Welcome to sbuild 0.69.0.  Please read these release notes carefully.
+Welcome to sbuild 0.70.0.  Please read these release notes carefully.
 
 Full installation instructions are provided in the INSTALL file.  The
 README file also contains more specific notes regarding building and
 configuration.
+
+ * Major changes in 0.70.0:
+
+   1) Fix reproducibility issue by not writing the $HOME as set during the
+      build into config files and man pages anymore
+
+   2) Add an EXAMPLE section to the sbuild man page
+
+   3) sbuild-createchroot now has support for SUITE-VARIANT chroot names. This
+      is useful to create variants of base suits like jessie-backports or
+      unstable-experimental.
+
+   4) sbuild-createchroot now has the --no-deb-src option which allows one to
+      create a chroot without a deb-src entry in its sources.list. This is
+      useful to save bandwidth and disk space for chroots that will never be
+      used to download source packages as the source indices do not have to
+      downloaded, stored and later updated from the mirrors.
+
+   5) sbuild-createchroot now has the --alias option which is useful to add a
+      shorthand alias to a chroot which will be used for chroot selection. This
+      is for example useful for a Debian unstable chroot which will be
+      automatically selected for package builds that have UNRELEASED in their
+      debian/changelog, if the UNRELEASED alias is added to the Debian unstable
+      chroot.
+
+   6) suild-createchroot now has the --extra-repository which works like the
+      --extra-repository option for sbuild and permanently adds another line to
+      the chroot's sources.list.
+
+   7) Private/public key pairs are now stored in armored ASCII format to
+      maintain compatibility between different gpg versions on the host and
+      within the chroot. Re-running `sbuild-update --keygen` will create the
+      new key types.
+
+   8) Chroots can now have gpg >= 2.x installed as sbuild will properly clean
+      up any remaining gpg-agent processes and "apt-key add" is not used
+      anymore (it will leave a gpg-agent process around that cannot properly
+      be killed).
+
+   9) Add the --source-only-changes option which will create a .changes file
+      suitable for a source-only upload alongside the normal binary .changes
+      file.
+
+  10) Do not install debfoster by default in sbuild-createchroot to keep the
+      build chroot as minimal as possible. Users that use debfoster can use the
+      --include option of sbuild-createchroot.
+
+  11) Drop requirement for gpg inside the chroot as external archive keys are
+      now processed without gpg and signing of the internal repository is
+      entirely optional with helpful warning and error messages in case
+      signing failed.
+
+  12) Allow running autopkgtest after a successful build in the same manner
+      that piuparts can be run after a successful build.
 
  * Major changes in 0.69.0:
 
