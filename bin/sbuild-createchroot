@@ -407,6 +407,8 @@ if (! -d "$Sbuild::Sysconfig::paths{'SBUILD_SYSCONF_DIR'}/chroot") {
     makedir("$Sbuild::Sysconfig::paths{'SBUILD_SYSCONF_DIR'}/chroot", 0775);
 }
 
+# Populate /etc/sbuild/chroot with a symlink to be able to use the chroot in
+# sudo mode for directory based chroots
 my $chrootlink = "$Sbuild::Sysconfig::paths{'SBUILD_SYSCONF_DIR'}/chroot/$chrootname";
 if ((defined $chrootlink) && (! $conf->get('MAKE_SBUILD_TARBALL'))) {
     if (! -e $chrootlink) {
