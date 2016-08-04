@@ -471,6 +471,10 @@ END
 	$self->build_log_colour('yellow', '^Keeping session: ');
 	$self->build_log_colour('red', '^Lintian:');
 	$self->build_log_colour('green', '^Lintian: pass$');
+	$self->build_log_colour('red', '^Piuparts:');
+	$self->build_log_colour('green', '^Piuparts: pass$');
+	$self->build_log_colour('red', '^Autopkgtest:');
+	$self->build_log_colour('green', '^Autopkgtest: pass$');
 
 	# Log filtering
 	my $filter;
