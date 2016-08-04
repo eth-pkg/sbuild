@@ -33,7 +33,7 @@ use File::Basename qw(basename dirname);
 use POSIX;
 use Data::Dumper;
 use Dpkg::Control;
-use Sbuild qw(isin check_group_membership $debug_level dsc_files);
+use Sbuild qw(isin check_group_membership $debug_level dsc_files debug);
 use Sbuild::Conf qw();
 use Sbuild::Sysconfig qw(%programs);
 use Sbuild::Options;
