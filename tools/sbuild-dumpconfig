@@ -153,6 +153,7 @@ foreach my $group (@groups) {
 		    print ".RE\n";
 		}
 		if ($example) {
+		    print ".IP\n";
 		    print "Example:\n";
 		    print ".PP\n";
 		    print ".RS\n";
