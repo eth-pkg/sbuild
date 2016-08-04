@@ -65,16 +65,35 @@ New upstream releases:
   and version number.
 
 • Run ./configure and then "make dist" to generate the release tarball.
+  FIXME: Instead of "make dist" try "git archive" next time.
 
+• Move the tarball sbuild-XXX.tar.gz to the parent directory
 
 New Debian releases:
 
+• Switch the branch to debian/unstable
+
+• Create a commit "import upstream version XXX" by doing:
+    - rm -rf *
+    - git checkout -- debian
+    - tar --strip-components=1 -xf ../sbuild-XXX.tar.gz
+    - git add .
+    - git commit -m "import upstream version XXX"
+
+• Create a commit "release XXX-1 to unstable" by doing:
+    - dch --newversion XXX-1
+    - adding all new entries from NEWS to debian/changelog
+    - add bugnumbers to the items as required
+    - go through $(git log master) to add any other entries that
+      closed bugs
+    - check $(bts select package:sbuild tag:pending) for any
+      other bugs that need to be closed by this release
+    - run git add and commit
+
+• Rename ../sbuild-XXX.tar.gz to ../sbuild_XXX.orig.tar.gz and
+  use it to build and test the package.
+
+• Run $(dch -r && git add debian/changelog && git commit --amend)
+
 • Run debian/git-tag-debian in the git source to tag the debian
   release.
-
-• Copy the upstream (make dist) release tarball out of the build dir,
-  rename it to sbuild_<ver>.orig.tar.gz then unpack it and use it to
-  build the Debian release (with the usual tools such as
-  dpkg-buildpackage, or sbuild).
-
-
