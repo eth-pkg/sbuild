@@ -274,7 +274,7 @@ EOF
 	return $?
     }
 
-    my @command = ('gpg', '--no-options', '--no-default-keyring', '--batch', '--gen-key',
+    my @command = ('gpg', '--no-options', '--pinentry-mode', 'loopback', '--passphrase-file', '/dev/null', '--no-default-keyring', '--batch', '--gen-key',
                    $tmpfilename);
     $host->run_command(
         { COMMAND => \@command,
