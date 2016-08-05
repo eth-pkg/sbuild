@@ -1531,10 +1531,24 @@ sub run_piuparts {
 
     my $piuparts = $self->get_conf('PIUPARTS');
     my @piuparts_command;
-    if (scalar(@{$self->get_conf('PIUPARTS_ROOT_ARGS')})) {
-	push @piuparts_command, @{$self->get_conf('PIUPARTS_ROOT_ARGS')};
+    # The default value is the empty array.
+    # If the value is the default (empty array) prefix with 'sudo --'
+    # If the value is a non-empty array, prefix with its values except if the
+    # first value is an empty string in which case, prefix with nothing
+    # If the value is not an array, prefix with that scalar except if the
+    # scalar is the empty string in which case, prefix with nothing
+    if (ref($self->get_conf('PIUPARTS_ROOT_ARGS')) eq "ARRAY") {
+	if (scalar(@{$self->get_conf('PIUPARTS_ROOT_ARGS')})) {
+	    if (@{$self->get_conf('PIUPARTS_ROOT_ARGS')}[0] ne '') {
+		push @piuparts_command, @{$self->get_conf('PIUPARTS_ROOT_ARGS')};
+	    }
+	} else {
+	    push @piuparts_command, 'sudo', '--';
+	}
     } else {
-	push @piuparts_command, 'sudo', '--';
+	if ($self->get_conf('PIUPARTS_ROOT_ARGS') ne '') {
+	    push @piuparts_command, $self->get_conf('PIUPARTS_ROOT_ARGS');
+	}
     }
     push @piuparts_command, $piuparts;
     push @piuparts_command, @{$self->get_conf('PIUPARTS_OPTIONS')} if
@@ -1567,10 +1581,24 @@ sub run_autopkgtest {
 
     my $autopkgtest = $self->get_conf('AUTOPKGTEST');
     my @autopkgtest_command;
-    if (scalar(@{$self->get_conf('AUTOPKGTEST_ROOT_ARGS')})) {
-	push @autopkgtest_command, @{$self->get_conf('AUTOPKGTEST_ROOT_ARGS')};
+    # The default value is the empty array.
+    # If the value is the default (empty array) prefix with 'sudo --'
+    # If the value is a non-empty array, prefix with its values except if the
+    # first value is an empty string in which case, prefix with nothing
+    # If the value is not an array, prefix with that scalar except if the
+    # scalar is the empty string in which case, prefix with nothing
+    if (ref($self->get_conf('AUTOPKGTEST_ROOT_ARGS')) eq "ARRAY") {
+	if (scalar(@{$self->get_conf('AUTOPKGTEST_ROOT_ARGS')})) {
+	    if (@{$self->get_conf('AUTOPKGTEST_ROOT_ARGS')}[0] ne '') {
+		push @autopkgtest_command, @{$self->get_conf('AUTOPKGTEST_ROOT_ARGS')};
+	    }
+	} else {
+	    push @autopkgtest_command, 'sudo', '--';
+	}
     } else {
-	push @autopkgtest_command, 'sudo', '--';
+	if ($self->get_conf('AUTOPKGTEST_ROOT_ARGS') ne '') {
+	    push @autopkgtest_command, $self->get_conf('AUTOPKGTEST_ROOT_ARGS');
+	}
     }
     push @autopkgtest_command, $autopkgtest;
     if (!$self->get_conf('BUILD_SOURCE')) {

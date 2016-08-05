@@ -1071,7 +1071,19 @@ $crossbuild_core_depends = {
 	    VARNAME => 'piuparts_root_args',
 	    GROUP => 'Build validation',
 	    DEFAULT => [],
-	    HELP => 'Preceding arguments to launch piuparts as root. If no arguments are specified, piuparts will be launched via sudo.',
+	    HELP => 'Preceding arguments to launch piuparts as root. With the default value (the empty array) "sudo --" will be used as a prefix. If the first element in the array is the empty string, no prefixing will be done. If the value is a scalar, it will be prefixed by that string. If the scalar is an empty string, no prefixing will be done.',
+	    EXAMPLE =>
+'# prefix with "sudo --":
+$piuparts_root_args = [];
+$piuparts_root_args = [\'sudo\', \'--\'];
+# prefix with "env":
+$piuparts_root_args = [\'env\'];
+$piuparts_root_args = \'env\';
+# prefix with nothing:
+$piuparts_root_args = \'\';
+$piuparts_root_args = [\'\'];
+$piuparts_root_args = [\'\', \'whatever\'];
+',
 	    CLI_OPTIONS => ['--piuparts-root-arg', '--piuparts-root-args']
 	},
 	'AUTOPKGTEST'				=> {
@@ -1116,7 +1128,19 @@ $crossbuild_core_depends = {
 	    VARNAME => 'autopkgtest_root_args',
 	    GROUP => 'Build validation',
 	    DEFAULT => [],
-	    HELP => 'Preceding arguments to launch autopkgtest as root. If no arguments are specified, autopkgtest will be launched via sudo.',
+	    HELP => 'Preceding arguments to launch autopkgtest as root. With the default value (the empty array) "sudo --" will be used as a prefix. If the first element in the array is the empty string, no prefixing will be done. If the value is a scalar, it will be prefixed by that string. If the scalar is an empty string, no prefixing will be done.',
+	    EXAMPLE =>
+'# prefix with "sudo --":
+$autopkgtest_root_args = [];
+$autopkgtest_root_args = [\'sudo\', \'--\'];
+# prefix with "env":
+$autopkgtest_root_args = [\'env\'];
+$autopkgtest_root_args = \'env\';
+# prefix with nothing:
+$autopkgtest_root_args = \'\';
+$autopkgtest_root_args = [\'\'];
+$autopkgtest_root_args = [\'\', \'whatever\'];
+',
 	    CLI_OPTIONS => ['--autopkgtest-root-arg', '--autopkgtest-root-args']
 	},
 	'EXTERNAL_COMMANDS'			=> {

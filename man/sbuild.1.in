@@ -639,19 +639,21 @@ This command line option appends to the \fBPIUPARTS_OPTIONS\fP configuration var
 for more information.
 .TP
 .BR \-\-piuparts\-root\-arg=\fIoptions\fP
-Add an argument that is used to launch piuparts as root. If no arguments are
-specified, piuparts will be launched via sudo. This option can be specified
-multiple times.
-This command line option appends to the \fBPIUPARTS_ROOT_ARGS\fP configuration variable. See
+Add an argument that is used to launch piuparts as root. Without this option,
+the default is to use "sudo --" to launch piuparts. If an empty string is
+supplied, then piuparts is launched without any prefixed command.  This option
+can be specified multiple times.  This command line option appends to the
+\fBPIUPARTS_ROOT_ARGS\fP configuration variable. See
 .BR sbuild.conf (5)
 for more information.
 .TP
 .BR \-\-piuparts\-root\-args=\fIoptions\fP
-Add arguments that are used to launch piuparts as root. If no arguments are
-specified, piuparts will be launched via sudo. The argument will be split by
-whitespaces. To pass options containing whitespaces use
-the option \-\-piuparts\-root\-arg.
-This command line option appends to the \fBPIUPARTS_ROOT_ARGS\fP configuration variable. See
+Add arguments that are used to launch piuparts as root.  Without this option,
+the default is to use "sudo --" to launch piuparts. If an empty string is
+supplied, then piuparts is launched without any prefixed command.  The argument
+will be split by whitespaces. To pass options containing whitespaces use the
+option \-\-piuparts\-root\-arg.  This command line option appends to the
+\fBPIUPARTS_ROOT_ARGS\fP configuration variable. See
 .BR sbuild.conf (5)
 for more information.
 .TP
@@ -692,19 +694,22 @@ option appends to the \fBAUTOPKGTEST_OPTIONS\fP configuration variable. See
 for more information.
 .TP
 .BR \-\-autopkgtest\-root\-arg=\fIoptions\fP
-Add an argument that is used to launch autopkgtest as root. If no arguments are
-specified, autopkgtest will be launched via sudo. This option can be specified
-multiple times.  This command line option appends to the
+Add an argument that is used to launch autopkgtest as root. Without this
+option, the default is to use "sudo --" to launch autopkgtest. If an empty
+string is supplied, then autopkgtest is launched without any prefixed command.
+This option can be specified multiple times.  This command line option appends
+to the
 \fBAUTOPKGTEST_ROOT_ARGS\fP configuration variable. See
 .BR sbuild.conf (5)
 for more information.
 .TP
 .BR \-\-autopkgtest\-root\-args=\fIoptions\fP
-Add arguments that are used to launch autopkgtest as root. If no arguments are
-specified, autopkgtest will be launched via sudo. The argument will be split by
-whitespaces. To pass options containing whitespaces use the option
-\-\-autopkgtest\-root\-arg.  This command line option appends to the
-\fBAUTOPKGTEST_ROOT_ARGS\fP configuration variable. See
+Add arguments that are used to launch autopkgtest as root.  Without this
+option, the default is to use "sudo --" to launch autopkgtest. If an empty
+string is supplied, then autopkgtest is launched without any prefixed command.
+The argument will be split by whitespaces. To pass options containing
+whitespaces use the option \-\-autopkgtest\-root\-arg.  This command line
+option appends to the \fBAUTOPKGTEST_ROOT_ARGS\fP configuration variable. See
 .BR sbuild.conf (5)
 for more information.
 .TP
