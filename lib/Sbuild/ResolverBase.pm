@@ -1232,7 +1232,7 @@ EOF
 		    USER => $self->get_conf('BUILD_USER'),
 		    PRIORITY => 0});
 	    if ($?) {
-		$self->log_error("Failed to import public key\n");
+		$self->log_error("Failed to import private key\n");
 		&$kill_gpgagent();
 		return 0;
 	    }
