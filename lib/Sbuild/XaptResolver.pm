@@ -94,8 +94,6 @@ sub install_deps {
 	}
     }
 
-    $self->cleanup_apt_archive();
-
     return $status;
 }
 
