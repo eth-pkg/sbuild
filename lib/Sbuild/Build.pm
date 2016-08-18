@@ -984,9 +984,13 @@ sub fetch_source_files {
 	my %entries = ();
 	$self->log("Checking available source versions...\n");
 
+	# We would like to call apt-cache with --only-source so that the
+	# result only contains source packages with the given name but this
+	# feature was only introduced in apt 1.1~exp10 so it is only available
+	# in Debian Stretch and later
 	my $pipe = $self->get('Dependency Resolver')->pipe_apt_command(
 	    { COMMAND => [$self->get_conf('APT_CACHE'),
-			  '-q', '--only-source', 'showsrc', $pkg],
+			  '-q', 'showsrc', $pkg],
 	      USER => $self->get_conf('BUILD_USER'),
 	      PRIORITY => 0,
 	      DIR => '/'});
@@ -1023,8 +1027,13 @@ sub fetch_source_files {
 		$self->log_warning("apt-cache output without Package field\n");
 		next;
 	    }
+	    # Since we cannot run apt-cache with --only-source because that
+	    # feature was only introduced with apt 1.1~exp10, the result can
+	    # contain source packages that we didn't ask for (but which
+	    # contain binary packages of the name we specified). Since we only
+	    # are interested in source packages of the given name, we skip
+	    # everything that is a different source package.
 	    if ($pkg ne $pkgname) {
-		$self->log_warning("apt-cache output for different package\n");
 		next;
 	    }
 	    my $pkgversion = $cdata->{"Version"};
