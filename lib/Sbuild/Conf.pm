@@ -262,6 +262,7 @@ sub setup ($) {
 	    TYPE => 'STRING',
 	    VARNAME => 'fakeroot',
 	    GROUP => 'Programs',
+	    CHECK => $validate_program,
 	    DEFAULT => 'fakeroot',
 	    HELP => 'Path to fakeroot binary'
 	},
