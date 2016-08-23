@@ -44,7 +44,8 @@ bin_SCRIPTS = 				\
 
 sbin_SCRIPTS = 			\
 	sbuild-adduser		\
-	sbuild-createchroot
+	sbuild-createchroot	\
+	sbuild-destroychroot
 
 sbuilddata_SCRIPTS =		\
 	create-chroot		\
