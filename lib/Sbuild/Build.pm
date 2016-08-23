@@ -29,6 +29,7 @@ use English;
 use POSIX;
 use Errno qw(:POSIX);
 use Fcntl;
+use File::Temp qw(mkdtemp);
 use File::Basename qw(basename dirname);
 use File::Path qw(make_path);
 use FileHandle;
@@ -1610,8 +1611,42 @@ sub run_autopkgtest {
 	}
     }
     push @autopkgtest_command, $autopkgtest;
+    my $tmpdir;
+    my @cwd_files;
+    # If the source package was not instructed to be built, then it will not
+    # be part of the .changes file and thus, the .dsc has to be passed to
+    # autopkgtest in addition to the .changes file.
     if (!$self->get_conf('BUILD_SOURCE')) {
-	push @autopkgtest_command, $self->get('DSC');
+	my $dsc = $self->get('DSC');
+	# If the source package was downloaded by sbuild, then the .dsc
+	# and the files it references have to be made available to the
+	# host
+	if (! -f $dsc || ! -r $dsc) {
+	    my $build_dir = $self->get('Build Dir');
+	    $tmpdir = mkdtemp("/tmp/tmp.sbuild.XXXXXXXXXX");
+	    my $session = $self->get('Session');
+	    if (!$session->copy_from_chroot("$build_dir/$dsc", "$tmpdir/$dsc")) {
+		$self->log_error("cannot copy .dsc from chroot\n");
+		$self->set('Autopkgtest Reason', 'fail');
+		rmdir $tmpdir;
+		return 0;
+	    }
+	    @cwd_files = dsc_files("$tmpdir/$dsc");
+	    foreach (@cwd_files) {
+		if (!$session->copy_from_chroot("$build_dir/$_", "$tmpdir/$_")) {
+		    $self->log_error("cannot copy $_ from chroot\n");
+		    $self->set('Autopkgtest Reason', 'fail');
+		    unlink "$tmpdir/$.dsc";
+		    foreach (@cwd_files) {
+			unlink "$tmpdir/$_" if -f "$tmpdir/$_";
+		    }
+		    rmdir $tmpdir;
+		    return 0;
+		}
+	    }
+	    $dsc = "$tmpdir/$dsc";
+	}
+	push @autopkgtest_command, $dsc;
     }
     push @autopkgtest_command, $self->get('Changes File');
     if (scalar(@{$self->get_conf('AUTOPKGTEST_OPTIONS')})) {
@@ -1625,6 +1660,17 @@ sub run_autopkgtest {
         });
     my $status = $? >> 8;
     $self->set('Autopkgtest Reason', 'pass');
+
+    # if the source package wasn't built and also initially downloaded by
+    # sbuild, then the temporary directory that was created must be removed
+    if (defined $tmpdir) {
+	my $dsc = $self->get('DSC');
+	unlink "$tmpdir/$dsc";
+	foreach (@cwd_files) {
+	    unlink "$tmpdir/$_";
+	}
+	rmdir $tmpdir;
+    }
 
     $self->log("\n");
     # fail if neither all tests passed nor was the package without tests
