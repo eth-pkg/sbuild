@@ -622,6 +622,10 @@ already passed by sbuild. This option can be passed multiple times (once per
 piuparts option) and can be freely mixed with the \-\-piuparts\-opts option.
 Options will be passed to piuparts in the order that the \-\-piuparts\-opt and
 \-\-piuparts\-opts options are given on the command line.
+Certain percent escapes are supported. To write a literal percent sign, escape
+it with another percent sign. See the section
+.BR "OPTION STRING PERCENT ESCAPES"
+for more information.
 This command line option appends to the \fBPIUPARTS_OPTIONS\fP configuration variable. See
 .BR sbuild.conf (5)
 for more information.
@@ -634,6 +638,10 @@ spaces, use \-\-piuparts\-opt for them.  This option can be passed multiple
 times and can be freely mixed with the \-\-piuparts\-opts option. Options will
 be passed to piuparts in the order that the \-\-piuparts\-opt and
 \-\-piuparts\-opts options are given on the command line.
+Certain percent escapes are supported. To write a literal percent sign, escape
+it with another percent sign. See the section
+.BR "OPTION STRING PERCENT ESCAPES"
+for more information.
 This command line option appends to the \fBPIUPARTS_OPTIONS\fP configuration variable. See
 .BR sbuild.conf (5)
 for more information.
@@ -676,7 +684,12 @@ already passed by sbuild. This option can be passed multiple times (once per
 autopkgtest option) and can be freely mixed with the \-\-autopkgtest\-opts
 option.  Options will be passed to autopkgtest in the order that the
 \-\-autopkgtest\-opt and \-\-autopkgtest\-opts options are given on the command
-line.  This command line option appends to the \fBAUTOPKGTEST_OPTIONS\fP
+line.
+Certain percent escapes are supported. To write a literal percent sign, escape
+it with another percent sign. See the section
+.BR "OPTION STRING PERCENT ESCAPES"
+for more information.
+This command line option appends to the \fBAUTOPKGTEST_OPTIONS\fP
 configuration variable. See
 .BR sbuild.conf (5)
 for more information.
@@ -688,7 +701,12 @@ resulting array passed to the autopkgtest invocation. If any options contain
 spaces, use \-\-autopkgtest\-opt for them.  This option can be passed multiple
 times and can be freely mixed with the \-\-autopkgtest\-opts option. Options
 will be passed to autopkgtest in the order that the \-\-autopkgtest\-opt and
-\-\-autopkgtest\-opts options are given on the command line.  This command line
+\-\-autopkgtest\-opts options are given on the command line.
+Certain percent escapes are supported. To write a literal percent sign, escape
+it with another percent sign. See the section
+.BR "OPTION STRING PERCENT ESCAPES"
+for more information.
+This command line
 option appends to the \fBAUTOPKGTEST_OPTIONS\fP configuration variable. See
 .BR sbuild.conf (5)
 for more information.
@@ -995,6 +1013,10 @@ the \-\-adt-virt-server\-opts option.  Options will be passed to the respective
 adt-virt-* virtualization server in the order that the \-\-adt-virt-server\-opt
 and \-\-adt-virt-server\-opts options are given on the command line.  See the
 manual pages of the respective adt-virt-* commands for more information.
+Certain percent escapes are supported. To write a literal percent sign, escape
+it with another percent sign. See the section
+.BR "OPTION STRING PERCENT ESCAPES"
+for more information.
 This command line option appends to the \fBADT_VIRT_SERVER_OPTIONS\fP configuration variable. See
 .BR sbuild.conf (5)
 for more information.
@@ -1009,6 +1031,10 @@ the \-\-adt\-virt\-server\-opts option. Options will be passed to the
 respective adt-virt-* virtualization server in the order that the
 \-\-adt\-virt\-server\-opt and \-\-adt\-virt\-server\-opts options are given on
 the command line. See the manual pages of the respective adt\-virt\-* commands
+for more information.
+Certain percent escapes are supported. To write a literal percent sign, escape
+it with another percent sign. See the section
+.BR "OPTION STRING PERCENT ESCAPES"
 for more information.
 This command line option appends to the \fBADT_VIRT_SERVER_OPTIONS\fP configuration variable. See
 .BR sbuild.conf (5)
@@ -1253,6 +1279,45 @@ The following example would copy a file from the host into the chroot:
 One final note, external commands are processed in the order they are given.
 Also, the commands given in a configuration file are processed first, then the
 commands given through the command line options.
+.SH OPTION STRING PERCENT ESCAPES
+Besides for external command strings, percent escapes can also be used in
+custom options passed to piuparts, autopkgtest and the chosen adt-virt server.
+This is for example useful for communicating the right chroot backend to
+piuparts or autopkgtest depending on the distribution or architecture the
+source package was built for.
+.PP
+Here is a listing of keywords and a description of what it's converted to.
+.TP
+\fB%%\fR
+Used to escape a '\fI%\fP'.
+.TP
+\fB%a\fR, \fB%SBUILD_HOST_ARCH\fR
+These escapes are converted to the debian name of the architecture the build 
+is being built for (e.g amd64, armhf).
+.TP
+\fB%r\fR, \fB%SBUILD_DISTRIBUTION\fR
+The distribution that the source package was built for. This is the value
+recorded in debian/changelog or the value passed via the --dist option.
+Mnemonic: the \fBr\fR is the first letter in "release".
+.PP
+Here is an example that will run piuparts with the right schroot chroot:
+.PP
+\f[CB]$ sbuild \-\-run\-piuparts \\\fP
+.br
+\f[CB]      \-\-piuparts\-opts="--schroot=%r-%a-sbuild"
+.PP
+Or an example of running autopkgtest with the right schroot chroot:
+.PP
+\f[CB]$ sbuild \-\-run\-autopkgtest \\\fP
+.br
+\f[CB]      \-\-autopkgtest\-opts="-- schroot %r-%a-sbuild"
+.PP
+To achieve the same effect via the configuration file, add the following:
+.PP
+\f[CB]$piuparts_opts = [ '--schroot=%r-%a-sbuild' ];\fP
+.br
+\f[CB]$autopkgtest_opts = [ '--', 'schroot', '%r-%a-sbuild' ];\fP
+.PP
 .SH LOCAL ARCHIVE
 The apt and aptitude resolvers create a local archive for installing build
 dependencies.  This is an internal implementation detail of the build

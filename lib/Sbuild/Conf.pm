@@ -255,6 +255,33 @@ sub setup ($) {
 	    VARNAME => 'adt_virt_server_options',
 	    GROUP => 'Programs',
 	    DEFAULT => [],
+	    GET => sub {
+		my $conf = shift;
+		my $entry = shift;
+
+		my $retval = $conf->_get($entry->{'NAME'});
+
+		my $dist = $conf->get('DISTRIBUTION');
+		my $hostarch = $conf->get('HOST_ARCH');
+		my %percent = (
+		    '%' => '%',
+		    'a' => $hostarch, 'SBUILD_HOST_ARCH' => $hostarch,
+		    'r' => $dist, 'SBUILD_DISTRIBUTION' => $dist,
+		);
+
+		my $keyword_pat = join("|",
+		    sort {length $b <=> length $a || $a cmp $b} keys %percent);
+		foreach (@{$retval}) {
+		    s{
+			# Match a percent followed by a valid keyword
+			\%($keyword_pat)
+		    }{
+			# Substitute with the appropriate value only if it's defined
+			$percent{$1} || $&
+		    }msxge;
+		}
+		return $retval;
+	    },
 	    HELP => 'Additional command-line options for adt-virt-*',
 	    CLI_OPTIONS => ['--adt-virt-server-opt', '--adt-virt-server-opts']
 	},
@@ -1065,6 +1092,33 @@ $crossbuild_core_depends = {
 	    VARNAME => 'piuparts_opts',
 	    GROUP => 'Build validation',
 	    DEFAULT => [],
+	    GET => sub {
+		my $conf = shift;
+		my $entry = shift;
+
+		my $retval = $conf->_get($entry->{'NAME'});
+
+		my $dist = $conf->get('DISTRIBUTION');
+		my $hostarch = $conf->get('HOST_ARCH');
+		my %percent = (
+		    '%' => '%',
+		    'a' => $hostarch, 'SBUILD_HOST_ARCH' => $hostarch,
+		    'r' => $dist, 'SBUILD_DISTRIBUTION' => $dist,
+		);
+
+		my $keyword_pat = join("|",
+		    sort {length $b <=> length $a || $a cmp $b} keys %percent);
+		foreach (@{$retval}) {
+		    s{
+			# Match a percent followed by a valid keyword
+			\%($keyword_pat)
+		    }{
+			# Substitute with the appropriate value only if it's defined
+			$percent{$1} || $&
+		    }msxge;
+		}
+		return $retval;
+	    },
 	    HELP => 'Options to pass to piuparts.  Each option is a separate arrayref element.  For example, [\'-b\', \'<chroot_tarball>\'] to add -b and <chroot_tarball>.'
 	},
 	'PIUPARTS_ROOT_ARGS'			=> {
@@ -1122,6 +1176,33 @@ $piuparts_root_args = [\'\', \'whatever\'];
 	    VARNAME => 'autopkgtest_opts',
 	    GROUP => 'Build validation',
 	    DEFAULT => [],
+	    GET => sub {
+		my $conf = shift;
+		my $entry = shift;
+
+		my $retval = $conf->_get($entry->{'NAME'});
+
+		my $dist = $conf->get('DISTRIBUTION');
+		my $hostarch = $conf->get('HOST_ARCH');
+		my %percent = (
+		    '%' => '%',
+		    'a' => $hostarch, 'SBUILD_HOST_ARCH' => $hostarch,
+		    'r' => $dist, 'SBUILD_DISTRIBUTION' => $dist,
+		);
+
+		my $keyword_pat = join("|",
+		    sort {length $b <=> length $a || $a cmp $b} keys %percent);
+		foreach (@{$retval}) {
+		    s{
+			# Match a percent followed by a valid keyword
+			\%($keyword_pat)
+		    }{
+			# Substitute with the appropriate value only if it's defined
+			$percent{$1} || $&
+		    }msxge;
+		}
+		return $retval;
+	    },
 	    HELP => 'Options to pass to autopkgtest.  Each option is a separate arrayref element.  For example, [\'-b\', \'<chroot_tarball>\'] to add -b and <chroot_tarball>.'
 	},
 	'AUTOPKGTEST_ROOT_ARGS'			=> {
