@@ -96,6 +96,16 @@ installed.  See also \fI\-\-foreign\fP, below.
 .BR \-\-chroot-suffix=\fIsuffix\fP
 Add a custom suffix to the chroot name. Defaults to '\-sbuild'.
 .TP
+.BR \-\-chroot\-prefix=\fIprefix\fP
+Add a custom prefix to the chroot name. Defaults to SUITE.  This is useful to
+create variants of a base suite like jessie-backports to which the backports
+archive can be manually added after the base chroot was created using
+sbuild-shell. This way, a normal jessie chroot and a jessie-backports chroot
+can exist side-by-side.  Besides this common use case, this functionality can
+also be used to create chroots with any other type of customization. It is a
+shortcut for creating a base chroot and then having to manually copy it and
+edit the configuration files.
+.TP
 .BR \-\-foreign
 Only perform the initial unpack phase of bootstrapping.  This is required if
 the target and host architectures do not match.  Note that debootstrap requires
@@ -138,15 +148,6 @@ empty string to disable signature checking.
 The distribution to bootstrap (e.g. \[oq]sarge\[cq], \[oq]etch\[cq],
 \[oq]lenny\[cq], \[oq]sid\[cq]).  A complete list may be found in
 \fI/usr/share/debootstrap/scripts\fP.
-The special syntax \fISUITE-VARIANT\fP is also supported, which will creates a
-chroot for \fISUITE\fP, but named \fISUITE-VARIANT\fP. This is useful to create
-variants of a base suite like jessie-backports which which would create a
-jessie chroot to which the backports archive can be manually added after the
-base chroot was created using sbuild-shell. This way, a normal jessie chroot
-and a jessie-backports chroot can exist side-by-side. Besides this common use
-case, this syntax can also be used to create chroots with any other type of
-customization. It is a shortcut for creating a base chroot and then having to
-manually copy it and edit the configuration files.
 .TP
 .B TARGET-DIRECTORY
 The directory to create the chroot in.  The directory will be created if it
@@ -203,9 +204,8 @@ file. For instance, you might use
 .hy
 to allow packages in the experimental distribution to fulfill
 build-dependencies. Note that the build chroot must already trust the key of
-this repository. This option is especially useful for creating variant chroots.
-See the EXAMPLES section for how to combine this option with variants and
-aliases.
+this repository. See the EXAMPLES section for how to combine this option with
+--chroot-prefix and --alias.
 .SH TARBALL FILE
 When creating an sbuild tarball \fIfile\fP, the compression format used to
 generate the tarball depends on the entension used in \fIfile\fP. Here is a
@@ -259,17 +259,21 @@ To create a chroot to build for Jessie backports:
 .br
     \-\-extra\-repository="deb http://httpredir.debian.org/debian jessie-backports main" \fP\fP\\
 .br
-    jessie-backports /srv/chroot/jessie-backports-amd64 \fP\fP\\
+    \-\-chroot-prefix=jessie-backports \fP\fP\\
+.br
+    jessie /srv/chroot/jessie-backports-amd64 \fP\fP\\
 .br
 \f[CB]    http://httpredir.debian.org/debian\fP\[CR]
 .PP
-To create a chroot to build for experimental with an alias:
+To create a chroot to build for experimental using a custom chroot prefix:
 .PP
-\f[CR]% \f[CB]sudo sbuild\-createchroot \-\-alias=experimental \fP\fP\\
+\f[CR]% \f[CB]sudo sbuild\-createchroot \fP\fP\\
 .br
     \-\-extra\-repository="deb http://httpredir.debian.org/debian experimental main" \fP\fP\\
 .br
-    unstable-experimental /srv/chroot/unstable-experimental-amd64 \fP\fP\\
+    \-\-chroot-prefix=experimental \fP\fP\\
+.br
+    unstable /srv/chroot/unstable-experimental-amd64 \fP\fP\\
 .br
 \f[CB]    http://httpredir.debian.org/debian\fP\[CR]
 .SH HISTORY

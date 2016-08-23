@@ -36,6 +36,9 @@ sub setup {
 	if -f '/etc/apt/trusted.gpg';
 
     my %createchroot_keys = (
+	'CHROOT_PREFIX'				=> {
+	    DEFAULT => undef
+	},
 	'CHROOT_SUFFIX'				=> {
 	    DEFAULT => '-sbuild'
 	},
@@ -104,6 +107,9 @@ sub set_options {
     my $self = shift;
 
     $self->add_options(
+	"chroot-prefix=s" => sub {
+	    $self->set_conf('CHROOT_PREFIX', $_[1]);
+	},
 	"chroot-suffix=s" => sub {
 	    $self->set_conf('CHROOT_SUFFIX', $_[1]);
 	},
@@ -191,12 +197,17 @@ $conf->set('INCLUDE', add_items($conf->get('INCLUDE'),
 				"build-essential"));
 
 # Deal with SUITE-VARIANT
-my $suitevariant = $ARGV[0];
-(my $suite = $suitevariant) =~ s/-.*//;
+my $suite = $ARGV[0];
 
 # check if schroot name is already in use
 
-my $chrootname = "${suitevariant}-" . $conf->get('BUILD_ARCH') . $conf->get('CHROOT_SUFFIX');
+my $chrootname;
+if (defined $conf->get('CHROOT_PREFIX') && $conf->get('CHROOT_PREFIX') ne "") {
+    $chrootname = $conf->get('CHROOT_PREFIX')
+} else {
+    $chrootname = $suite
+}
+$chrootname .= "-" . $conf->get('BUILD_ARCH') . $conf->get('CHROOT_SUFFIX');
 
 open my $pipe, 'schroot -l --all-source-chroots |';
 while (my $line = <$pipe>) {
@@ -313,7 +324,7 @@ print "I: Please add any additional APT sources to ${target}/etc/apt/sources.lis
 my $arch = $conf->get('BUILD_ARCH');
 my $config_entry = <<"EOF";
 [$chrootname]
-description=Debian $suitevariant/$arch autobuilder
+description=Debian $suite/$arch autobuilder
 groups=root,sbuild
 root-groups=root,sbuild
 profile=sbuild
@@ -497,7 +508,7 @@ if ($conf->get('MAKE_SBUILD_TARBALL')) {
     }
 }
 
-print "I: Successfully set up $suitevariant chroot.\n";
+print "I: Successfully set up $suite chroot.\n";
 print "I: Run \"sbuild-adduser\" to add new sbuild users.\n";
 
 exit 0;
