@@ -717,7 +717,9 @@ for more information.
 This is the earliest external command which is run right after the chroot
 session has been initialized and before anything else is done (like installing
 the build dependencies). The command is run as root outside of the chroot. This
-option can be used multiple times to add multiple commands. See the section
+option can be used multiple times to add multiple commands. Certain percent
+escapes are supported. To write a literal percent sign, escape it with another
+percent sign. See the section
 .BR "EXTERNAL COMMANDS"
 for more information.
 This command line option appends to the \fBEXTERNAL_COMMENDS\fP configuration variable. See
@@ -727,7 +729,9 @@ for more information.
 .BR \-\-chroot\-setup\-commands=\fIstring\fP
 Run these commands after the chroot and variables have been setup but before
 dependencies are installed. The command is run as root inside of the chroot.
-This option can be used multiple times to add multiple commands. See the
+This option can be used multiple times to add multiple commands. Certain
+percent escapes are supported. To write a literal percent sign, escape it with
+another percent sign. See the
 section
 .BR "EXTERNAL COMMANDS"
 for more information.
@@ -739,7 +743,9 @@ for more information.
 Run these commands after any of 'apt-get update', 'apt-get upgrade' or 'apt-get
 dist-upgrade' failed. The environment is intact, and the failure can be
 investigated. Especially %SBUILD_SHELL is useful here. This option can be used
-multiple times to add multiple commands. See the section
+multiple times to add multiple commands. Certain percent escapes are supported.
+To write a literal percent sign, escape it with another percent sign.See the
+section
 .BR "EXTERNAL COMMANDS"
 for more information.
 This command line option appends to the \fBEXTERNAL_COMMENDS\fP configuration variable. See
@@ -751,7 +757,8 @@ These commands are run if installing the build dependencies has failed directly
 after the failed attempt. The environment is intact, and the failure can be
 investigated.  Especially %SBUILD_SHELL is useful here. The command is run as
 root inside the chroot. This option can be used multiple times to add multiple
-commands. See the section
+commands. Certain percent escapes are supported. To write a literal percent
+sign, escape it with another percent sign. See the section
 .BR "EXTERNAL COMMANDS"
 for more information.
 This command line option appends to the \fBEXTERNAL_COMMENDS\fP configuration variable. See
@@ -762,7 +769,8 @@ for more information.
 Run these commands after dependencies are installed, just before the package
 build with dpkg-buildpackage starts. The command is run as the (non-root) user
 running sbuild inside the chroot. This option can be used multiple times to add
-multiple commands. See the section
+multiple commands. Certain percent escapes are supported. To write a literal
+percent sign, escape it with another percent sign. See the section
 .BR "EXTERNAL COMMANDS"
 for more information.
 This command line option appends to the \fBEXTERNAL_COMMENDS\fP configuration variable. See
@@ -772,7 +780,9 @@ for more information.
 .BR \-\-finished\-build\-commands=\fIstring\fP
 Run these commands immediately after the timed package build finishes.  The
 command is run as the (non-root) user running sbuild inside the chroot.  This
-option can be used multiple times to add multiple commands. See the section
+option can be used multiple times to add multiple commands. Certain percent
+escapes are supported. To write a literal percent sign, escape it with another
+percent sign. See the section
 .BR "EXTERNAL COMMANDS"
 for more information.
 This command line option appends to the \fBEXTERNAL_COMMENDS\fP configuration variable. See
@@ -784,7 +794,8 @@ These commands are run if dpkg-buildpackage has failed directly after the
 failed attempt. The environment is intact, and the failure can be investigated.
 Especially %SBUILD_SHELL is useful here. The command is run as the (non-root)
 user running %sbuild inside the chroot. This option can be used multiple times
-to add multiple commands. See the section
+to add multiple commands. Certain percent escapes are supported. To write a
+literal percent sign, escape it with another percent sign. See the section
 .BR "EXTERNAL COMMANDS"
 for more information.
 This command line option appends to the \fBEXTERNAL_COMMENDS\fP configuration variable. See
@@ -794,7 +805,9 @@ for more information.
 .BR \-\-chroot\-cleanup\-commands=\fIstring\fP
 Run these commands when a chroot is cleaned up, before build directory is
 purged.  The command is run as root inside the chroot. This option can be used
-multiple times to add multiple commands. See the section
+multiple times to add multiple commands. Certain percent escapes are supported.
+To write a literal percent sign, escape it with another percent sign. See the
+section
 .BR "EXTERNAL COMMANDS"
 for more information.
 This command line option appends to the \fBEXTERNAL_COMMENDS\fP configuration variable. See
@@ -804,7 +817,8 @@ for more information.
 .BR \-\-post\-build\-commands=\fIstring\fP
 Run this command after a successful build. The command is run as root outside
 of the chroot. This option can be used multiple times to add multiple commands.
-See the section
+Certain percent escapes are supported. To write a literal percent sign, escape
+it with another percent sign. See the section
 .BR "EXTERNAL COMMANDS"
 for more information.
 This command line option appends to the \fBEXTERNAL_COMMENDS\fP configuration variable. See
@@ -814,7 +828,8 @@ for more information.
 .BR \-\-anything\-failed\-commands=\fIstring\fP
 Run these commands for all the \fI\-\-xxx\-failed\-commands\fP options.
 Especially %SBUILD_SHELL is useful here. This option can be used multiple times
-to add multiple commands. See the section
+to add multiple commands. Certain percent escapes are supported. To write a
+literal percent sign, escape it with another percent sign. See the section
 .BR "EXTERNAL COMMANDS"
 for more information.
 This command line option appends to the \fBEXTERNAL_COMMENDS\fP configuration variable. See
