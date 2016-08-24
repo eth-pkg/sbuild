@@ -47,7 +47,7 @@ New upstream releases:
 • The code must pass the testsuite (run 'sudo make check' after
   ./configure --enable-chroot-checks). This requires a local schroot
   called 'unstable' setup. These checks can take some time to
-  run. Plain "./configure; ./bootstrap; make check" runs only the
+  run. Plain "./bootstrap && ./configure && make check" runs only the
   checks that can be done without schroot, which are very quick.
 
 • The NEWS file must be up to date, and have the current version
@@ -65,7 +65,6 @@ New upstream releases:
   and version number.
 
 • Run ./configure and then "make dist" to generate the release tarball.
-  FIXME: Instead of "make dist" try "git archive" next time.
 
 • Move the tarball sbuild-XXX.tar.gz to the parent directory
 
