@@ -1,11 +1,30 @@
 NEWS                                                            -*- outline -*-
 ----
 
-Welcome to sbuild 0.70.0.  Please read these release notes carefully.
+Welcome to sbuild 0.71.0.  Please read these release notes carefully.
 
 Full installation instructions are provided in the INSTALL file.  The
 README file also contains more specific notes regarding building and
 configuration.
+
+ * Major changes in 0.71.0:
+
+   1) Undo exporting private keys in armored ASCII format as introduced by the
+      last release. It turns out, that this is not necessary to support gpg
+      cross-version compatibility. This should fix problems with gpg 2.x
+      as well as chroots not having gpg installed as apt stopped depending on
+      it.
+
+   2) Undo the SUITE-VARIANT syntax of sbuild-createchroot as introduced by the
+      last release. It turns out that overloading the suite name argument with
+      a variant name was a bad idea because there exist distributions with a
+      minus in its name. Variant names can now be specified using the
+      --chroot-prefix option which works analogous to the --chroot-suffix
+      option.
+
+   3) Add percent escape support to piuparts, autopkgtest and adt-virt options.
+
+   4) Add sbuild-destroychroot.
 
  * Major changes in 0.70.0:
 
