@@ -74,8 +74,8 @@ New Debian releases:
 
 • Create a commit "import upstream version XXX" by doing:
     - rm -rf *
-    - git checkout -- debian
     - tar --strip-components=1 -xf ../sbuild-XXX.tar.gz
+    - git checkout -- debian
     - git add .
     - git commit -m "import upstream version XXX"
 
@@ -87,7 +87,7 @@ New Debian releases:
       closed bugs
     - check $(bts select package:sbuild tag:pending) for any
       other bugs that need to be closed by this release
-    - run git add and commit
+    - run git add and "git commit -m 'release XXX to unstable'"
 
 • Rename ../sbuild-XXX.tar.gz to ../sbuild_XXX.orig.tar.gz and
   use it to build and test the package.
