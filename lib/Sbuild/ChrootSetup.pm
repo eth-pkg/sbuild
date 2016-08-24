@@ -286,8 +286,8 @@ EOF
     }
 
     # export keys
-    @command = ('gpg', '--batch', '--yes', '--export-secret-keys', '--armor',
-	        '--output', $conf->get('SBUILD_BUILD_DEPENDS_SECRET_KEY_ARMORED'),
+    @command = ('gpg', '--batch', '--yes', '--export-secret-keys',
+	        '--output', $conf->get('SBUILD_BUILD_DEPENDS_SECRET_KEY'),
 	        'buildd-tools-devel@lists.alioth.debian.org');
     $host->run_command(
 	{ COMMAND => \@command,
@@ -299,8 +299,8 @@ EOF
 	return $?;
     }
 
-    @command = ('gpg', '--batch', '--yes', '--export', '--armor',
-	        '--output', $conf->get('SBUILD_BUILD_DEPENDS_PUBLIC_KEY_ARMORED'),
+    @command = ('gpg', '--batch', '--yes', '--export',
+	        '--output', $conf->get('SBUILD_BUILD_DEPENDS_PUBLIC_KEY'),
 	        'buildd-tools-devel@lists.alioth.debian.org');
     $host->run_command(
 	{ COMMAND => \@command,
@@ -314,8 +314,8 @@ EOF
 
     # Keys needs to be readable by 'sbuild' group.
     @command = ('chmod', '640',
-                $conf->get('SBUILD_BUILD_DEPENDS_SECRET_KEY_ARMORED'),
-                $conf->get('SBUILD_BUILD_DEPENDS_PUBLIC_KEY_ARMORED'));
+                $conf->get('SBUILD_BUILD_DEPENDS_SECRET_KEY'),
+                $conf->get('SBUILD_BUILD_DEPENDS_PUBLIC_KEY'));
     $host->run_command(
         { COMMAND => \@command,
 	  USER => $conf->get('BUILD_USER'),

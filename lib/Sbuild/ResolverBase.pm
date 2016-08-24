@@ -1156,31 +1156,17 @@ EOF
     # Once squeeze is not supported anymore, we want to never sign the
     # dummy repository anymore but instead make use of apt's support for
     # [trusted=yes] in wheezy and later.
-    if ((((-f $self->get_conf('SBUILD_BUILD_DEPENDS_SECRET_KEY')) &&
-		(-f $self->get_conf('SBUILD_BUILD_DEPENDS_PUBLIC_KEY'))) ||
-	    ((-f $self->get_conf('SBUILD_BUILD_DEPENDS_SECRET_KEY_ARMORED')) &&
-		(-f $self->get_conf('SBUILD_BUILD_DEPENDS_PUBLIC_KEY_ARMORED')))) &&
-	!$self->get_conf('APT_ALLOW_UNAUTHENTICATED')) {
-	if (!$session->can_run("gpg")) {
-	    $self->log_error("Signing the internal dummy package repository was implicitly enabled because\n");
-	    $self->log_error("a GPG key pair was found on the host. An error occurred because the gnupg\n");
-	    $self->log_error("executable was not found inside the chroot. Signing the internal dummy\n");
-	    $self->log_error("repository is only required for chroots with versions of apt versions before\n");
-	    $self->log_error("version 0.8.16~exp3 (so Debian squeeze or older).\n");
-	    $self->log_error("To fix this problem, either (if you don't need squeeze):\n");
-	    $self->log_error(" - disable signing by removing /var/lib/sbuild/apt-keys/ from the host\n");
-	    $self->log_error("or (if you need squeeze) either:\n");
-	    $self->log_error(" - install the gnupg package into your chroot\n");
-	    $self->log_error(" - or add gnupg:native to the CORE_DEPENDS configuration variable\n");
-	    return 0;
-	}
+    # On hosts that include apt 1.3~exp1 or newer (Debian squeeze or later)
+    # the gnupg package will no longer be installed because apt doesn't depend
+    # on it anymore. So in cases where the gpg utility is not available, we do
+    # not sign the repository either. This should be okay because apt should
+    # be new enough to understand [trusted=yes].
+    if (((-f $self->get_conf('SBUILD_BUILD_DEPENDS_SECRET_KEY')) &&
+	    (-f $self->get_conf('SBUILD_BUILD_DEPENDS_PUBLIC_KEY'))) &&
+	!$self->get_conf('APT_ALLOW_UNAUTHENTICATED') &&
+	$session->can_run("gpg")) {
 	my $kill_gpgagent = sub {
-	    if (((((-f $self->get_conf('SBUILD_BUILD_DEPENDS_SECRET_KEY')) &&
-			    (-f $self->get_conf('SBUILD_BUILD_DEPENDS_PUBLIC_KEY'))) ||
-			((-f $self->get_conf('SBUILD_BUILD_DEPENDS_SECRET_KEY_ARMORED')) &&
-			    (-f $self->get_conf('SBUILD_BUILD_DEPENDS_PUBLIC_KEY_ARMORED')))) &&
-		    !$self->get_conf('APT_ALLOW_UNAUTHENTICATED')) &&
-		$session->can_run("gpgconf")) {
+	    if ($session->can_run("gpgconf")) {
 		# run gpgconf --kill gpg-agent (for gpg > 2.1) to kill any
 		# remaining gpg-agent
 		$session->run_command(
@@ -1190,31 +1176,28 @@ EOF
 			PRIORITY => 0});
 		if ($?) {
 		    my $err = $? >> 8;
-		    $self->log_error("before conversion: $?\n");
 		    $self->log_error("gpgconf --kill gpg-agent died with exit $err\n");
 		    return 0;
 		}
 	    }
 	};
 
-	my @gpg_command = ('gpg', '--homedir', $dummy_gpghome, '--yes');
-	# if the armored keys exist, we prefer these. Otherwise we fall back
-	# to the keys in gpg format
-	if ((-f $self->get_conf('SBUILD_BUILD_DEPENDS_SECRET_KEY_ARMORED')) &&
-	    (-f $self->get_conf('SBUILD_BUILD_DEPENDS_PUBLIC_KEY_ARMORED'))) {
+	# only import the key if it hasn't been imported before
+	if (!$session->test_regular_file($dummy_archive_seckey) || !$session->test_regular_file($dummy_archive_pubkey)) {
+	    # copy the public and private key from the host into the chroot
 	    if (!$session->test_regular_file($dummy_archive_seckey)) {
-		if (!$session->copy_to_chroot($self->get_conf('SBUILD_BUILD_DEPENDS_SECRET_KEY_ARMORED'), $dummy_archive_seckey)) {
+		if (!$session->copy_to_chroot($self->get_conf('SBUILD_BUILD_DEPENDS_SECRET_KEY'), $dummy_archive_seckey)) {
 		    $self->log_error("Failed to copy secret key\n");
 		    return 0;
 		}
 	    }
 	    if (!$session->test_regular_file($dummy_archive_pubkey)) {
-		if (!$session->copy_to_chroot($self->get_conf('SBUILD_BUILD_DEPENDS_PUBLIC_KEY_ARMORED'), $dummy_archive_pubkey)) {
+		if (!$session->copy_to_chroot($self->get_conf('SBUILD_BUILD_DEPENDS_PUBLIC_KEY'), $dummy_archive_pubkey)) {
 		    $self->log_error("Failed to copy public key\n");
 		    return 0;
 		}
 	    }
-	    # import the armored keys
+	    # import the keys
 	    my @import_command;
 	    @import_command = ('gpg', '--homedir', $dummy_gpghome, '--import', $dummy_archive_pubkey);
 	    $session->run_command(
@@ -1236,54 +1219,21 @@ EOF
 		&$kill_gpgagent();
 		return 0;
 	    }
-	} else {
-	    # Since the armored keys were not present, we fall back to using
-	    # keys in binary gnupg format. This operation can fail if the
-	    # gnupg version with which the keys were generated and the version
-	    # of gnupg inside the chroot are not compatible with each other.
-	    # In that case, the user has to use sbuild-update --keygen to
-	    # create a new armored ASCII keypair.
-	    # This code can be removed once the sbuild version with armored
-	    # ASCII key support is in stable.
-	    if (!$session->test_regular_file($dummy_archive_seckey)) {
-		if (!$session->copy_to_chroot($self->get_conf('SBUILD_BUILD_DEPENDS_SECRET_KEY'), $dummy_archive_seckey)) {
-		    $self->log_error("Failed to copy secret key");
-		    return 0;
-		}
-	    }
-	    if (!$session->test_regular_file($dummy_archive_pubkey)) {
-		if (!$session->copy_to_chroot($self->get_conf('SBUILD_BUILD_DEPENDS_PUBLIC_KEY'), $dummy_archive_pubkey)) {
-		    $self->log_error("Failed to copy public key");
-		    return 0;
-		}
-	    }
-	    push @gpg_command, '--no-default-keyring',
-		'--secret-keyring', $dummy_archive_seckey,
-		'--keyring', $dummy_archive_pubkey;
 	}
-	push @gpg_command, '--default-key', 'Sbuild Signer', '-abs',
-		'--digest-algo', 'SHA512',
-		'-o', $dummy_release_file . '.gpg',
-		$dummy_release_file;
+
+	# sign the release file
+	my @gpg_command = (
+	    'gpg', '--homedir', $dummy_gpghome, '--yes',
+	    '--default-key', 'Sbuild Signer', '-abs',
+	    '--digest-algo', 'SHA512',
+	    '-o', $dummy_release_file . '.gpg',
+	    $dummy_release_file);
 	$session->run_command(
 	    { COMMAND => \@gpg_command,
 		USER => $self->get_conf('BUILD_USER'),
 		PRIORITY => 0});
 	if ($?) {
 	    $self->log_error("Failed to sign dummy archive Release file.\n");
-	    # output a helpful message in case the keys were not present in
-	    # armored format
-	    if ((! -f $self->get_conf('SBUILD_BUILD_DEPENDS_SECRET_KEY_ARMORED')) ||
-		(! -f $self->get_conf('SBUILD_BUILD_DEPENDS_PUBLIC_KEY_ARMORED'))) {
-		$self->log_warning("The keys were not found in armored format and thus, a version skew \n");
-		$self->log_warning("between gnupg on your host and in the chroot might be responsible \n");
-		$self->log_warning("for this failure. Try running sbuild-update --keygen again to \n");
-		$self->log_warning("generate a keypair in armored ASCII format.\n");
-		$self->log_warning("Alternatively, if you are using sbuild with chroots containing apt\n");
-		$self->log_warning("versions of 0.8.16~exp3 or newer (Debian wheezy and later) then\n");
-		$self->log_warning("signing isn't required at all and you can just delete\n");
-		$self->log_warning("/var/lib/sbuild/apt-keys/ from the host to disable signing.\n");
-	    }
 	    &$kill_gpgagent();
 	    return 0;
 	}
