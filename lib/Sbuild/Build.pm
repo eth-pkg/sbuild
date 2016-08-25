@@ -840,6 +840,22 @@ sub run_fetch_install_packages {
 	}
     };
 
+    # If 'This Time' is still zero, then build() raised an exception and thus
+    # the end time was never set. Thus, setting it here.
+    # If we would set 'This Time' here unconditionally, then it would also
+    # possibly include the times to run piuparts and autopkgtest.
+    if ($self->get('This Time') == 0) {
+	$self->set('This Time', $self->get('Pkg End Time') - $self->get('Pkg Start Time'));
+	$self->get('This Time') = 0 if $self->get('This Time') < 0;
+    }
+    # Same for 'This Space' which we must set here before everything gets
+    # cleaned up.
+    if ($self->get('This Space') == 0) {
+	# Since the build apparently failed, we pass an empty list of the
+	# build artifacts
+	$self->set('This Space', $self->check_space());
+    }
+
     debug("Error run_fetch_install_packages(): $@") if $@;
 
     # I catch the exception here and trigger the hook, if needed. Normally I'd
