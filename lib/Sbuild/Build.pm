@@ -2095,6 +2095,9 @@ sub build {
     }
     $self->set('Build End Time', time);
     $self->set('Pkg End Time', time);
+    $self->set('This Time', $self->get('Pkg End Time') - $self->get('Pkg Start Time'));
+    $self->set('This Time', 0) if $self->get('This Time') < 0;
+
     $self->write_stats('build-time',
 		       $self->get('Build End Time')-$self->get('Build Start Time'));
     $self->write_stats('install-download-time',
@@ -2283,9 +2286,6 @@ sub build {
 	    }
 	}
     }
-
-    $self->set('This Time', $self->get('Pkg End Time') - $self->get('Pkg Start Time'));
-    $self->set('This Time', 0) if $self->get('This Time') < 0;
 
     $self->set('This Space', $self->check_space(@space_files));
 
