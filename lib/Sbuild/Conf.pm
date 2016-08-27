@@ -285,11 +285,12 @@ sub setup ($) {
 	    HELP => 'Additional command-line options for adt-virt-*',
 	    CLI_OPTIONS => ['--adt-virt-server-opt', '--adt-virt-server-opts']
 	},
+	# Do not check for the existance of fakeroot because it's needed
+	# inside the chroot and not on the host
 	'FAKEROOT'				=> {
 	    TYPE => 'STRING',
 	    VARNAME => 'fakeroot',
 	    GROUP => 'Programs',
-	    CHECK => $validate_program,
 	    DEFAULT => 'fakeroot',
 	    HELP => 'Path to fakeroot binary'
 	},
