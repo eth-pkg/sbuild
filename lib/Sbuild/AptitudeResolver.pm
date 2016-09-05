@@ -59,6 +59,13 @@ sub install_deps {
     my $status = 0;
     my $session = $self->get('Session');
     my $dummy_pkg_name = 'sbuild-build-depends-' . $name. '-dummy';
+    my $dummy_pkg_name_for_install = $dummy_pkg_name;
+    # Debian without multiarch (squeeze and older) does not support
+    # architecture qualifiers for dependencies, so we only add them if the
+    # chroot supports multiarch
+    if ($self->get('Multiarch Support')) {
+	$dummy_pkg_name_for_install .= ':' . $self->get('Host Arch');
+    }
 
     # Call functions to setup an archive to install dummy package.
     $self->log_subsubsection("Setup apt archive");
@@ -100,7 +107,7 @@ sub install_deps {
 	'-o', 'Aptitude::ProblemResolver::Keep-All-Level=55000',
 	'-o', 'Aptitude::ProblemResolver::Remove-Essential-Level=maximum',
 	'install',
-	$dummy_pkg_name . ':' . $self->get('Host Arch')
+	$dummy_pkg_name_for_install
     );
 
     $self->log(join(" ", @aptitude_install_command), "\n");
