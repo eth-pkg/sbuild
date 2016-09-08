@@ -97,4 +97,11 @@ sub install_deps {
     return $status;
 }
 
+sub purge_extra_packages {
+    my $self = shift;
+    my $name = shift;
+
+    $self->log_error('Xapt resolver doesn\'t implement purging of extra packages yet.\n');
+}
+
 1;

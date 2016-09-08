@@ -799,6 +799,13 @@ sub run_fetch_install_packages {
 	    Sbuild::Exception::Build->throw(error => "Package build dependencies not satisfied; skipping",
 					    failstage => "install-deps");
 	}
+	$self->check_abort();
+	if ($self->get_conf('PURGE_EXTRA_PACKAGES')) {
+	    if (!$resolver->purge_extra_packages($self->get('Package'))) {
+		Sbuild::Exception::Build->throw(error => "Chroot could not be cleaned of extra packages",
+		    failstage => "install-deps");
+	    }
+	}
 	$self->set('Install End Time', time);
 
 	$self->check_abort();

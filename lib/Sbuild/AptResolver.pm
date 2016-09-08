@@ -107,4 +107,113 @@ sub install_deps {
     return $status;
 }
 
+sub purge_extra_packages {
+    my $self = shift;
+    my $name = shift;
+
+    my $dummy_pkg_name = 'sbuild-build-depends-' . $name. '-dummy';
+
+    my $session = $self->get('Session');
+
+    # we partition the packages into those we want to mark as manual (all of
+    # Essential:yes plus sbuild dummy packages) and those we want to mark as
+    # auto
+    #
+    # We don't use the '*' glob of apt-mark because then we'd have all packages
+    # apt knows about in the build log.
+    my $pipe = $session->pipe_command({
+	    COMMAND => [ 'dpkg-query', '--showformat', '${Essential} ${Package}\\n', '--show' ],
+	    USER => $self->get_conf('BUILD_USER')
+	});
+    if (!$pipe) {
+	$self->log_error("unable to execute dpkg-query\n");
+	return 0;
+    }
+    my @essential;
+    my @nonessential;
+    while (my $line = <$pipe>) {
+	chomp $line;
+	if ($line !~ /^(yes|no) ([a-zA-Z0-9][a-zA-Z0-9+.-]*)$/) {
+	    $self->log_error("dpkg-query output has unexpected format\n");
+	    return 0;
+	}
+	# we only want to keep packages that are Essential:yes and the dummy
+	# packages created by sbuild. Apt takes care to also keep their
+	# transitive dependencies.
+	if ($1 eq "yes" || $2 eq $dummy_pkg_name || $2 eq 'sbuild-build-depends-core-dummy') {
+	    push @essential, $2;
+	} else {
+	    push @nonessential, $2;
+	}
+    }
+    close $pipe;
+    if (scalar @essential == 0) {
+	$self->log_error("no essential packages found \n");
+	return 0;
+    }
+    if (scalar @nonessential == 0) {
+	$self->log_error("no non-essential packages found \n");
+	return 0;
+    }
+
+    if (!$session->run_command({ COMMAND => [ 'apt-mark', 'auto', @nonessential ], USER => 'root' })) {
+	$self->log_error("unable to run apt-mark\n");
+	return 0;
+    }
+
+    # We must mark all Essential:yes packages as manual because later on we
+    # must run apt with --allow-remove-essential so that apt agrees to remove
+    # itself and at that point we don't want to remove the Essential:yes
+    # packages.
+    if (!$session->run_command({ COMMAND => [ 'apt-mark', 'manual', @essential ], USER => 'root' })) {
+	$self->log_error("unable to run apt-mark\n");
+	return 0;
+    }
+    # apt currently suffers from bug #837066. It will never autoremove
+    # priority:required packages, thus we use a temporary (famous last words)
+    # hack here and feed apt a modified /var/lib/dpkg/status file with all
+    # packages marked as Priority:extra. This is a hack because
+    # /var/lib/dpkg/status should not be read by others than dpkg (we for
+    # example do not take into account the journal that way).
+    my $read_fh = $session->pipe_command({
+	    COMMAND => [ 'sed', 's/^Priority: .*$/Priority: extra/', '/var/lib/dpkg/status' ],
+	    USER => $self->get_conf('BUILD_USER')
+	});
+    if (!$read_fh) {
+	$session->log_error("cannot run sed\n");
+	return 0;
+    }
+    my $tmpfilename = $session->mktemp({ USER => $self->get_conf('BUILD_USER') });
+    if (!$tmpfilename) {
+	$session->log_error("cannot mktemp\n");
+	return 0;
+    }
+    my $write_fh = $session->get_write_file_handle($tmpfilename);
+    if (!$write_fh) {
+	$session->log_error("cannot open $tmpfilename for writing\n");
+	return 0;
+    }
+    while (read($read_fh, my $buffer, 1024)) {
+	print $write_fh $buffer;
+    }
+    close $read_fh;
+    close $write_fh;
+
+    my (@instd, @rmvd);
+    # apt considers itself as Essential:yes, that's why we need
+    # --allow-remove-essential to remove it and that's why we must explicitly
+    # specify to remove it.
+    #
+    # The /dev/null prevents apt from overriding the Priorities that we set in
+    # our modified dpkg status file by the ones it finds in the package list
+    # files
+    $self->run_apt("-yf", \@instd, \@rmvd, 'autoremove',
+	'apt',
+	'-o', 'Dir::State::Lists=/dev/null',
+	'-o', "Dir::State::Status=$tmpfilename",
+	'--allow-remove-essential');
+
+    $session->unlink($tmpfilename);
+}
+
 1;

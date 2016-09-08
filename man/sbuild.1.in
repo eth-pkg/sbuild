@@ -100,6 +100,7 @@ sbuild \- build debian packages from source
 .RB [ \-\-adt-virt-server=\fIschroot|lxc|chroot|qemu|ssh\fP ]
 .RB [ \-\-adt\-virt\-server\-opt=\fIstring\fP ]
 .RB [ \-\-adt\-virt\-server\-opts=\fIoptions\fP ]
+.RB [ \-\-purge\-extra\-packages\fP ]
 .RB [ PACKAGE [ .dsc ]]
 .SH DESCRIPTION
 \fBsbuild\fR rebuilds Debian binary packages from the corresponding Debian
@@ -1049,6 +1050,28 @@ for more information.
 .BR \-\tstats\-dir=\fIdirectory\fP
 Directory for writing build statistics to.
 This command line option sets the \fBSTATS_DIR\fP configuration variable. See
+.BR sbuild.conf (5)
+for more information.
+.TP
+.BR \-\-purge\-extra\-packages\fP
+This is an experimental option. Only use when you know what you are doing.
+Source packages must be buildable with only their build dependencies, all
+packages marked as Essential:yes, the build-essential package and their
+transitive dependencies installed. But by default, most chroots will also
+include Priority:required packages and apt as well as their transitive
+dependencies. This option will try to remove all additional packages that are
+not strictly required for the build right after build dependencies were
+installed. This currently works best with the aspcud resolver. The apt resolver
+will not make as much effort to remove all unneeded packages and will keep all
+providers of a virtual package and all packages from any dependency alternative
+that happen to be installed. The aptitude and xapt resolver do not implement
+this feature yet. The removed packages are not (yet) added again after the
+build finished. This can have undesirable side effects like lintian not working
+(because there is no apt to install its dependencies) or bare chroots becoming
+totally unusable after apt was removed from them. Thus, this option should only
+be used with throw-away chroots like schroot provides them where the original
+state is automatically restored after each build. This command line option sets
+the \fBPURGE_EXTRA_PACKAGES\fP configuration variable. See
 .BR sbuild.conf (5)
 for more information.
 .SH BUILD ARTIFACTS

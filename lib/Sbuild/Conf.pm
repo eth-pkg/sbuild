@@ -1368,6 +1368,14 @@ $autopkgtest_root_args = [\'\', \'whatever\'];
 	    HELP => 'Also produce a changes file suitable for a source-only upload.',
 	    CLI_OPTIONS => ['--source-only-changes']
 	},
+	'PURGE_EXTRA_PACKAGES'				=> {
+	    TYPE => 'BOOL',
+	    VARNAME => 'purge_extra_packages',
+	    GROUP => 'Chroot options',
+	    DEFAULT => 0,
+	    HELP => 'Try to remove all additional packages that are not strictly required for the build right after build dependencies were installed. This currently works best with the aspcud resolver. The apt resolver will not make as much effort to remove all unneeded packages and will keep all providers of a virtual package and all packages from any dependency alternative that happen to be installed. The aptitude and xapt resolver do not implement this feature yet. The removed packages are not yet added again after the build finished. This can have undesirable side effects like lintian not working (because there is no apt to install its dependencies) or bare chroots becoming totally unusable after apt was removed from them. Thus, this option should only be used with throw-away chroots like schroot provides them where the original state is automatically restored after each build.',
+	    CLI_OPTIONS => ['--purge-extra-packages']
+	}
     );
 
     $conf->set_allowed_keys(\%sbuild_keys);
