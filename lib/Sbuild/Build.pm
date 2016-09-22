@@ -1780,7 +1780,7 @@ sub build {
 	}
     }
 
-    $self->log_subsubsection("Check disc space");
+    $self->log_subsubsection("Check disk space");
     chomp(my $current_usage = $session->read_command({ COMMAND => ["du", "-k", "-s", "$dscdir"]}));
     if ($?) {
 	$self->log_error("du exited with non-zero exit status $?");
@@ -1800,7 +1800,7 @@ sub build {
 	    Sbuild::Exception::Build->throw(error => "df exited with non-zero exit status $?", failstage => "check-space");
 	}
 	if ($free < 2*$current_usage && $self->get_conf('CHECK_SPACE')) {
-	    Sbuild::Exception::Build->throw(error => "Disc space is probably not sufficient for building.",
+	    Sbuild::Exception::Build->throw(error => "Disk space is probably not sufficient for building.",
 		info => "Source needs $current_usage KiB, while $free KiB is free.)",
 		failstage => "check-space");
 	} else {
@@ -2804,7 +2804,7 @@ sub close_build_log {
 
     $self->log_sep();
     $self->log("Finished at ${date}\n");
-    $self->log(sprintf("Build needed %02d:%02d:%02d, %dk disc space\n",
+    $self->log(sprintf("Build needed %02d:%02d:%02d, %dk disk space\n",
 	       $hours, $minutes, $seconds, $space));
 
     if ($self->get_status() eq "successful") {
