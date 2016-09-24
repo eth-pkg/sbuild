@@ -2075,7 +2075,20 @@ sub build {
     };
 
     alarm($timeout);
-    while(<$pipe>) {
+    # We do not use a while(<$pipe>) {} loop because that one would only read
+    # full lines (until $/ is reached). But we do not want to tie "activity"
+    # to receiving complete lines on standard output and standard error.
+    # Receiving any data should be sufficient for a process to signal that it
+    # is still active. Thus, instead of reading lines, we use sysread() which
+    # will return us data once it is available even if the data is not
+    # terminated by a newline. To still print correctly to the log, we collect
+    # unterminated strings into an accumulator and print them to the log once
+    # the newline shows up. This has the added advantage that we can now not
+    # only treat \n as producing new lines ($/ is limited to a single
+    # character) but can also produce new lines when encountering a \r as it
+    # is common for progress-meter output of long-running processes.
+    my $acc = "";
+    while(1) {
 	alarm($timeout);
 	$last_time = time;
 	if ($self->get('ABORT')) {
@@ -2088,7 +2101,48 @@ sub build {
 		  PRIORITY => 0,
 		  DIR => '/' });
 	}
-	$self->log($_);
+	# The buffer size is really arbitrary and just makes sure not to call
+	# this function too often if lots of data is produced by the build.
+	# The function will immediately return even with less data than the
+	# buffer size once it is available.
+	my $ret = sysread($pipe, my $buf, 1024);
+	# sysread failed - this for example happens when the build timeouted
+	# and is killed as a result
+	if (!defined $ret) {
+	    last;
+	}
+	# A return value of 0 signals EOF
+	if ($ret == 0) {
+	    last;
+	}
+	# We choose that lines shall not only be terminated by \n but that new
+	# log lines are also produced after encountering a \r.
+	# A negative limit is used to also produce trailing empty fields if
+	# required (think of multiple trailing empty lines).
+	my @parts = split /\r|\n/, $buf, -1;
+	my $numparts = scalar @parts;
+	if ($numparts == 1) {
+	    # line terminator was not found
+	    $acc .= $buf;
+	} elsif ($numparts >= 2) {
+	    # first match needs special treatment as it needs to be
+	    # concatenated with $acc
+	    my $first = shift @parts;
+	    $self->log($acc . $first . "\n");
+	    my $last = pop @parts;
+	    for (my $i = 0; $i < $numparts - 2; $i++) {
+		$self->log($parts[$i] . "\n");
+	    }
+	    # the last part is put into the accumulator. This might
+	    # just be the empty string if $buf ended in a line
+	    # terminator
+	    $acc = $last;
+	}
+    }
+    # If the output didn't end with a line terminator, just print out the rest
+    # as we have it.
+    if ($acc ne "") {
+	$self->log($acc . "\n");
     }
     close($pipe);
     alarm(0);
