@@ -1288,9 +1288,9 @@ EOF
 	}
 	if ($dscarchs ne "any" && !($valid_arch) &&
 	    !($dscarchs =~ /\ball\b/ && $self->get_conf('BUILD_ARCH_ALL')) )  {
-	    my $msg = "dsc: $host_arch not in arch list or does not match any arch wildcards: $dscarchs -- skipping\n";
-	    $self->log_error($msg);
-	    Sbuild::Exception::Build->throw(error => "dsc: $host_arch not in arch list or does not match any arch wildcards: $dscarchs -- skipping",
+	    my $msg = "dsc: $host_arch not in arch list or does not match any arch wildcards: $dscarchs -- skipping";
+	    $self->log_error("$msg\n");
+	    Sbuild::Exception::Build->throw(error => $msg,
 					    status => "skipped",
 					    failstage => "arch-check");
 	    return 0;
