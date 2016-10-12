@@ -1265,6 +1265,9 @@ sub check_architectures {
     } else {
 	my $valid_arch;
 	for my $a (split(/\s+/, $dscarchs)) {
+	    # Check architecture wildcard matching with dpkg inside the chroot
+	    # to avoid situations in which dpkg outside the chroot doesn't
+	    # know about a new architecture yet
 	    my $command = <<"EOF";
 		use strict;
 		use warnings;
