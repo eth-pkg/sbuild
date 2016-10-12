@@ -1262,6 +1262,11 @@ sub check_architectures {
     # Check package arch makes sense to build
     if (!$dscarchs) {
 	$self->log_warning("dsc has no Architecture: field -- skipping arch check!\n");
+    } elsif ($self->get_conf('BUILD_SOURCE')) {
+	# If the source package is to be built, then we do not need to check
+	# if any of the source package's architectures can be built given the
+	# current host architecture because then no matter the Architectures
+	# field, at least the source package will end up getting built.
     } else {
 	my $valid_arch;
 	for my $a (split(/\s+/, $dscarchs)) {
