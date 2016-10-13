@@ -1331,15 +1331,22 @@ Here is an example that will run piuparts with the right schroot chroot:
 .PP
 Or an example of running autopkgtest with the right schroot chroot:
 .PP
-\f[CB]$ sbuild \-\-run\-autopkgtest \\\fP
+\f[CB]$ sbuild \-\-run\-autopkgtest \-\-autopkgtest-root-args= \\\fP
 .br
 \f[CB]      \-\-autopkgtest\-opts="-- schroot %r-%a-sbuild"
 .PP
 To achieve the same effect via the configuration file, add the following:
 .PP
+\f[CB]$autopkgtest_root_args = '';\fP
+.br
 \f[CB]$piuparts_opts = [ '--schroot=%r-%a-sbuild' ];\fP
 .br
 \f[CB]$autopkgtest_opts = [ '--', 'schroot', '%r-%a-sbuild' ];\fP
+.PP
+The --autopkgtest-root-args option and the $autopkgtest_root_args configuration
+variable are set to the empty string because the default is to run autopkgtest
+with "sudo --" in front of it which is not needed with the schroot autopkgtest
+backend.
 .PP
 .SH LOCAL ARCHIVE
 The apt and aptitude resolvers create a local archive for installing build
