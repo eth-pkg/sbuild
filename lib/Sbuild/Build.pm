@@ -475,6 +475,7 @@ END
 	$self->build_log_colour('red', '^Piuparts:');
 	$self->build_log_colour('green', '^Piuparts: pass$');
 	$self->build_log_colour('red', '^Autopkgtest:');
+	$self->build_log_colour('yellow', '^Autopkgtest: no tests$');
 	$self->build_log_colour('green', '^Autopkgtest: pass$');
 
 	# Log filtering
@@ -1709,6 +1710,10 @@ sub run_autopkgtest {
         $self->log_error("Autopkgtest run failed.\n");
 	$self->set('Autopkgtest Reason', 'fail');
         return 0;
+    }
+
+    if ($status == 8) {
+	$self->set('Autopkgtest Reason', 'no tests');
     }
 
     $self->log_info("Autopkgtest run was successful.\n");
