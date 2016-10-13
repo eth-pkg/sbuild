@@ -1630,17 +1630,17 @@ sub run_autopkgtest {
     # If the value is not an array, prefix with that scalar except if the
     # scalar is the empty string in which case, prefix with nothing
     if (ref($self->get_conf('AUTOPKGTEST_ROOT_ARGS')) eq "ARRAY") {
-	if (scalar(@{$self->get_conf('AUTOPKGTEST_ROOT_ARGS')})) {
-	    if (@{$self->get_conf('AUTOPKGTEST_ROOT_ARGS')}[0] ne '') {
-		push @autopkgtest_command, @{$self->get_conf('AUTOPKGTEST_ROOT_ARGS')};
-	    }
-	} else {
+	if (scalar(@{$self->get_conf('AUTOPKGTEST_ROOT_ARGS')}) == 0) {
 	    push @autopkgtest_command, 'sudo', '--';
+	} elsif (@{$self->get_conf('AUTOPKGTEST_ROOT_ARGS')}[0] eq '') {
+	    # do nothing if the first array element is the empty string
+	} else {
+	    push @autopkgtest_command, @{$self->get_conf('AUTOPKGTEST_ROOT_ARGS')};
 	}
+    } elsif ($self->get_conf('AUTOPKGTEST_ROOT_ARGS') eq '') {
+	# do nothing if the configuration value is the empty string
     } else {
-	if ($self->get_conf('AUTOPKGTEST_ROOT_ARGS') ne '') {
-	    push @autopkgtest_command, $self->get_conf('AUTOPKGTEST_ROOT_ARGS');
-	}
+	push @autopkgtest_command, $self->get_conf('AUTOPKGTEST_ROOT_ARGS');
     }
     push @autopkgtest_command, $autopkgtest;
     my $tmpdir;
