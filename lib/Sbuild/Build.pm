@@ -1603,6 +1603,11 @@ sub run_piuparts {
         });
     my $status = $? >> 8;
 
+    # We must check for Ctrl+C (and other aborting signals) directly after
+    # running the command so that we do not mark the piuparts run as successful
+    # (the exit status will be zero)
+    $self->check_abort();
+
     $self->log("\n");
 
     if ($status == 0) {
@@ -1703,6 +1708,12 @@ sub run_autopkgtest {
 	}
 	rmdir $tmpdir;
     }
+
+    # We must check for Ctrl+C (and other aborting signals) directly after
+    # running the command so that we do not mark the autopkgtest as successful
+    # (the exit status will be zero)
+    # But we must check only after the temporary directory has been removed.
+    $self->check_abort();
 
     $self->log("\n");
 
