@@ -464,8 +464,18 @@ sub set_options {
 				$_[1]);
 		       },
 		       "autopkgtest-root-args=s" => sub {
-			   push(@{$self->get_conf('AUTOPKGTEST_ROOT_ARGS')},
-				split(/\s+/, $_[1]));
+			   # special handling of the case when the string
+			   # argument is the empty string. In that case, the
+			   # empty string is appended. The split function
+			   # would just return an empty list when splitting
+			   # the empty string
+			   if ($_[1] eq '') {
+			       push(@{$self->get_conf('AUTOPKGTEST_ROOT_ARGS')},
+				   '');
+			   } else {
+			       push(@{$self->get_conf('AUTOPKGTEST_ROOT_ARGS')},
+				   split(/\s+/, $_[1]));
+			   }
 		       },
 		       "autopkgtest-root-arg=s" => sub {
 			   push(@{$self->get_conf('AUTOPKGTEST_ROOT_ARGS')},
