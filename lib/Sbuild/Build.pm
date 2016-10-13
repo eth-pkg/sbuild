@@ -1568,6 +1568,7 @@ sub run_piuparts {
     my $self = shift;
 
     return 1 unless ($self->get_conf('RUN_PIUPARTS'));
+    $self->set('Piuparts Reason', 'fail');
 
     $self->log_subsubsection("piuparts");
 
@@ -1601,12 +1602,13 @@ sub run_piuparts {
           PRIORITY => 0,
         });
     my $status = $? >> 8;
-    $self->set('Piuparts Reason', 'pass');
 
     $self->log("\n");
-    if ($?) {
+
+    if ($status == 0) {
+	$self->set('Piuparts Reason', 'pass');
+    } else {
         $self->log_error("Piuparts run failed.\n");
-	$self->set('Piuparts Reason', 'fail');
         return 0;
     }
 
@@ -1618,6 +1620,8 @@ sub run_autopkgtest {
     my $self = shift;
 
     return 1 unless ($self->get_conf('RUN_AUTOPKGTEST'));
+
+    $self->set('Autopkgtest Reason', 'fail');
 
     $self->log_subsubsection("autopkgtest");
 
@@ -1659,7 +1663,6 @@ sub run_autopkgtest {
 	    my $session = $self->get('Session');
 	    if (!$session->copy_from_chroot("$build_dir/$dsc", "$tmpdir/$dsc")) {
 		$self->log_error("cannot copy .dsc from chroot\n");
-		$self->set('Autopkgtest Reason', 'fail');
 		rmdir $tmpdir;
 		return 0;
 	    }
@@ -1667,7 +1670,6 @@ sub run_autopkgtest {
 	    foreach (@cwd_files) {
 		if (!$session->copy_from_chroot("$build_dir/$_", "$tmpdir/$_")) {
 		    $self->log_error("cannot copy $_ from chroot\n");
-		    $self->set('Autopkgtest Reason', 'fail');
 		    unlink "$tmpdir/$.dsc";
 		    foreach (@cwd_files) {
 			unlink "$tmpdir/$_" if -f "$tmpdir/$_";
@@ -1691,8 +1693,6 @@ sub run_autopkgtest {
           PRIORITY => 0,
         });
     my $status = $? >> 8;
-    $self->set('Autopkgtest Reason', 'pass');
-
     # if the source package wasn't built and also initially downloaded by
     # sbuild, then the temporary directory that was created must be removed
     if (defined $tmpdir) {
@@ -1705,15 +1705,15 @@ sub run_autopkgtest {
     }
 
     $self->log("\n");
-    # fail if neither all tests passed nor was the package without tests
-    if ($status != 0 && $status != 8) {
-        $self->log_error("Autopkgtest run failed.\n");
-	$self->set('Autopkgtest Reason', 'fail');
-        return 0;
-    }
 
-    if ($status == 8) {
+    if ($status == 0) {
+	$self->set('Autopkgtest Reason', 'pass');
+    } elsif ($status == 8) {
 	$self->set('Autopkgtest Reason', 'no tests');
+    } else {
+	# fail if neither all tests passed nor was the package without tests
+	$self->log_error("Autopkgtest run failed.\n");
+	return 0;
     }
 
     $self->log_info("Autopkgtest run was successful.\n");
