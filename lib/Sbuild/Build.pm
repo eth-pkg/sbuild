@@ -50,7 +50,7 @@ use Sbuild qw($devnull binNMU_version copy isin debug send_mail
 use Sbuild::Base;
 use Sbuild::ChrootInfoSchroot;
 use Sbuild::ChrootInfoSudo;
-use Sbuild::ChrootInfoADT;
+use Sbuild::ChrootInfoAutopkgtest;
 use Sbuild::ChrootRoot;
 use Sbuild::Sysconfig qw($version $release_date);
 use Sbuild::Sysconfig;
@@ -362,8 +362,8 @@ sub run_chroot_session {
 	my $chroot_info;
 	if ($self->get_conf('CHROOT_MODE') eq 'schroot') {
 	    $chroot_info = Sbuild::ChrootInfoSchroot->new($self->get('Config'));
-	} elsif ($self->get_conf('CHROOT_MODE') eq 'adt') {
-	    $chroot_info = Sbuild::ChrootInfoADT->new($self->get('Config'));
+	} elsif ($self->get_conf('CHROOT_MODE') eq 'autopkgtest') {
+	    $chroot_info = Sbuild::ChrootInfoAutopkgtest->new($self->get('Config'));
 	} else {
 	    $chroot_info = Sbuild::ChrootInfoSudo->new($self->get('Config'));
 	}

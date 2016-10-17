@@ -20,7 +20,7 @@
 #
 #######################################################################
 
-package Sbuild::ChrootADT;
+package Sbuild::ChrootAutopkgtest;
 
 use strict;
 use warnings;
@@ -61,8 +61,8 @@ sub begin_session {
     my ($chld_out, $chld_in);
     my $pid = open2(
 	$chld_out, $chld_in,
-	$self->get_conf('ADT_VIRT_SERVER'),
-	@{$self->get_conf('ADT_VIRT_SERVER_OPTIONS')},
+	$self->get_conf('AUTOPKGTEST_VIRT_SERVER'),
+	@{$self->get_conf('AUTOPKGTEST_VIRT_SERVER_OPTIONS')},
 	$chroot);
 
     if (!$pid) {
@@ -73,7 +73,7 @@ sub begin_session {
     chomp (my $status = <$chld_out>);
 
     if (! defined $status || $status ne "ok") {
- 	print STDERR "adt-virt server returned unexpected value: $status\n";
+	print STDERR "autopkgtest-virt server returned unexpected value: $status\n";
 	kill 'KILL', $pid;
 	return 0;
     }
@@ -82,17 +82,17 @@ sub begin_session {
 
     chomp ($status = <$chld_out>);
 
-    my $adt_session;
+    my $autopkgtest_session;
     if ($status =~ /^ok (.*)$/) {
-	$adt_session = $1;
-	$self->set('Session ID', $adt_session);
+	$autopkgtest_session = $1;
+	$self->set('Session ID', $autopkgtest_session);
     } else {
-	print STDERR "adt-virt server: cannot open: $status\n";
+	print STDERR "autopkgtest-virt server: cannot open: $status\n";
 	kill 'KILL', $pid;
 	return 0;
     }
 
-    print STDERR "Setting up chroot $chroot (session id $adt_session)\n"
+    print STDERR "Setting up chroot $chroot (session id $autopkgtest_session)\n"
 	if $self->get_conf('DEBUG');
 
     print $chld_in "capabilities\n";
@@ -103,13 +103,13 @@ sub begin_session {
     if ($status =~ /^ok (.*)$/) {
 	@capabilities = split /\s+/, $1;
     } else {
-	print STDERR "adt-virt server: cannot capabilities: $status\n";
+	print STDERR "autopkgtest-virt server: cannot capabilities: $status\n";
 	kill 'KILL', $pid;
 	return 0;
     }
 
     if (! grep {$_ eq "root-on-testbed"} @capabilities) {
-	print STDERR "adt-virt server: capability root-on-testbed missing\n";
+	print STDERR "autopkgtest-virt server: capability root-on-testbed missing\n";
 	kill 'KILL', $pid;
 	return 0;
     }
@@ -124,7 +124,7 @@ sub begin_session {
     if ($status =~ /^ok (.*)$/) {
 	$exec_cmd = $1;
     } else {
-	print STDERR "adt-virt server: cannot print-execute-command: $status\n";
+	print STDERR "autopkgtest-virt server: cannot print-execute-command: $status\n";
 	kill 'KILL', $pid;
 	return 0;
     }
@@ -133,11 +133,11 @@ sub begin_session {
 
     @exec_args = map { s/%([0-9A-Fa-f]{2})/chr(hex($1))/eg; $_ } @exec_args;
 
-    $self->set('Location', '/adt-virt-dummy-location');
-    $self->set('ADT Pipe In', $chld_in);
-    $self->set('ADT Pipe Out', $chld_out);
-    $self->set('ADT Virt PID', $pid);
-    $self->set('ADT Exec Command', \@exec_args);
+    $self->set('Location', '/autopkgtest-virt-dummy-location');
+    $self->set('Autopkgtest Pipe In', $chld_in);
+    $self->set('Autopkgtest Pipe Out', $chld_out);
+    $self->set('Autopkgtest Virt PID', $pid);
+    $self->set('Autopkgtest Exec Command', \@exec_args);
 
     return 0 if !$self->_setup_options();
 
@@ -152,16 +152,16 @@ sub end_session {
     print STDERR "Cleaning up chroot (session id " . $self->get('Session ID') . ")\n"
 	if $self->get_conf('DEBUG');
 
-    my $chld_in = $self->get('ADT Pipe In');
-    my $chld_out = $self->get('ADT Pipe Out');
-    my $pid = $self->get('ADT Virt PID');
+    my $chld_in = $self->get('Autopkgtest Pipe In');
+    my $chld_out = $self->get('Autopkgtest Pipe Out');
+    my $pid = $self->get('Autopkgtest Virt PID');
 
     print $chld_in "close\n";
 
     chomp (my $status = <$chld_out>);
 
     if ($status ne "ok") {
- 	print STDERR "adt-virt server: cannot close: $status\n";
+	print STDERR "autopkgtest-virt server: cannot close: $status\n";
 	return 0;
     }
 
@@ -171,7 +171,7 @@ sub end_session {
 
     if ($?) {
 	my $child_exit_status = $? >> 8;
-	print STDERR "adt-virt quit with exit status $child_exit_status\n";
+	print STDERR "autopkgtest-virt quit with exit status $child_exit_status\n";
 	return 0;
     }
 
@@ -199,7 +199,7 @@ sub get_command_internal {
 
     my @cmdline = ();
 
-    @cmdline = @{$self->get('ADT Exec Command')};
+    @cmdline = @{$self->get('Autopkgtest Exec Command')};
 
     if ($user ne "root") {
 	push @cmdline, "/sbin/runuser", '-u', $user, '--';

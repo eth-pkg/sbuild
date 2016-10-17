@@ -18,10 +18,10 @@
 #
 #######################################################################
 
-package Sbuild::ChrootInfoADT;
+package Sbuild::ChrootInfoAutopkgtest;
 
 use Sbuild::ChrootInfo;
-use Sbuild::ChrootADT;
+use Sbuild::ChrootAutopkgtest;
 
 use strict;
 use warnings;
@@ -60,7 +60,7 @@ sub _create {
     my $chroot = undef;
 
     if (defined($chroot_id)) {
-	$chroot = Sbuild::ChrootADT->new($self->get('Config'), $chroot_id);
+	$chroot = Sbuild::ChrootAutopkgtest->new($self->get('Config'), $chroot_id);
     }
 
     return $chroot;

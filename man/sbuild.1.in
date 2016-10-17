@@ -28,7 +28,7 @@ sbuild \- build debian packages from source
 .RB [ \-\-archive=\fIarchive\fP ]
 .RB [ \-d \[or] \-\-dist=\fIdistribution\fP ]
 .RB [ \-c \[or] \-\-chroot=\fIchroot\fP ]
-.RB [ \-\-chroot-mode=\fIschroot|sudo|adt\fP ]
+.RB [ \-\-chroot-mode=\fIschroot|sudo|autopkgtest\fP ]
 .RB [ \-\-arch=\fIarchitecture\fP ]
 .RB [ \-\-arch\-any " \[or] " \-\-no\-arch\-any ]
 .RB [ \-\-build=\fIarchitecture\fP ]
@@ -97,9 +97,9 @@ sbuild \- build debian packages from source
 .RB [ \-\-extra\-repository=\fIspec\fP ]
 .RB [ \-\-extra\-repository\-key=\fIfile.asc\fP ]
 .RB [ \-\-build\-path=\fIstring\fP ]
-.RB [ \-\-adt-virt-server=\fIschroot|lxc|chroot|qemu|ssh\fP ]
-.RB [ \-\-adt\-virt\-server\-opt=\fIstring\fP ]
-.RB [ \-\-adt\-virt\-server\-opts=\fIoptions\fP ]
+.RB [ \-\-autopkgtest-virt-server=\fIschroot|lxc|chroot|qemu|ssh\fP ]
+.RB [ \-\-autopkgtest\-virt\-server\-opt=\fIstring\fP ]
+.RB [ \-\-autopkgtest\-virt\-server\-opts=\fIoptions\fP ]
 .RB [ \-\-purge\-extra\-packages\fP ]
 .RB [ PACKAGE [ .dsc ]]
 .SH DESCRIPTION
@@ -264,11 +264,11 @@ This command line option sets the \fBCHROOT\fP configuration variable. See
 .BR sbuild.conf (5)
 for more information.
 .TP
-.BR "\-\-chroot-mode=\fIschroot|sudo|adt\fP"
+.BR "\-\-chroot-mode=\fIschroot|sudo|autopkgtest\fP"
 Select the desired chroot mode. Four values are possible: schroot (the
 default), sudo (which uses sudo to execute chroot in a directory from
-/etc/sbuild/chroot or ./chroot) and adt which uses the adt-virt-* binaries
-(selectable via the \-\-adt-virt-server option).
+/etc/sbuild/chroot or ./chroot) and autopkgtest which uses the autopkgtest-virt-* binaries
+(selectable via the \-\-autopkgtest-virt-server option).
 This command line option sets the \fBCHROOT_MODE\fP configuration variable. See
 .BR sbuild.conf (5)
 for more information.
@@ -989,55 +989,55 @@ This command line option sets the \fBBUILD_PATH\fP configuration variable. See
 .BR sbuild.conf (5)
 for more information.
 .TP
-.BR \-\-adt-virt-server=\fIschroot|lxc|chroot|qemu|ssh\fP
-The adt virtualization server. Can be specified with or without the adt-virt-
+.BR \-\-autopkgtest-virt-server=\fIschroot|lxc|chroot|qemu|ssh\fP
+The autopkgtest virtualization server. Can be specified with or without the autopkgtest-virt-
 prefix.  For instance, the following set of command line options will use the
-adt-virt-schroot backend for a package build:
+autopkgtest-virt-schroot backend for a package build:
 .nh
-.B \-\-chroot-mode=adt \-\-adt\-virt\-server=schroot \-\-chroot unstable-amd64-sbuild
+.B \-\-chroot-mode=autopkgtest \-\-autopkgtest\-virt\-server=schroot \-\-chroot unstable-amd64-sbuild
 .hy
 The value of the \f[CB]--chroot\fP option will be passed as the last positional
-argument to the adt-virt-* invocation. Thus, the value of the \f[CB]--chroot\fP
-option becomes the image name of the virtual machine in case of adt-virt-qemu,
-the lxc-container name in case of adt-virt-lxc, the path to the chroot in case
-of adt-virt-chroot, the name of the schroot in case of adt-virt-schroot and so
+argument to the autopkgtest-virt-* invocation. Thus, the value of the \f[CB]--chroot\fP
+option becomes the image name of the virtual machine in case of autopkgtest-virt-qemu,
+the lxc-container name in case of autopkgtest-virt-lxc, the path to the chroot in case
+of autopkgtest-virt-chroot, the name of the schroot in case of autopkgtest-virt-schroot and so
 on.
-This command line option sets the \fBADT_VIRT_SERVER\fP configuration variable. See
+This command line option sets the \fBAUTOPKGTEST_VIRT_SERVER\fP configuration variable. See
 .BR sbuild.conf (5)
 for more information.
 .TP
-.BR \-\-adt-virt-server-opt=\fIstring\fP
-Pass the specified option directly to the respective adt-virt-* virtualization
+.BR \-\-autopkgtest-virt-server-opt=\fIstring\fP
+Pass the specified option directly to the respective autopkgtest-virt-* virtualization
 server in addition to the options already passed by sbuild. This option can be
-passed multiple times (once per adt-virt-* option) and can be freely mixed with
-the \-\-adt-virt-server\-opts option.  Options will be passed to the respective
-adt-virt-* virtualization server in the order that the \-\-adt-virt-server\-opt
-and \-\-adt-virt-server\-opts options are given on the command line.  See the
-manual pages of the respective adt-virt-* commands for more information.
+passed multiple times (once per autopkgtest-virt-* option) and can be freely mixed with
+the \-\-autopkgtest-virt-server\-opts option.  Options will be passed to the respective
+autopkgtest-virt-* virtualization server in the order that the \-\-autopkgtest-virt-server\-opt
+and \-\-autopkgtest-virt-server\-opts options are given on the command line.  See the
+manual pages of the respective autopkgtest-virt-* commands for more information.
 Certain percent escapes are supported. To write a literal percent sign, escape
 it with another percent sign. See the section
 .BR "OPTION STRING PERCENT ESCAPES"
 for more information.
-This command line option appends to the \fBADT_VIRT_SERVER_OPTIONS\fP configuration variable. See
+This command line option appends to the \fBAUTOPKGTEST_VIRT_SERVER_OPTIONS\fP configuration variable. See
 .BR sbuild.conf (5)
 for more information.
 .TP
-.BR \-\-adt\-virt\-server\-opts=\fIoptions\fP
-Pass the specified options directly to the respective adt-virt-* virtualization
+.BR \-\-autopkgtest\-virt\-server\-opts=\fIoptions\fP
+Pass the specified options directly to the respective autopkgtest-virt-* virtualization
 server in addition to the options already passed by sbuild. The argument will
-be split by whitespaces and the resulting array passed to the adt-virt-*
-invocation. If any options contain spaces, use \-\-adt\-virt\-server\-opt for
+be split by whitespaces and the resulting array passed to the autopkgtest-virt-*
+invocation. If any options contain spaces, use \-\-autopkgtest\-virt\-server\-opt for
 them.  This option can be passed multiple times and can be freely mixed with
-the \-\-adt\-virt\-server\-opts option. Options will be passed to the
-respective adt-virt-* virtualization server in the order that the
-\-\-adt\-virt\-server\-opt and \-\-adt\-virt\-server\-opts options are given on
-the command line. See the manual pages of the respective adt\-virt\-* commands
+the \-\-autopkgtest\-virt\-server\-opts option. Options will be passed to the
+respective autopkgtest-virt-* virtualization server in the order that the
+\-\-autopkgtest\-virt\-server\-opt and \-\-autopkgtest\-virt\-server\-opts options are given on
+the command line. See the manual pages of the respective autopkgtest\-virt\-* commands
 for more information.
 Certain percent escapes are supported. To write a literal percent sign, escape
 it with another percent sign. See the section
 .BR "OPTION STRING PERCENT ESCAPES"
 for more information.
-This command line option appends to the \fBADT_VIRT_SERVER_OPTIONS\fP configuration variable. See
+This command line option appends to the \fBAUTOPKGTEST_VIRT_SERVER_OPTIONS\fP configuration variable. See
 .BR sbuild.conf (5)
 for more information.
 .TP
@@ -1304,7 +1304,7 @@ Also, the commands given in a configuration file are processed first, then the
 commands given through the command line options.
 .SH OPTION STRING PERCENT ESCAPES
 Besides for external command strings, percent escapes can also be used in
-custom options passed to piuparts, autopkgtest and the chosen adt-virt server.
+custom options passed to piuparts, autopkgtest and the chosen autopkgtest-virt server.
 This is for example useful for communicating the right chroot backend to
 piuparts or autopkgtest depending on the distribution or architecture the
 source package was built for.

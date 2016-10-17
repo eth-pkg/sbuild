@@ -31,12 +31,12 @@ MODULES =			\
 	ChrootRoot.pm		\
 	ChrootSchroot.pm	\
 	ChrootSudo.pm		\
-	ChrootADT.pm		\
+	ChrootAutopkgtest.pm	\
 	ChrootSetup.pm		\
 	ChrootInfo.pm		\
 	ChrootInfoSchroot.pm	\
 	ChrootInfoSudo.pm	\
-	ChrootInfoADT.pm	\
+	ChrootInfoAutopkgtest.pm \
 	Exception.pm		\
 	ResolverBase.pm		\
 	AptitudeResolver.pm	\

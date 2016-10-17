@@ -156,15 +156,15 @@ sub set_options {
 		       "chroot-mode=s" => sub {
 			   $self->set_conf('CHROOT_MODE', $_[1]);
 		       },
-		       "adt-virt-server=s" => sub {
-			   $self->set_conf('ADT_VIRT_SERVER', $_[1]);
+		       "autopkgtest-virt-server=s" => sub {
+			   $self->set_conf('AUTOPKGTEST_VIRT_SERVER', $_[1]);
 		       },
-		       "adt-virt-server-opts=s" => sub {
-			   push(@{$self->get_conf('ADT_VIRT_SERVER_OPTIONS')},
+		       "autopkgtest-virt-server-opts=s" => sub {
+			   push(@{$self->get_conf('AUTOPKGTEST_VIRT_SERVER_OPTIONS')},
 				split(/\s+/, $_[1]));
 		       },
-		       "adt-virt-server-opt=s" => sub {
-			   push(@{$self->get_conf('ADT_VIRT_SERVER_OPTIONS')}, $_[1]);
+		       "autopkgtest-virt-server-opt=s" => sub {
+			   push(@{$self->get_conf('AUTOPKGTEST_VIRT_SERVER_OPTIONS')}, $_[1]);
 		       },
 		       "apt-clean" => sub {
 			   if ($opt_no_apt_clean) {
