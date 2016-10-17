@@ -2838,8 +2838,15 @@ sub open_build_log {
     $head1 .= ' (' . $arch_string . ') ';
     my $head2 = strftime_c "%a, %d %b %Y %H:%M:%S +0000",
 			 gmtime($self->get('Pkg Start Time'));
-    my $head = $head1 . ' ' x (80 - 4 - length($head1) - length($head2)) .
-	$head2;
+    my $head = $head1;
+    # If necessary, insert spaces so that $head1 is left aligned and $head2 is
+    # right aligned. If the sum of the length of both is greater than the
+    # available space of 76 characters, then no additional padding is
+    # inserted.
+    if (length($head1) + length($head2) <= 76) {
+	$head .= ' ' x (76 - length($head1) - length($head2));
+    }
+    $head .= $head2;
     $self->log_section($head);
 
     $self->log("Package: " . $self->get('Package') . "\n");
