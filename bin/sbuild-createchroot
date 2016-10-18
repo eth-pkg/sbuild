@@ -472,6 +472,10 @@ if ($conf->get('ARCH') eq $conf->get('HOST_ARCH')) {
 	    print "W: Failed to upgrade chroot\n"
 		if ($status);
 
+	    $status = $resolver->clean();
+	    print "W: Failed to clean up downloaded packages\n"
+		if ($status);
+
 	    $resolver->cleanup();
 	    $session->end_session();
 	    $session = undef;
