@@ -263,16 +263,26 @@ if (!$conf->get('SETUP_ONLY')) {
     !system($debootstrap, @args) or die "E: Error running $debootstrap_bin";
 }
 
-# Set up minimal /etc/hosts.
+# Set up minimal /etc/hosts if it didn't exist yet. Normally, the package
+# netbase would create the file.
 my $hosts = "${target}/etc/hosts";
-open(HOSTS, ">$hosts")
-    or die "Can't open $hosts for writing";
-print HOSTS "127.0.0.1 " . $conf->get('HOSTNAME') . " localhost";
-close HOSTS or die "Can't close $hosts";
+if (! -e $hosts) {
+    open(HOSTS, ">$hosts")
+	or die "Can't open $hosts for writing";
+    # write the default content that would be created by the netbase package
+    print HOSTS <<"EOF";
+127.0.0.1	localhost
+::1		localhost ip6-localhost ip6-loopback
+ff02::1		ip6-allnodes
+ff02::2		ip6-allrouters
 
-# Display /etc/hosts.
-print "I: Configured /etc/hosts:\n";
-dump_file("$hosts");
+EOF
+    close HOSTS or die "Can't close $hosts";
+
+    # Display /etc/hosts.
+    print "I: Configured /etc/hosts:\n";
+    dump_file("$hosts");
+}
 
 # Set up minimal /usr/sbin/policy-rc.d.
 my $policy_rc_d = "${target}/usr/sbin/policy-rc.d";
