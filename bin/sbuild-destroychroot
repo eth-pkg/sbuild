@@ -129,7 +129,7 @@ while (<F>) {
 	$chroot_path = $1;
     }
     if (/^file=(.*)/) {
-	$chroot_type = $1;
+	$chroot_path = $1;
     }
 }
 close F;
