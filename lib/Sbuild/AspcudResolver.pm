@@ -55,7 +55,7 @@ sub install_deps {
 
     my $status = 0;
     my $session = $self->get('Session');
-    my $dummy_pkg_name = 'sbuild-build-depends-' . $name. '-dummy';
+    my $dummy_pkg_name = $self->get_sbuild_dummy_pkg_name($name);
 
     # Call functions to setup an archive to install dummy package.
     $self->log_subsubsection("Setup apt archive");
@@ -124,7 +124,7 @@ sub purge_extra_packages {
     my $self = shift;
     my $name = shift;
 
-    my $dummy_pkg_name = 'sbuild-build-depends-' . $name. '-dummy';
+    my $dummy_pkg_name = $self->get_sbuild_dummy_pkg_name($name);
 
     my $session = $self->get('Session');
 
@@ -155,7 +155,7 @@ sub purge_extra_packages {
     # it is also much faster that way
     my (@instd, @rmvd);
     $self->run_apt("-yf", \@instd, \@rmvd, 'autoremove',
-	@essential, 'sbuild-build-depends-core-dummy+', "$dummy_pkg_name+",
+	@essential, $self->get_sbuild_dummy_pkg_name('core') . '+', "$dummy_pkg_name+",
 	'--solver', 'aspcud',
 	'-o', 'APT::Solver::aspcud::Preferences=+removed',
 	'-o', 'Dir::State::Lists=/dev/null',

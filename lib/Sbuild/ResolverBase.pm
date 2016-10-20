@@ -1605,4 +1605,11 @@ sub pipe_aptitude_command {
     }
 }
 
+sub get_sbuild_dummy_pkg_name {
+    my $self = shift;
+    my $name = shift;
+
+    return 'sbuild-build-depends-' . $name. '-dummy';
+}
+
 1;

@@ -58,7 +58,7 @@ sub install_deps {
 
     my $status = 0;
     my $session = $self->get('Session');
-    my $dummy_pkg_name = 'sbuild-build-depends-' . $name. '-dummy';
+    my $dummy_pkg_name = $self->get_sbuild_dummy_pkg_name($name);
     my $dummy_pkg_name_for_install = $dummy_pkg_name;
     # Debian without multiarch (squeeze and older) does not support
     # architecture qualifiers for dependencies, so we only add them if the

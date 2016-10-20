@@ -56,7 +56,7 @@ sub install_deps {
 
     my $status = 0;
     my $session = $self->get('Session');
-    my $dummy_pkg_name = 'sbuild-build-depends-' . $name. '-dummy';
+    my $dummy_pkg_name = $self->get_sbuild_dummy_pkg_name($name);
 
     # Call functions to setup an archive to install dummy package.
     $self->log_subsubsection("Setup apt archive");
@@ -111,7 +111,7 @@ sub purge_extra_packages {
     my $self = shift;
     my $name = shift;
 
-    my $dummy_pkg_name = 'sbuild-build-depends-' . $name. '-dummy';
+    my $dummy_pkg_name = $self->get_sbuild_dummy_pkg_name($name);
 
     my $session = $self->get('Session');
 
@@ -140,7 +140,7 @@ sub purge_extra_packages {
 	# we only want to keep packages that are Essential:yes and the dummy
 	# packages created by sbuild. Apt takes care to also keep their
 	# transitive dependencies.
-	if ($1 eq "yes" || $2 eq $dummy_pkg_name || $2 eq 'sbuild-build-depends-core-dummy') {
+	if ($1 eq "yes" || $2 eq $dummy_pkg_name || $2 eq $self->get_sbuild_dummy_pkg_name('core')) {
 	    push @essential, $2;
 	} else {
 	    push @nonessential, $2;
