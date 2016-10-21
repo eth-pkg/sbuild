@@ -553,6 +553,9 @@ sub set_options {
 			"purge-extra-packages" => sub {
 			    $self->set_conf('PURGE_EXTRA_PACKAGES', 1);
 			},
+			"bd-uninstallable-explainer=s" => sub {
+			   $self->set_conf('BD_UNINSTALLABLE_EXPLAINER', $_[1]);
+			}
 	);
 }
 

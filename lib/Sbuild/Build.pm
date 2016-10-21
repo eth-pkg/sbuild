@@ -877,6 +877,13 @@ sub run_fetch_install_packages {
 		failstage => "run-build-failed-commands");
 	}
     } elsif($e) {
+	if (defined $self->get_conf('BD_UNINSTALLABLE_EXPLAINER')
+	    && $self->get_conf('BD_UNINSTALLABLE_EXPLAINER') ne '') {
+	    if (!$self->explain_bd_uninstallable()) {
+		Sbuild::Exception::Build->throw(error => "Failed to explain bd-uninstallable",
+		    failstage => "explain-bd-uninstallable");
+	    }
+	}
 
 	if(!$self->run_external_commands("build-deps-failed-commands")) {
 	    Sbuild::Exception::Build->throw(error => "Failed to execute build-deps-failed-commands",
@@ -1728,6 +1735,104 @@ sub run_autopkgtest {
     }
 
     $self->log_info("Autopkgtest run was successful.\n");
+    return 1;
+}
+
+sub explain_bd_uninstallable {
+    my $self = shift;
+
+    my $resolver = $self->get('Dependency Resolver');
+
+    my $pkgname = $self->get('Package');
+    my $dummy_pkg_name = $resolver->get_sbuild_dummy_pkg_name($pkgname);
+
+    if (!defined $self->get_conf('BD_UNINSTALLABLE_EXPLAINER')) {
+	return 0;
+    } elsif ($self->get_conf('BD_UNINSTALLABLE_EXPLAINER') eq '') {
+	return 0;
+    } elsif ($self->get_conf('BD_UNINSTALLABLE_EXPLAINER') eq 'apt') {
+	my (@instd, @rmvd);
+	my @apt_args = ('--simulate', \@instd, \@rmvd, 'install', $dummy_pkg_name,
+	    '-oDebug::pkgProblemResolver=true', '-oDebug::pkgDepCache::Marker=1',
+	    '-oDebug::pkgDepCache::AutoInstall=1', '-oDebug::BuildDeps=1'
+	);
+	$resolver->run_apt(@apt_args);
+    } elsif ($self->get_conf('BD_UNINSTALLABLE_EXPLAINER') eq 'dose3') {
+	# To retrieve all Packages files apt knows about we use "apt-get
+	# indextargets" and "apt-helper cat-file". The former is able to
+	# report the filesystem path of all input Packages files. The latter
+	# is able to decompress the files if necessary.
+	#
+	# We do not use "apt-cache dumpavail" or convert the EDSP output to a
+	# Packages file because that would make the package selection subject
+	# to apt pinning. This limitation would be okay if there was only the
+	# apt resolver but since there also exists the aptitude and aspcud
+	# resolvers which are able to find solution without pinning
+	# restrictions, we don't want to limit ourselves by it. In cases where
+	# apt cannot find a solution, this check is supposed to allow the user
+	# to know that choosing a different resolver might fix the problem.
+	$resolver->add_dependencies('DOSE3', 'dose-distcheck', "", "", "", "", "");
+	if (!$resolver->install_core_deps('dose3', 'DOSE3')) {
+	    return 0;
+	}
+
+	# We execute the desired commands as part of a pipe from within a bash
+	# script running inside the chroot. Rationale:
+	#
+	# - Constructing bidirectional communication between processes
+	#   requires IPC::Open2 and expressing this in perl is very verbose
+	#   compared to a pipe in shell.
+	# - Bash is chosen over sh because it offers -o pipefail. Without it,
+	#   the bash process will only fail if the last command in the pipe
+	#   fails. But we also want to fail if any of the earlier commands
+	#   fail.
+	# - Using perl over shell would require perl being installed inside
+	#   the chroot. We want to minimize the requirements we have on the
+	#   chroot.
+	# - bash is Essential:yes so it has to be installed inside the chroot.
+	# - Using multiple pipe_command() calls by sbuild instead of a bash
+	#   script running inside the chroot would require the data to be
+	#   copied from one process to the other with a while/read/write loop.
+	#   This is expensive if the chroot lives on a foreign host and thus
+	#   the data would have to be copied *twice* (forth and back) over the
+	#   network. Thus, we start all the processes under a common process on
+	#   inside the chroot to be able to connect them with normal pipes.
+	# - The dose-debcheck command is in curly braces because the |
+	#   operator takes precedence over the || operator and we only want to
+	#   check the exit code of dose-debcheck and not the exit code of the
+	#   whole pipe.
+	# - We expect an exit code of less than 64 of dose-debcheck. Any other
+	#   exit code indicates abnormal program termination.
+	# - We run dose-debcheck instead of dose-builddebcheck because we want
+	#   to check the dummy binary package created by sbuild instead of the
+	#   original source package Build-Depends.
+	# - We use dose-debcheck instead of dose-distcheck because we cannot
+	#   use the deb:// prefix on data from standard input.
+	my $native = $self->get_conf('BUILD_ARCH');
+	my $host = $self->get_conf('HOST_ARCH');
+	my $debforeignarg = '';
+	if ($self->get_conf('BUILD_ARCH') ne $self->get_conf('HOST_ARCH')) {
+	    $debforeignarg = '--deb-foreign-archs=' . $self->get_conf('HOST_ARCH');
+	}
+	my $command = << "EOF";
+apt-get indextargets --format '\$(FILENAME)' "Created-By: Packages" \\
+    | xargs --delimiter=\\\\n /usr/lib/apt/apt-helper cat-file \\
+    | { dose-debcheck --checkonly=$dummy_pkg_name:$host \\
+	--verbose --failures --successes --explain --deb-native-arch=$native \\
+	$debforeignarg || [ \$? -lt 64 ]; }
+EOF
+
+	my $session = $self->get('Session');
+	$session->run_command({
+		COMMAND => ['bash', '-o', 'pipefail', '-c', $command],
+		PRIORITY => 0,
+		USER => $self->get_conf('BUILD_USER'),
+	    });
+	if ($? != 0) {
+	    return 0;
+	}
+    }
+
     return 1;
 }
 

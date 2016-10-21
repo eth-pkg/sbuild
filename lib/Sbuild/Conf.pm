@@ -1368,6 +1368,24 @@ $autopkgtest_root_args = [\'\', \'whatever\'];
 	    HELP => 'Also produce a changes file suitable for a source-only upload.',
 	    CLI_OPTIONS => ['--source-only-changes']
 	},
+	'BD_UNINSTALLABLE_EXPLAINER'			=> {
+	    TYPE => 'STRING',
+	    VARNAME => 'bd_uninstallable_explainer',
+	    GROUP => 'Dependency resolution',
+	    CHECK => sub {
+		my $conf = shift;
+		my $entry = shift;
+		my $key = $entry->{'NAME'};
+
+		die "Bad bd-uninstallable explainer \'" . $conf->get('BD_UNINSTALLABLE_EXPLAINER') . "\'"
+		    if defined $conf->get('BD_UNINSTALLABLE_EXPLAINER')
+		    && !isin($conf->get('BD_UNINSTALLABLE_EXPLAINER'),
+			     ('apt', 'dose3', ''));
+	    },
+	    DEFAULT => 'dose3',
+	    HELP => 'Method to use for explaining build dependency installation failures. Possible value are "dose3" (default) and "apt". Set to the empty string or undef to disable running any explainer.',
+	    CLI_OPTIONS => ['--bd-uninstallable-explainer']
+	},
 	'PURGE_EXTRA_PACKAGES'				=> {
 	    TYPE => 'BOOL',
 	    VARNAME => 'purge_extra_packages',

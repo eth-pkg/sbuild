@@ -101,6 +101,7 @@ sbuild \- build debian packages from source
 .RB [ \-\-autopkgtest\-virt\-server\-opt=\fIstring\fP ]
 .RB [ \-\-autopkgtest\-virt\-server\-opts=\fIoptions\fP ]
 .RB [ \-\-purge\-extra\-packages\fP ]
+.RB [ \-\-bd\-uninstallable\-explainer=\fIdose3|apt\fP ]
 .RB [ PACKAGE [ .dsc ]]
 .SH DESCRIPTION
 \fBsbuild\fR rebuilds Debian binary packages from the corresponding Debian
@@ -1072,6 +1073,27 @@ totally unusable after apt was removed from them. Thus, this option should only
 be used with throw-away chroots like schroot provides them where the original
 state is automatically restored after each build. This command line option sets
 the \fBPURGE_EXTRA_PACKAGES\fP configuration variable. See
+.BR sbuild.conf (5)
+for more information.
+.TP
+.BR \-\-bd\-uninstallable\-explainer=\fIdose3|apt\fP
+If the build dependencies cannot be satisfied by the chosen resolver, sbuild
+will run the selected method to give a better explanation why the build
+dependencies cannot be installed. Possible arguments for this option are dose3
+(the default) and apt. To disable this feature, pass the empty string.
+Depending on the resolver, the dose3 explainer might report a dependency
+situation as satisfiable even if the chosen resolver found it to be
+unsatisfiable. This is especially likely to happen if the apt resolver (the
+default) is used. Such disparities can have two reasons: either the
+understanding of the involved dependency situation of the apt and dose3 solver
+differs (this is a bug) or the apt solver was unable to find a solution if the
+dependency situation is not trivial (for example if it involves packages from
+multiple repositories). In the former case, please report the disparity as a
+bug against the resolvers. In the latter case, use a resolver that is more
+likely to find a solution like the aptitude or aspcud resolvers. Especially the
+aspcud resolver should find a solution if and only if the dose3 solver also
+finds one. This command line option sets the \fBBD_UNINSTALLABLE_EXPLAINER\fP
+configuration variable. See
 .BR sbuild.conf (5)
 for more information.
 .SH BUILD ARTIFACTS
