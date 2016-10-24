@@ -1182,7 +1182,9 @@ sub check_architectures {
     my $self = shift;
     my $resolver = $self->get('Dependency Resolver');
     my $dscarchs = $self->get('Dsc Architectures');
+    my $build_arch = $self->get('Build Arch');
     my $host_arch = $self->get('Host Arch');
+    my $session = $self->get('Session');
 
     $self->log_subsection("Check architectures");
     # Check for cross-arch dependencies
@@ -1266,6 +1268,32 @@ sub check_architectures {
 
     $self->run_chroot_update() if $added_any_new;
 
+    # At this point, all foreign architectures should have been added to dpkg.
+    # Thus, we now examine, whether the packages passed via --extra-package
+    # can even be considered by dpkg inside the chroot with respect to their
+    # architecture.
+
+    # Retrieve all foreign architectures from the chroot. We need to do this
+    # step because the user might've added more foreign arches to the chroot
+    # beforehand.
+    my @all_foreign_arches = split /\s+/, $session->read_command({
+	    COMMAND => ['dpkg', '--print-foreign-architectures'],
+	    USER => $self->get_conf('USERNAME'),
+	});
+    for my $deb (@{$self->get_conf('EXTRA_PACKAGES')}) {
+	# Investigate the Architecture field of the binary package
+	my $arch = $self->get('Host')->read_command({
+		COMMAND => ['dpkg-deb', '--field', $deb, 'Architecture'],
+		USER => $self->get_conf('USERNAME')
+	});
+	chomp $arch;
+	# Only packages that are Architecture:all, the native architecture or
+	# one of the configured foreign architectures are allowed.
+	if ($arch ne 'all' and $arch ne $build_arch
+		and !isin($arch, @all_foreign_arches)) {
+	    $self->log_warning("Extra package $deb of architecture $arch cannot be installed in the chroot\n");
+	}
+    }
 
     # Check package arch makes sense to build
     if (!$dscarchs) {
@@ -1290,7 +1318,7 @@ sub check_architectures {
 		}
 		exit 1;
 EOF
-	    $self->get('Session')->run_command(
+	    $session->run_command(
 		{ COMMAND => ['perl',
 			'-e',
 			$command],
