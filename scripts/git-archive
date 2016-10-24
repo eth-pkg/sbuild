@@ -10,5 +10,5 @@ if [ -z "$PACKAGE" ] || [ -z "$VERSION" ]; then
   exit 1
 fi
 
-echo "Tagging ${PACKAGE} version ${VERSION} as 'release/${PACKAGE}-${VERSION}'"
-git tag -s "release/${PACKAGE}-${VERSION}" -m "${PACKAGE} version ${VERSION}"
+git archive --verbose --prefix="${PACKAGE}-${VERSION}/" "release/${PACKAGE}-${VERSION}" \
+	| xz --compress --to-stdout > ../${PACKAGE}-${VERSION}.tar.xz

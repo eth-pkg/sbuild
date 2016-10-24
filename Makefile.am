@@ -29,16 +29,10 @@ dist-hook:
 	$(FIND) $(distdir) -name '#*' -print | $(XARGS) $(RM) -rf
 	$(FIND) $(distdir) -name '*~' -print | $(XARGS) $(RM) -rf
 
-# Generate ChangeLog
-	if [ -d .git ]; then			\
-	  git log > $(distdir)/ChangeLog;	\
-	fi
-
 EXTRA_DIST =				\
 	bootstrap			\
 	lisp				\
 	scripts/git-tag-release		\
-	scripts/git-version		\
 	ChangeLog-buildd		\
 	HACKING				\
 	Makefile-buildd			\

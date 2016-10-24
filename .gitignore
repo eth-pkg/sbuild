@@ -7,7 +7,6 @@ debian/sbuild.substvars
 *-stamp
 Makefile
 Makefile.in
-ChangeLog
 config.h
 config.h.in
 config.log
@@ -18,10 +17,13 @@ autom4te.cache
 configure
 m4
 INSTALL
-VERSION
+ChangeLog
 *.o
 .deps
 .libs
 *.tar.*
 \#*
 .#*
+etc/buildd.conf
+etc/sbuild.conf
+scripts/test-driver
