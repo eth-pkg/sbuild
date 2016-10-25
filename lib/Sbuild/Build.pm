@@ -870,29 +870,35 @@ sub run_fetch_install_packages {
     # do this at the end of the function, but I want the hook to fire before we
     # clean up the environment. I re-throw the exception at the end, as usual
     my $e = Exception::Class->caught('Sbuild::Exception::Build');
-    if ( defined $self->get('Pkg Fail Stage') &&
-         $self->get('Pkg Fail Stage') eq 'build' ) {
-	if(!$self->run_external_commands("build-failed-commands")) {
-	    Sbuild::Exception::Build->throw(error => "Failed to execute build-failed-commands",
-		failstage => "run-build-failed-commands");
+    if ($e) {
+	if ($e->status) {
+	    $self->set_status($e->status);
+	} else {
+	    $self->set_status("failed");
 	}
-    } elsif($e) {
-	if (defined $self->get_conf('BD_UNINSTALLABLE_EXPLAINER')
-	    && $self->get_conf('BD_UNINSTALLABLE_EXPLAINER') ne '') {
-	    if (!$self->explain_bd_uninstallable()) {
-		Sbuild::Exception::Build->throw(error => "Failed to explain bd-uninstallable",
-		    failstage => "explain-bd-uninstallable");
+	$self->set('Pkg Fail Stage', $e->failstage);
+    }
+    if ( defined $self->get('Pkg Fail Stage')) {
+	if ($self->get('Pkg Fail Stage') eq 'build' ) {
+	    if(!$self->run_external_commands("build-failed-commands")) {
+		Sbuild::Exception::Build->throw(error => "Failed to execute build-failed-commands",
+		    failstage => "run-build-failed-commands");
+	    }
+	} elsif($self->get('Pkg Fail Stage') eq 'install-deps' ) {
+	    if (defined $self->get_conf('BD_UNINSTALLABLE_EXPLAINER')
+		&& $self->get_conf('BD_UNINSTALLABLE_EXPLAINER') ne '') {
+		if (!$self->explain_bd_uninstallable()) {
+		    Sbuild::Exception::Build->throw(error => "Failed to explain bd-uninstallable",
+			failstage => "explain-bd-uninstallable");
+		}
+	    }
+
+	    if(!$self->run_external_commands("build-deps-failed-commands")) {
+		Sbuild::Exception::Build->throw(error => "Failed to execute build-deps-failed-commands",
+		    failstage => "run-build-deps-failed-commands");
 	    }
 	}
-
-	if(!$self->run_external_commands("build-deps-failed-commands")) {
-	    Sbuild::Exception::Build->throw(error => "Failed to execute build-deps-failed-commands",
-		failstage => "run-build-deps-failed-commands");
-	}
     }
-
-
-
 
     $self->log_subsection("Cleanup");
     my $session = $self->get('Session');
