@@ -75,18 +75,16 @@ New Debian releases:
 
 • Create a commit "release XXX-1 to unstable" by doing:
     - dch --newversion XXX-1
-    - adding all new entries from ChangeLog.in to debian/changelog
-    - add bugnumbers to the items as required
-    - go through $(git log master) to add any other entries that
+    - go through $(git log master) to add any entries that
       closed bugs
-    - check $(bts select package:sbuild tag:pending) for any
+    - check $(bts select source:sbuild tag:pending) for any
       other bugs that need to be closed by this release
-    - run git add and "git commit -m 'release XXX to unstable'"
+    - add entries from ChangeLog.in to debian/changelog
 
 • Rename ../sbuild-XXX.tar.xz to ../sbuild_XXX.orig.tar.xz and
   use it to build and test the package.
 
-• Run $(dch -r && git add debian/changelog && git commit --amend)
+• Run $(dch -r && git add debian/changelog && git commit -m 'release XXX to unstable')
 
 • Run debian/git-tag-debian in the git source to tag the debian
   release.
