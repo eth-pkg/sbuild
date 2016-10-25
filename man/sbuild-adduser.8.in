@@ -23,7 +23,7 @@ sbuild\-adduser \- add an sbuild user
 .BR USER1 " [" USER2 " [" USER\f[BI]n\fP... ]]
 .SH DESCRIPTION
 \fBsbuild\-adduser\fR adds the specified users to the \fIsbuild\fP group,
-granting them the privelege to build packages with
+granting them the privilege to build packages with
 .BR sbuild (1).
 The
 .BR schroot (1)
