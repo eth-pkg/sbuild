@@ -511,7 +511,7 @@ configuration.
 
   1) The architecture specified with --arch (defaulting to the host
      system architecture) must match the chroot architecture.  This
-     was previously allowed to be superceded by the chroot
+     was previously allowed to be superseded by the chroot
      architecture.  This change is to avoid any abiguity regarding the
      host/build architecture for the package being built.
 

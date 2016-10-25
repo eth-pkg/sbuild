@@ -714,7 +714,7 @@ sub run_fetch_install_packages {
 
 	# Display message about chroot setup script option use being deprecated
 	if ($self->get_conf('CHROOT_SETUP_SCRIPT')) {
-	    my $msg = "setup-hook option is deprecated. It has been superceded by ";
+	    my $msg = "setup-hook option is deprecated. It has been superseded by ";
 	    $msg .= "the chroot-setup-commands feature. setup-hook script will be ";
 	    $msg .= "run via chroot-setup-commands.\n";
 	    $self->log_warning($msg);

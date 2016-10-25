@@ -404,7 +404,7 @@ sub setup ($) {
 	    VARNAME => 'build_env_cmnd',
 	    GROUP => 'Build options',
 	    DEFAULT => "",
-	    HELP => 'This command is run with the dpkg-buildpackage command line passed to it (in the chroot, if doing a chrooted build).  It is used by the sparc buildd (which is sparc64) to call the wrapper script that sets the environment to sparc (32-bit).  It could be used for other build environment setup scripts.  Note that this is superceded by schroot\'s \'command-prefix\' option'
+	    HELP => 'This command is run with the dpkg-buildpackage command line passed to it (in the chroot, if doing a chrooted build).  It is used by the sparc buildd (which is sparc64) to call the wrapper script that sets the environment to sparc (32-bit).  It could be used for other build environment setup scripts.  Note that this is superseded by schroot\'s \'command-prefix\' option'
 	},
 	'PGP_OPTIONS'				=> {
 	    TYPE => 'ARRAY:STRING',
