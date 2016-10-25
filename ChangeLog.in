@@ -7,6 +7,20 @@ Full installation instructions are provided in the INSTALL file.  The
 README file also contains more specific notes regarding building and
 configuration.
 
+ * Major changes in 0.72.0:
+
+   1) Add option --purge-extra-packages which makes sure to remove all
+      non-essential packages before the package build starts.
+
+   2) Stop depending on newlines being produced by the build to detect timeouts
+
+   3) Accommodate for the autopkgtest 4.0 release by renaming all adt command
+      line options and configuration variables from adt to autopkgtest because
+      the same renaming was done by the autopkgtest release.
+
+   4) Add --bd-uninstallable-explainer which gives an explanation of why
+      the build dependencies of a source package cannot be installed.
+
  * Major changes in 0.71.0:
 
    1) Undo exporting private keys in armored ASCII format as introduced by the
