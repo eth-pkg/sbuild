@@ -118,9 +118,9 @@ sub get_command_internal {
                 $shellcommand = shellescape $tmp;
             }
         }
-        push(@cmdline, '/bin/sh', '-c', "cd '$dir' && $shellcommand");
+        push(@cmdline, '/bin/sh', '-c', "cd " . (shellescape $dir) . " && $shellcommand");
     } else {
-        push(@cmdline, '/bin/sh', '-c', "cd '$dir' && ( $command )");
+        push(@cmdline, '/bin/sh', '-c', "cd " . (shellescape $dir) . " && ( $command )");
     }
 
     $options->{'USER'} = $user;
