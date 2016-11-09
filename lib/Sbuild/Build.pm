@@ -2416,7 +2416,6 @@ sub build {
 		rename("$sys_build_dir/$changes.new", "$sys_build_dir/$changes")
 		    or $self->log("$sys_build_dir/$changes.new could not be " .
 		    "renamed to $sys_build_dir/$changes: $!\n");
-		$self->set('Changes File', "$sys_build_dir/$changes");
 		unlink("$build_dir/$changes")
 		    if $build_dir;
 	    }
@@ -2435,6 +2434,7 @@ sub build {
 	    $self->log_subsubsection("$changes:");
 
 	    my $pchanges = &$copy_changes($changes);
+	    $self->set('Changes File', $self->get_conf('BUILD_DIR') . "/$changes");
 
 	    my $checksums = Dpkg::Checksums->new();
 	    $checksums->add_from_control($pchanges);
