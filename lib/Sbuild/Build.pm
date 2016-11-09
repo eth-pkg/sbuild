@@ -2554,6 +2554,13 @@ sub check_space {
     my $sum = 0;
 
     my $dscdir = $self->get('DSC Dir');
+
+    # if the source package was not yet unpacked, then DSC Dir is undefined
+    # and we will not attempt to compute the required space
+    if (!defined $dscdir) {
+	return -1;
+    }
+
     my $build_dir = $self->get('Build Dir');
     my $pkgbuilddir = "$build_dir/$dscdir";
     my ($space, $spacenum);
