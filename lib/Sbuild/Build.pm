@@ -1570,6 +1570,14 @@ sub run_lintian {
         ($self->get_conf('LINTIAN_OPTIONS'));
     push @lintian_command, $changes;
 
+    # If the source package was not instructed to be built, then it will not
+    # be part of the .changes file and thus, the .dsc has to be passed to
+    # lintian in addition to the .changes file.
+    if (!$self->get_conf('BUILD_SOURCE')) {
+	my $dsc = $self->get('DSC File');
+	push @lintian_command, $dsc;
+    }
+
     $resolver->add_dependencies('LINTIAN', 'lintian', "", "", "", "", "");
     return 1 unless $resolver->install_core_deps('lintian', 'LINTIAN');
 
