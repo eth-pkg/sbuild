@@ -1361,7 +1361,6 @@ sub run_command {
     my $log_output = shift;
     my $log_error = shift;
     my $chroot = shift;
-    my $rootuser = shift;
 
     # Used to determine if we are to log from commands
     my ($out, $err, $defaults);
@@ -1390,7 +1389,7 @@ sub run_command {
 	    $out = $defaults->{'STREAMOUT'} if ($log_output);
 	    $err = $defaults->{'STREAMERR'} if ($log_error);
 
-	    my %args = (USER => ($rootuser ? 'root' : $self->get_conf('BUILD_USER')),
+	    my %args = (USER => 'root',
 			PRIORITY => 0,
 			STREAMOUT => $out,
 			STREAMERR => $err);
@@ -1432,7 +1431,6 @@ sub run_external_commands {
     # Create appropriate log message and determine if the commands are to be
     # run inside the chroot or not, and as root or not.
     my $chroot = 0;
-    my $rootuser = 1;
     if ($stage eq "pre-build-commands") {
 	$self->log_subsection("Pre Build Commands");
     } elsif ($stage eq "chroot-setup-commands") {
@@ -1441,23 +1439,18 @@ sub run_external_commands {
     } elsif ($stage eq "chroot-update-failed-commands") {
 	$self->log_subsection("Chroot-update Install Failed Commands");
 	$chroot = 1;
-	$rootuser = 1;
     } elsif ($stage eq "build-deps-failed-commands") {
 	$self->log_subsection("Build-Deps Install Failed Commands");
 	$chroot = 1;
-        $rootuser = 1;
     } elsif ($stage eq "build-failed-commands") {
 	$self->log_subsection("Generic Build Failed Commands");
 	$chroot = 1;
-        $rootuser = 0;
     } elsif ($stage eq "starting-build-commands") {
 	$self->log_subsection("Starting Timed Build Commands");
 	$chroot = 1;
-	$rootuser = 0;
     } elsif ($stage eq "finished-build-commands") {
 	$self->log_subsection("Finished Timed Build Commands");
 	$chroot = 1;
-	$rootuser = 0;
     } elsif ($stage eq "chroot-cleanup-commands") {
 	$self->log_subsection("Chroot Cleanup Commands");
 	$chroot = 1;
@@ -1534,7 +1527,7 @@ sub run_external_commands {
 
 	$self->log_subsubsection("$command_str");
 
-	$returnval = $self->run_command($command, $log_output, $log_error, $chroot, $rootuser);
+	$returnval = $self->run_command($command, $log_output, $log_error, $chroot);
 	$self->log("\n");
 	if (!$returnval) {
 	    $self->log_error("Command '$command_str' failed to run.\n");
