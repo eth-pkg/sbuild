@@ -57,7 +57,7 @@ my $resolver = Sbuild::AptResolver->new($conf, $session, $host);
 $resolver->setup();
 
 $resolver->run_apt_command(
-    { COMMAND => [$command, @ARGV],
+    { COMMAND => [$command, '-oAPT::Get::Assume-Yes=true', @ARGV],
       ENV => {'DEBIAN_FRONTEND' => 'noninteractive'},
       USER => 'root',
       PRIORITY => 1,
