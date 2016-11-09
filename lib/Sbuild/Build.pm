@@ -1292,6 +1292,10 @@ sub check_architectures {
 		COMMAND => ['dpkg-deb', '--field', $deb, 'Architecture'],
 		USER => $self->get_conf('USERNAME')
 	});
+	if (!defined $arch) {
+	    $self->log_warning("Failed to run dpkg-deb on $deb. Skipping...\n");
+	    next;
+	}
 	chomp $arch;
 	# Only packages that are Architecture:all, the native architecture or
 	# one of the configured foreign architectures are allowed.
