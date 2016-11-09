@@ -2704,14 +2704,22 @@ sub generate_stats {
     $self->add_stat('Foreign Architectures', $foreign_arches )
         if $foreign_arches;
     $self->add_stat('Distribution', $self->get_conf('DISTRIBUTION'));
-    $self->add_stat('Space', $self->get('This Space'));
+    if ($self->get('This Space') >= 0) {
+	$self->add_stat('Space', $self->get('This Space'));
+    } else {
+	$self->add_stat('Space', "n/a");
+    }
     $self->add_stat('Build-Time',
 		    $self->get('Build End Time')-$self->get('Build Start Time'));
     $self->add_stat('Install-Time',
 		    $self->get('Install End Time')-$self->get('Install Start Time'));
     $self->add_stat('Package-Time',
 		    $self->get('Pkg End Time')-$self->get('Pkg Start Time'));
-    $self->add_stat('Build-Space', $self->get('This Space'));
+    if ($self->get('This Space') >= 0) {
+	$self->add_stat('Build-Space', $self->get('This Space'));
+    } else {
+	$self->add_stat('Build-Space', "n/a");
+    }
     $self->add_stat('Status', $self->get_status());
     $self->add_stat('Fail-Stage', $self->get('Pkg Fail Stage'))
 	if ($self->get_status() ne "successful");
@@ -3013,7 +3021,10 @@ sub close_build_log {
     my $hours = int($self->get('This Time')/3600);
     my $minutes = int(($self->get('This Time')%3600)/60),
     my $seconds = int($self->get('This Time')%60),
-    my $space = $self->get('This Space');
+    my $space = "no";
+    if ($self->get('This Space') >= 0) {
+	$space = sprintf("%dk", $self->get('This Space'));
+    }
 
     my $filename = $self->get('Log File');
 
@@ -3028,7 +3039,7 @@ sub close_build_log {
 
     $self->log_sep();
     $self->log("Finished at ${date}\n");
-    $self->log(sprintf("Build needed %02d:%02d:%02d, %dk disk space\n",
+    $self->log(sprintf("Build needed %02d:%02d:%02d, %s disk space\n",
 	       $hours, $minutes, $seconds, $space));
 
     if ($self->get_status() eq "successful") {
