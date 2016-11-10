@@ -1289,7 +1289,7 @@ sub check_architectures {
     for my $deb (@{$self->get_conf('EXTRA_PACKAGES')}) {
 	# Investigate the Architecture field of the binary package
 	my $arch = $self->get('Host')->read_command({
-		COMMAND => ['dpkg-deb', '--field', $deb, 'Architecture'],
+		COMMAND => ['dpkg-deb', '--field', Cwd::abs_path($deb), 'Architecture'],
 		USER => $self->get_conf('USERNAME')
 	});
 	if (!defined $arch) {
