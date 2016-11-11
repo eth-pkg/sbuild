@@ -742,7 +742,7 @@ escapes are supported. To write a literal percent sign, escape it with another
 percent sign. See the section
 .BR "EXTERNAL COMMANDS"
 for more information.
-This command line option appends to the \fBEXTERNAL_COMMENDS\fP configuration variable. See
+This command line option appends to the \fBEXTERNAL_COMMANDS\fP configuration variable. See
 .BR sbuild.conf (5)
 for more information.
 .TP
@@ -755,7 +755,7 @@ another percent sign. See the
 section
 .BR "EXTERNAL COMMANDS"
 for more information.
-This command line option appends to the \fBEXTERNAL_COMMENDS\fP configuration variable. See
+This command line option appends to the \fBEXTERNAL_COMMANDS\fP configuration variable. See
 .BR sbuild.conf (5)
 for more information.
 .TP
@@ -768,7 +768,7 @@ To write a literal percent sign, escape it with another percent sign.See the
 section
 .BR "EXTERNAL COMMANDS"
 for more information.
-This command line option appends to the \fBEXTERNAL_COMMENDS\fP configuration variable. See
+This command line option appends to the \fBEXTERNAL_COMMANDS\fP configuration variable. See
 .BR sbuild.conf (5)
 for more information.
 .TP
@@ -781,7 +781,7 @@ commands. Certain percent escapes are supported. To write a literal percent
 sign, escape it with another percent sign. See the section
 .BR "EXTERNAL COMMANDS"
 for more information.
-This command line option appends to the \fBEXTERNAL_COMMENDS\fP configuration variable. See
+This command line option appends to the \fBEXTERNAL_COMMANDS\fP configuration variable. See
 .BR sbuild.conf (5)
 for more information.
 .TP
@@ -793,7 +793,7 @@ multiple commands. Certain percent escapes are supported. To write a literal
 percent sign, escape it with another percent sign. See the section
 .BR "EXTERNAL COMMANDS"
 for more information.
-This command line option appends to the \fBEXTERNAL_COMMENDS\fP configuration variable. See
+This command line option appends to the \fBEXTERNAL_COMMANDS\fP configuration variable. See
 .BR sbuild.conf (5)
 for more information.
 .TP
@@ -805,7 +805,7 @@ escapes are supported. To write a literal percent sign, escape it with another
 percent sign. See the section
 .BR "EXTERNAL COMMANDS"
 for more information.
-This command line option appends to the \fBEXTERNAL_COMMENDS\fP configuration variable. See
+This command line option appends to the \fBEXTERNAL_COMMANDS\fP configuration variable. See
 .BR sbuild.conf (5)
 for more information.
 .TP
@@ -818,7 +818,7 @@ to add multiple commands. Certain percent escapes are supported. To write a
 literal percent sign, escape it with another percent sign. See the section
 .BR "EXTERNAL COMMANDS"
 for more information.
-This command line option appends to the \fBEXTERNAL_COMMENDS\fP configuration variable. See
+This command line option appends to the \fBEXTERNAL_COMMANDS\fP configuration variable. See
 .BR sbuild.conf (5)
 for more information.
 .TP
@@ -830,7 +830,7 @@ To write a literal percent sign, escape it with another percent sign. See the
 section
 .BR "EXTERNAL COMMANDS"
 for more information.
-This command line option appends to the \fBEXTERNAL_COMMENDS\fP configuration variable. See
+This command line option appends to the \fBEXTERNAL_COMMANDS\fP configuration variable. See
 .BR sbuild.conf (5)
 for more information.
 .TP
@@ -841,7 +841,7 @@ Certain percent escapes are supported. To write a literal percent sign, escape
 it with another percent sign. See the section
 .BR "EXTERNAL COMMANDS"
 for more information.
-This command line option appends to the \fBEXTERNAL_COMMENDS\fP configuration variable. See
+This command line option appends to the \fBEXTERNAL_COMMANDS\fP configuration variable. See
 .BR sbuild.conf (5)
 for more information.
 .TP
@@ -852,7 +852,7 @@ to add multiple commands. Certain percent escapes are supported. To write a
 literal percent sign, escape it with another percent sign. See the section
 .BR "EXTERNAL COMMANDS"
 for more information.
-This command line option appends to the \fBEXTERNAL_COMMENDS\fP configuration variable. See
+This command line option appends to the \fBEXTERNAL_COMMANDS\fP configuration variable. See
 .BR sbuild.conf (5)
 for more information.
 .TP
@@ -871,7 +871,7 @@ for more information.
 .BR "\-\-setup\-hook=\fIhook-script\fP" " " \fBDEPRECATED\fP
 This option is deprecated. Use of this option will add \fIhook-script\fP to the
 external commands to run via \fIchroot-setup-commands\fP.
-This command line option sets the \fBCHROOT_SETUP_SCRIPT\fP configuration variable and appends to the \fBEXTERNAL_COMMENDS\fP configuration variable. See
+This command line option sets the \fBCHROOT_SETUP_SCRIPT\fP configuration variable and appends to the \fBEXTERNAL_COMMANDS\fP configuration variable. See
 .BR sbuild.conf (5)
 for more information.
 .TP
