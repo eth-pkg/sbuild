@@ -68,13 +68,17 @@ sub new {
         '/etc/apt/sources.list.d/sbuild-build-depends-archive.list';
     $self->set('Dummy archive list file', $dummy_archive_list_file);
 
-    my $extra_repositories_list_file =
+    my $extra_repositories_archive_list_file =
         '/etc/apt/sources.list.d/sbuild-extra-repositories.list';
-    $self->set('Extra repositories list file', $extra_repositories_list_file);
+    $self->set('Extra repositories archive list file', $extra_repositories_archive_list_file);
 
     my $dummy_archive_key_file =
         '/etc/apt/trusted.gpg.d/sbuild-build-depends-archive.gpg';
     $self->set('Dummy archive key file', $dummy_archive_key_file);
+
+    my $extra_packages_archive_list_file =
+        '/etc/apt/sources.list.d/sbuild-extra-packages-archive.list';
+    $self->set('Extra packages archive list file', $extra_packages_archive_list_file);
 
     return $self;
 }
@@ -166,9 +170,9 @@ sub setup {
     # considered when resolving build dependencies but not for upgrading the
     # base chroot.
     if (scalar @{$self->get_conf('EXTRA_REPOSITORIES')} > 0) {
-	my $extra_repositories_list_file = $self->get('Extra repositories list file');
-	if ($session->test_regular_file($extra_repositories_list_file)) {
-	    $self->log_error("$extra_repositories_list_file exists - will not write extra repositories to it\n");
+	my $extra_repositories_archive_list_file = $self->get('Extra repositories archive list file');
+	if ($session->test_regular_file($extra_repositories_archive_list_file)) {
+	    $self->log_error("$extra_repositories_archive_list_file exists - will not write extra repositories to it\n");
 	} else {
 	    my $tmpfilename = $session->mktemp();
 
@@ -187,11 +191,110 @@ sub setup {
 		$session->unlink($tmpfilename);
 		return 0;
 	    }
-	    if (!$session->rename($tmpfilename, $extra_repositories_list_file)) {
+	    if (!$session->rename($tmpfilename, $extra_repositories_archive_list_file)) {
 		$self->log("Failed to create apt list file for dummy archive.\n");
 		$session->unlink($tmpfilename);
 		return 0;
 	    }
+	}
+    }
+
+    # Create an internal repository for packages given via --extra-package
+    # If this step would be done too late, extra packages would only be
+    # considered when resolving build dependencies but not for upgrading the
+    # base chroot.
+    if (scalar @{$self->get_conf('EXTRA_PACKAGES')} > 0) {
+	my $extra_packages_archive_list_file = $self->get('Extra packages archive list file');
+	if ($session->test_regular_file($extra_packages_archive_list_file)) {
+	    $self->log_error("$extra_packages_archive_list_file exists - will not write extra packages archive list to it\n");
+	} else {
+	    #Prepare a path to place the extra packages
+	    if (! defined $self->get('Extra packages path')) {
+		my $tmpdir = $session->mktemp({ TEMPLATE => $self->get('Build Dir') . '/resolver-XXXXXX', DIRECTORY => 1});
+		if (!$tmpdir) {
+		    $self->log_error("E: mktemp -d " . $self->get('Build Dir') . '/resolver-XXXXXX failed\n');
+		    return 0;
+		}
+		$self->set('Extra packages path', $tmpdir);
+	    }
+	    if (!$session->chown($self->get('Extra packages path'), $self->get_conf('BUILD_USER'), 'sbuild')) {
+		$self->log_error("E: Failed to set " . $self->get_conf('BUILD_USER') .
+		    ":sbuild ownership on extra packages dir\n");
+		return 0;
+	    }
+	    if (!$session->chmod($self->get('Extra packages path'), '0770')) {
+		$self->log_error("E: Failed to set 0770 permissions on extra packages dir\n");
+		return 0;
+	    }
+	    my $extra_packages_dir = $self->get('Extra packages path');
+	    my $extra_packages_archive_dir = $extra_packages_dir . '/apt_archive';
+	    my $extra_packages_release_file = $extra_packages_archive_dir . '/Release';
+
+	    $self->set('Extra packages archive directory', $extra_packages_archive_dir);
+	    $self->set('Extra packages release file', $extra_packages_release_file);
+	    my $extra_packages_archive_list_file = $self->get('Extra packages archive list file');
+
+	    if (!$session->test_directory($extra_packages_dir)) {
+		$self->log_warning('Could not create build-depends extra packages dir ' . $extra_packages_dir . ': ' . $!);
+		return 0;
+	    }
+	    if (!($session->test_directory($extra_packages_archive_dir) || $session->mkdir($extra_packages_archive_dir, { MODE => "00775"}))) {
+		$self->log_warning('Could not create build-depends extra packages archive dir ' . $extra_packages_archive_dir . ': ' . $!);
+		return 0;
+	    }
+
+	    # Copy over all the extra binary packages from the host into the
+	    # chroot
+	    for my $deb (@{$self->get_conf('EXTRA_PACKAGES')}) {
+		$session->copy_to_chroot($deb, $extra_packages_archive_dir);
+	    }
+
+	    # Do code to run apt-ftparchive
+	    if (!$self->run_apt_ftparchive($self->get('Extra packages archive directory'))) {
+		$self->log("Failed to run apt-ftparchive.\n");
+		return 0;
+	    }
+
+	    # Write a list file for the extra packages archive if one not create yet.
+	    if (!$session->test_regular_file($extra_packages_archive_list_file)) {
+		my $tmpfilename = $session->mktemp();
+
+		if (!$tmpfilename) {
+		    $self->log_error("Can't create tempfile\n");
+		    return 0;
+		}
+
+		my $tmpfh = $session->get_write_file_handle($tmpfilename);
+		if (!$tmpfh) {
+		    $self->log_error("Cannot open pipe: $!\n");
+		    return 0;
+		}
+
+		# We always trust the extra packages apt repositories.
+		# This means that if SBUILD_BUILD_DEPENDS_{SECRET|PUBLIC}_KEY do not
+		# exist and thus the extra packages repositories do not get signed, apt will
+		# still trust it. This allows one to run sbuild without generating
+		# keys which is useful on machines with little randomness.
+		# Older apt from squeeze will still require keys to be generated as it
+		# ignores the trusted=yes. Older apt ignoring this is also why we can add
+		# this unconditionally.
+		print $tmpfh 'deb [trusted=yes] file://' . $extra_packages_archive_dir . " ./\n";
+		print $tmpfh 'deb-src [trusted=yes] file://' . $extra_packages_archive_dir . " ./\n";
+
+		close($tmpfh);
+		# List file needs to be moved with root.
+		if (!$session->chmod($tmpfilename, '0644')) {
+		    $self->log("Failed to create apt list file for extra packages archive.\n");
+		    $session->unlink($tmpfilename);
+		    return 0;
+		}
+		if (!$session->rename($tmpfilename, $extra_packages_archive_list_file)) {
+		    $self->log("Failed to create apt list file for extra packages archive.\n");
+		    $session->unlink($tmpfilename);
+		    return 0;
+		}
+	    }
+
 	}
     }
 
@@ -458,7 +561,6 @@ sub update_archive {
 	      DIR => '/' });
     } else {
 	my $session = $self->get('Session');
-	my $dummy_archive_list_file = $self->get('Dummy archive list file');
 	# Create an empty sources.list.d directory that we can set as
 	# Dir::Etc::sourceparts to suppress the real one. /dev/null
 	# works in recent versions of apt, but not older ones (we want
@@ -478,16 +580,21 @@ sub update_archive {
 	# available to it. (Note that the tempting optimization to run
 	# apt-get update -o pkgCacheFile::Generate=0 is broken before
 	# 872ed75 in apt 0.9.1.)
-	$self->run_apt_command(
-	    { COMMAND => [$self->get_conf('APT_GET'), 'update',
-	                  '-o', 'Dir::Etc::sourcelist=' . $dummy_archive_list_file,
-	                  '-o', 'Dir::Etc::sourceparts=' . $dummy_sources_list_d,
-	                  '--no-list-cleanup'],
-	      ENV => {'DEBIAN_FRONTEND' => 'noninteractive'},
-	      USER => 'root',
-	      DIR => '/' });
-	if ($? != 0) {
-	    return 0;
+	for my $list_file ($self->get('Dummy archive list file'), $self->get('Extra packages archive list file')) {
+	    if (!$session->test_regular_file_readable($list_file)) {
+		next;
+	    }
+	    $self->run_apt_command(
+		{ COMMAND => [$self->get_conf('APT_GET'), 'update',
+			'-o', 'Dir::Etc::sourcelist=' . $list_file,
+			'-o', 'Dir::Etc::sourceparts=' . $dummy_sources_list_d,
+			'--no-list-cleanup'],
+		    ENV => {'DEBIAN_FRONTEND' => 'noninteractive'},
+		    USER => 'root',
+		    DIR => '/' });
+	    if ($? != 0) {
+		return 0;
+	    }
 	}
 
 	$self->run_apt_command(
@@ -1146,7 +1253,7 @@ EOF
     close $dummy_dsc_fh;
 
     # Do code to run apt-ftparchive
-    if (!$self->run_apt_ftparchive()) {
+    if (!$self->run_apt_ftparchive($self->get('Dummy archive directory'))) {
         $self->log("Failed to run apt-ftparchive.\n");
         return 0;
     }
@@ -1316,13 +1423,21 @@ sub cleanup_apt_archive {
 	$session->unlink($self->get('Dummy package path'), { RECURSIVE => 1, FORCE => 1 });
     }
 
+    if (defined $self->get('Extra packages path')) {
+	$session->unlink($self->get('Extra packages path'), { RECURSIVE => 1, FORCE => 1 });
+    }
+
     $session->unlink($self->get('Dummy archive list file'), { FORCE => 1 });
 
     $session->unlink($self->get('Dummy archive key file'), { FORCE => 1 });
 
-    $session->unlink($self->get('Extra repositories list file'), { FORCE => 1 });
+    $session->unlink($self->get('Extra repositories archive list file'), { FORCE => 1 });
 
-    $self->set('Dummy package path', undef);
+    $session->unlink($self->get('Extra packages archive list file'), { FORCE => 1 });
+
+    $self->set('Extra packages path', undef);
+    $self->set('Extra packages archive directory', undef);
+    $self->set('Extra packages release file', undef);
     $self->set('Dummy archive directory', undef);
     $self->set('Dummy Release file', undef);
 }
@@ -1330,13 +1445,9 @@ sub cleanup_apt_archive {
 # Function that runs apt-ftparchive
 sub run_apt_ftparchive {
     my $self = shift;
+    my $dummy_archive_dir = shift;
 
     my $session = $self->get('Session');
-    my $dummy_archive_dir = $self->get('Dummy archive directory');
-
-    for my $deb (@{$self->get_conf('EXTRA_PACKAGES')}) {
-        $session->copy_to_chroot($deb, $dummy_archive_dir);
-    }
 
     # We create the Packages, Sources and Release file inside the chroot.
     # We cannot use apt-ftparchive as this is not available inside the chroot.
