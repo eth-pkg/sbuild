@@ -2482,6 +2482,20 @@ sub build {
 	    my $pchanges = &$copy_changes($so_changes);
 	}
 
+	$self->log_subsection("Buildinfo");
+
+	foreach (@cfiles) {
+	    my $deb = "$build_dir/$_";
+	    next if $deb !~ /\.buildinfo$/;
+	    my $buildinfo = $session->read_file($deb);
+	    if (!$buildinfo) {
+		$self->log_error("Cannot read $deb\n");
+	    } else {
+		$self->log($buildinfo);
+		$self->log("\n");
+	    }
+	}
+
 	$self->log_subsection("Package contents");
 
 	my @debcfiles = @cfiles;
