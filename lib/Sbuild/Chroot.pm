@@ -375,7 +375,7 @@ sub write_command {
     close $pipe;
 
     if ($?) {
-	$self->log_error("read_command failed to execute " . $options->{COMMAND}->[0] . "\n");
+	$self->log_error("write_command failed to execute " . $options->{COMMAND}->[0] . "\n");
 	return;
     }
 
