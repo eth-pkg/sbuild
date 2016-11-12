@@ -271,12 +271,40 @@ sub run {
 	$self->set('Build Arch', $self->get_conf('BUILD_ARCH'));
 	$self->set('Build Profiles', $self->get_conf('BUILD_PROFILES'));
 
-	if (!$self->get_conf('BUILD_ARCH_ANY') &&
-	    !$self->get_conf('BUILD_ARCH_ALL') &&
-	    !$self->get_conf('BUILD_SOURCE')) {
-	    Sbuild::Exception::Build->throw(error => "Neither architecture specific nor architecture independent or source package specified to be built.",
-					    failstage => "init");
+	# Acquire the build type in the nomenclature used by the --build
+	# argument of dpkg-buildpackage
+	my $buildtype;
+	if ($self->get_conf('BUILD_SOURCE')) {
+	    if ($self->get_conf('BUILD_ARCH_ANY')) {
+		if ($self->get_conf('BUILD_ARCH_ALL')) {
+		    $buildtype = "full";
+		} else {
+		    $buildtype = "source,any";
+		}
+	    } else {
+		if ($self->get_conf('BUILD_ARCH_ALL')) {
+		    $buildtype = "source,all";
+		} else {
+		    $buildtype = "source";
+		}
+	    }
+	} else {
+	    if ($self->get_conf('BUILD_ARCH_ANY')) {
+		if ($self->get_conf('BUILD_ARCH_ALL')) {
+		    $buildtype = "binary";
+		} else {
+		    $buildtype = "any";
+		}
+	    } else {
+		if ($self->get_conf('BUILD_ARCH_ALL')) {
+		    $buildtype = "all";
+		} else {
+		    Sbuild::Exception::Build->throw(error => "Neither architecture specific nor architecture independent or source package specified to be built.",
+			failstage => "init");
+		}
+	    }
 	}
+	$self->set('Build Type', $buildtype);
 
 	my $dist = $self->get_conf('DISTRIBUTION');
 	if (!defined($dist) || !$dist) {
@@ -2721,6 +2749,7 @@ sub generate_stats {
     $self->add_stat('Build Architecture', $self->get('Build Arch'));
     $self->add_stat('Build Profiles', $self->get('Build Profiles'))
         if $self->get('Build Profiles');
+    $self->add_stat('Build Type', $self->get('Build Type'));
     my @keylist;
     if (defined $resolver) {
 	@keylist=keys %{$resolver->get('Initial Foreign Arches')};
@@ -3032,6 +3061,7 @@ sub open_build_log {
     $self->log("Host Architecture: " . $self->get('Host Arch') . "\n");
     $self->log("Build Architecture: " . $self->get('Build Arch') . "\n");
     $self->log("Build Profiles: " . $self->get('Build Profiles') . "\n") if $self->get('Build Profiles');
+    $self->log("Build Type: " . $self->get('Build Type') . "\n");
     $self->log("\n");
 }
 
