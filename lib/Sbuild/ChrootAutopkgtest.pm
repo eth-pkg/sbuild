@@ -64,7 +64,14 @@ sub begin_session {
 	return 0;
     }
 
-    chomp (my $status = <$chld_out>);
+    my $status = <$chld_out>;
+
+    if (!defined $status) {
+	print STDERR "Undefined chroot status\n";
+	return 0;
+    }
+
+    chomp $status;
 
     if (! defined $status || $status ne "ok") {
 	print STDERR "autopkgtest-virt server returned unexpected value: $status\n";
@@ -74,7 +81,14 @@ sub begin_session {
 
     print $chld_in "open\n";
 
-    chomp ($status = <$chld_out>);
+    $status = <$chld_out>;
+
+    if (!defined $status) {
+	print STDERR "Undefined return value after 'open'\n";
+	return 0;
+    }
+
+    chomp $status;
 
     my $autopkgtest_session;
     if ($status =~ /^ok (.*)$/) {
@@ -152,7 +166,14 @@ sub end_session {
 
     print $chld_in "close\n";
 
-    chomp (my $status = <$chld_out>);
+    my $status = <$chld_out>;
+
+    if (!defined $status) {
+	print STDERR "Undefined return value after 'close'\n";
+	return 0;
+    }
+
+    chomp $status;
 
     if ($status ne "ok") {
 	print STDERR "autopkgtest-virt server: cannot close: $status\n";
