@@ -57,7 +57,7 @@ sub new {
 	if (defined($self->get_conf('ENVIRONMENT_FILTER')));
 
     $self->set('Session ID', "");
-    $self->set('Chroot ID', $chroot_id);
+    $self->set('Chroot ID', $chroot_id) if defined $chroot_id;
     $self->set('Defaults', {
 	'COMMAND' => [],
 	'INTCOMMAND' => [], # Private
@@ -72,10 +72,6 @@ sub new {
 	'STREAMIN' => undef,
 	'STREAMOUT' => undef,
 	'STREAMERR' => undef});
-
-    if (!defined($self->get('Chroot ID'))) {
-	return undef;
-    }
 
     return $self;
 }

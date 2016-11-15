@@ -63,10 +63,6 @@ sub create {
 
     my $chrootid = $self->find($namespace, $distribution, $chroot, $arch);
 
-    if (!defined $chrootid) {
-        return undef;
-    }
-
     my $newchroot = $self->_create($chrootid);
 
     if (defined($newchroot)) {
@@ -104,7 +100,6 @@ sub find {
 	    if ($namespace ne 'chroot') {
 		$chroot = $self->find('chroot', $distribution, $chroot, $arch);
 	    } else {
-		$self->log_error("Chroot namespace $namespace not found\n");
 		return undef;
 	    }
 	}

@@ -53,6 +53,8 @@ sub begin_session {
     my $self = shift;
     my $chroot = $self->get('Chroot ID');
 
+    return 0 if !defined $chroot;
+
     my $info = $self->get('Chroots')->get_info($chroot);
 
     print STDERR "Setting up chroot $chroot\n"

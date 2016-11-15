@@ -59,9 +59,7 @@ sub _create {
 
     my $chroot = undef;
 
-    if (defined($chroot_id)) {
-	$chroot = Sbuild::ChrootAutopkgtest->new($self->get('Config'), $chroot_id);
-    }
+    $chroot = Sbuild::ChrootAutopkgtest->new($self->get('Config'), $chroot_id);
 
     return $chroot;
 }

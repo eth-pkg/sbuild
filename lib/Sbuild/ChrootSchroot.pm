@@ -52,6 +52,8 @@ sub begin_session {
     my $self = shift;
     my $chroot = $self->get('Chroot ID');
 
+    return 0 if !defined $chroot;
+
     # Don't use namespaces in compat mode.
     if ($Sbuild::Sysconfig::compat_mode) {
 	$chroot =~ s/^[^:]+://msx;

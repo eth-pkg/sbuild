@@ -51,19 +51,13 @@ sub new {
 
 sub begin_session {
     my $self = shift;
-    my $chroot = $self->get('Chroot ID');
-
-    # Don't use namespaces in compat mode.
-    if ($Sbuild::Sysconfig::compat_mode) {
-	$chroot =~ s/^[^:]+://msx;
-    }
 
     my ($chld_out, $chld_in);
     my $pid = open2(
 	$chld_out, $chld_in,
 	$self->get_conf('AUTOPKGTEST_VIRT_SERVER'),
-	@{$self->get_conf('AUTOPKGTEST_VIRT_SERVER_OPTIONS')},
-	$chroot);
+	@{$self->get_conf('AUTOPKGTEST_VIRT_SERVER_OPTIONS')}
+    );
 
     if (!$pid) {
 	print STDERR "Chroot setup failed\n";
@@ -92,7 +86,7 @@ sub begin_session {
 	return 0;
     }
 
-    print STDERR "Setting up chroot $chroot (session id $autopkgtest_session)\n"
+    print STDERR "Setting up chroot with session id $autopkgtest_session\n"
 	if $self->get_conf('DEBUG');
 
     print $chld_in "capabilities\n";
