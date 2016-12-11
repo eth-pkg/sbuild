@@ -2256,10 +2256,6 @@ sub build {
     $self->set('dpkg-buildpackage pid', $command->{'PID'});
     $self->set('Sub Task', "dpkg-buildpackage");
 
-    # We must send the signal as root, because some subprocesses of
-    # dpkg-buildpackage could run as root. So we have to use a shell
-    # command to send the signal... but /bin/kill can't send to
-    # process groups :-( So start another Perl :-)
     my $timeout = $self->get_conf('INDIVIDUAL_STALLED_PKG_TIMEOUT')->{$pkg} ||
 	$self->get_conf('STALLED_PKG_TIMEOUT');
     $timeout *= 60;
@@ -2269,13 +2265,8 @@ sub build {
     local $SIG{'ALRM'} = sub {
 	my $pid = $self->get('dpkg-buildpackage pid');
 	my $signal = ($timed_out > 0) ? "KILL" : "TERM";
-	$session->run_command(
-	    { COMMAND => ['perl',
-			  '-e',
-			  "kill( \"$signal\", -$pid )"],
-	      USER => 'root',
-	      PRIORITY => 0,
-	      DIR => '/' });
+	# negative pid to send to whole process group
+	kill "$signal", -$pid;
 
 	$timeout_times[$timed_out] = time - $last_time;
 	$timeout_sigs[$timed_out] = $signal;
