@@ -135,6 +135,17 @@ sub request_abort {
 
     $self->log_error("ABORT: $reason (requesting cleanup and shutdown)\n");
     $self->set('ABORT', $reason);
+
+    # Send signal to dpkg-buildpackage immediately if it's running.
+    if (defined $self->get('dpkg-buildpackage pid')) {
+	# Handling ABORT in the loop reading from the stdout/stderr output of
+	# dpkg-buildpackage is suboptimal because then the ABORT signal would
+	# only be handled once the build process writes to stdout or stderr
+	# which might not be immediately.
+	my $pid = $self->get('dpkg-buildpackage pid');
+	# Sending the pid negated to send to the whole process group.
+	kill "TERM", -$pid;
+    }
 }
 
 sub check_abort {
@@ -2289,16 +2300,6 @@ sub build {
     while(1) {
 	alarm($timeout);
 	$last_time = time;
-	if ($self->get('ABORT')) {
-	    my $pid = $command->{'PID'};
-	    $session->run_command(
-		{ COMMAND => ['perl',
-			      '-e',
-			      "kill( \"TERM\", -$pid )"],
-		  USER => 'root',
-		  PRIORITY => 0,
-		  DIR => '/' });
-	}
 	# The buffer size is really arbitrary and just makes sure not to call
 	# this function too often if lots of data is produced by the build.
 	# The function will immediately return even with less data than the
