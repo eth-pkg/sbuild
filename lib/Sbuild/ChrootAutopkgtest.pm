@@ -190,6 +190,9 @@ sub end_session {
 	return 0;
     }
 
+    close($chld_in);
+    close($chld_out);
+
     return 1;
 }
 
