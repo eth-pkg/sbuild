@@ -46,6 +46,10 @@ sub new {
     my $self = $class->SUPER::new($conf, $chroot_id);
     bless($self, $class);
 
+    $self->set('Autopkgtest Pipe In', undef);
+    $self->set('Autopkgtest Pipe Out', undef);
+    $self->set('Autopkgtest Virt PID', undef);
+
     return $self;
 }
 
@@ -192,6 +196,10 @@ sub end_session {
 
     close($chld_in);
     close($chld_out);
+
+    $self->set('Autopkgtest Pipe In', undef);
+    $self->set('Autopkgtest Pipe Out', undef);
+    $self->set('Autopkgtest Virt PID', undef);
 
     return 1;
 }
