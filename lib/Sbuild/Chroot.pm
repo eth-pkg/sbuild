@@ -674,7 +674,7 @@ sub run_command_internal {
 	warn "Cannot fork: $!\n";
     } elsif ($pid == 0) { # child
 
-	# redirect stdout
+	# redirect stdin
 	my $in = $self->get_option($options, 'STREAMIN');
 	if (defined($in) && $in && \*STDIN != $in) {
 	    open(STDIN, '<&', $in)
