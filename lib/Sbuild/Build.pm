@@ -111,6 +111,7 @@ sub new {
     $self->set('Log File', undef);
     $self->set('Log Stream', undef);
     $self->set('Summary Stats', {});
+    $self->set('dpkg-buildpackage pid', undef);
 
     # DSC, package and version information:
     $self->set_dsc($dsc);
@@ -2241,6 +2242,7 @@ sub build {
 	    failstage => "dpkg-buildpackage");
     }
 
+    $self->set('dpkg-buildpackage pid', $command->{'PID'});
     $self->set('Sub Task', "dpkg-buildpackage");
 
     # We must send the signal as root, because some subprocesses of
@@ -2254,7 +2256,7 @@ sub build {
     my(@timeout_times, @timeout_sigs, $last_time);
 
     local $SIG{'ALRM'} = sub {
-	my $pid = $command->{'PID'};
+	my $pid = $self->get('dpkg-buildpackage pid');
 	my $signal = ($timed_out > 0) ? "KILL" : "TERM";
 	$session->run_command(
 	    { COMMAND => ['perl',
@@ -2343,6 +2345,7 @@ sub build {
     close($pipe);
     alarm(0);
     $rv = $?;
+    $self->set('dpkg-buildpackage pid', undef);
 
     my $i;
     for( $i = 0; $i < $timed_out; ++$i ) {
