@@ -30,6 +30,7 @@ use POSIX qw(getgroups getgid);
 use Sbuild qw(isin);
 use Sbuild::ConfBase;
 use Sbuild::Sysconfig;
+use Dpkg::Build::Info;
 
 BEGIN {
     use Exporter ();
@@ -741,15 +742,37 @@ sub setup ($) {
 	    TYPE => 'ARRAY:STRING',
 	    VARNAME => 'environment_filter',
 	    GROUP => 'Core options',
-	    DEFAULT => ['^PATH$',
-			'^DEB(IAN|SIGN)?_[A-Z_]+$',
-	    		'^(C(PP|XX)?|LD|F)FLAGS(_APPEND)?$',
-			'^USER(NAME)?$',
-			'^LOGNAME$',
-			'^HOME$',
-			'^TERM$',
-			'^SHELL$'],
-	    HELP => 'Only environment variables matching one of the regular expressions in this arrayref will be passed to dpkg-buildpackage and other programs run by sbuild.'
+	    DEFAULT => [ sort (map "^$_\$", Dpkg::Build::Info::get_build_env_whitelist()) ],
+#	    GET => sub {
+#		my $conf = shift;
+#		my $entry = shift;
+#
+#		my $retval = $conf->_get($entry->{'NAME'});
+#
+#		if (!defined($retval)) {
+#		    $retval = [ map "^$_\$", Dpkg::Build::Info::get_build_env_whitelist() ];
+#		}
+#
+#		return $retval;
+#	    },
+	    HELP => 'Only environment variables matching one of the regular expressions in this arrayref will be passed to dpkg-buildpackage and other programs run by sbuild. The default value for this configuration setting is the list of variable names as returned by Dpkg::Build::Info::get_build_env_whitelist() which is also the list of variable names that is whitelisted to be recorded in .buildinfo files. Caution: the default value listed below was retrieved from the dpkg Perl library version available when this man page was generated. It might be different if your dpkg Perl library version differs.',
+	    EXAMPLE =>
+'# Setting the old environment filter
+$environment_filter = [\'^PATH$\',
+			\'^DEB(IAN|SIGN)?_[A-Z_]+$\',
+			\'^(C(PP|XX)?|LD|F)FLAGS(_APPEND)?$\',
+			\'^USER(NAME)?$\',
+			\'^LOGNAME$\',
+			\'^HOME$\',
+			\'^TERM$\',
+			\'^SHELL$\'];
+# Appending FOOBAR to the default
+use Dpkg::Build::Info;
+$environment_filter = [Dpkg::Build::Info::get_build_env_whitelist(), \'FOOBAR\'];
+# Removing FOOBAR from the default
+use Dpkg::Build::Info;
+$environment_filter = [map /^FOOBAR$/ ? () : $_, Dpkg::Build::Info::get_build_env_whitelist()];
+'
 	},
 	'BUILD_ENVIRONMENT'			=> {
 	    TYPE => 'HASH:STRING',
