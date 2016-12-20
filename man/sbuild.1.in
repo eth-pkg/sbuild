@@ -1308,6 +1308,10 @@ inside the chroot.
 .TP
 \fB%s\fR, \fB%SBUILD_SHELL\fR
 This is converted to a command to spawn an interactive "bash" shell
+.TP
+\fB%SBUILD_BUILD_ARCH\fR
+This escape is converted to the Debian name of the architecture that the build
+is being run on (e.g amd64, armhf).
 .PP
 Percent escapes are only substituted when an appropriate value is defined for
 them. At other times, it is left unchanged. In practice this means that there

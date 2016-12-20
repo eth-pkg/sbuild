@@ -1505,11 +1505,13 @@ sub run_external_commands {
     # Run each command, substituting the various percent escapes (like
     # %SBUILD_DSC) from the commands to run with the appropriate subsitutions.
     my $hostarch = $self->get('Host Arch');
+    my $buildarch = $self->get('Build Arch');
     my $build_dir = $self->get('Build Dir');
     my $shell_cmd = "bash -i </dev/tty >/dev/tty 2>/dev/tty";
     my %percent = (
 	"%" => "%",
 	"a" => $hostarch, "SBUILD_HOST_ARCH" => $hostarch,
+	                  "SBUILD_BUILD_ARCH" => $buildarch,
 	"b" => $build_dir, "SBUILD_BUILD_DIR" => $build_dir,
 	"s" => $shell_cmd, "SBUILD_SHELL" => $shell_cmd,
     );
