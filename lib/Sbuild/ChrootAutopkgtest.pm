@@ -25,7 +25,7 @@ package Sbuild::ChrootAutopkgtest;
 use strict;
 use warnings;
 
-use IPC::Open2;
+use POSIX qw(setsid);
 use Sbuild qw(shellescape);
 
 BEGIN {
@@ -56,12 +56,49 @@ sub new {
 sub begin_session {
     my $self = shift;
 
-    my ($chld_out, $chld_in);
-    my $pid = open2(
-	$chld_out, $chld_in,
-	$self->get_conf('AUTOPKGTEST_VIRT_SERVER'),
-	@{$self->get_conf('AUTOPKGTEST_VIRT_SERVER_OPTIONS')}
-    );
+    # We are manually setting up bidirectional communication with autopkgtest
+    # instead of using IPC::Open2 because we must call setsid() from the
+    # child.
+    #
+    # Calling setsid() is necessary to place autopkgtest into a new process
+    # group and thus prevent it from receiving for example a Ctrl+C that can be
+    # sent by the user from a terminal. If autopkgtest would receive the
+    # SIGINT, then it would close the session immediately without us being able
+    # to do anything about it. Instead, we want to close the session later
+    # ourselves.
+    pipe(my $prnt_out, my $chld_in);
+    pipe(my $chld_out, my $prnt_in);
+
+    my $pid = fork();
+    if (!defined $pid) {
+	die "Cannot fork: $!";
+    } elsif ($pid == 0) {
+	# child
+	close($chld_in);
+	close($chld_out);
+
+	# redirect stdin
+	open(STDIN, '<&', $prnt_out)
+	    or die "Can't redirect stdin\n";
+
+	# redirect stdout
+	open(STDOUT, '>&', $prnt_in)
+	    or die "Can't redirect stdout\n";
+
+	# put process into new group
+	setsid();
+
+	my @command = ($self->get_conf('AUTOPKGTEST_VIRT_SERVER'),
+	    @{$self->get_conf('AUTOPKGTEST_VIRT_SERVER_OPTIONS')});
+	exec { $self->get_conf('AUTOPKGTEST_VIRT_SERVER') } @command;
+	die "Failed to exec $self->get_conf('AUTOPKGTEST_VIRT_SERVER'): $!";
+    }
+    close($prnt_out);
+    close($prnt_in);
+
+    # We must enable autoflushing for the stdin of the child process or
+    # otherwise the commands we write will never reach the child.
+    $chld_in->autoflush(1);
 
     if (!$pid) {
 	print STDERR "Chroot setup failed\n";
