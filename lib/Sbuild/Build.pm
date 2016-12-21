@@ -2042,7 +2042,6 @@ sub build {
     my $version = $clog->{Version};
     my $dists = $clog->{Distribution};
     my $urgency = $clog->{Urgency};
-    my $date = $clog->{Date};
 
     if ($dists ne $self->get_conf('DISTRIBUTION')) {
 	$self->build_log_colour('yellow',
@@ -2089,6 +2088,27 @@ sub build {
 	}
 	print $clogpipe "\n";
 
+	# Earlier implementations used the date of the last changelog entry
+	# for the new entry so that Multi-Arch:same packages would be
+	# co-installable (their shared changelogs had to match). This is not
+	# necessary anymore as binNMU changelogs are now written into
+	# architecture specific paths. Re-using the date of the last changelog
+	# entry has the disadvantage that this will effect SOURCE_DATE_EPOCH
+	# which in turn will make the timestamps of the files in the new
+	# package equal to the last version which can confuse backup programs.
+	# By using the build date for the new binNMU changelog timestamp we
+	# make sure that the timestamps of changed files inside the new
+	# package advanced in comparison to the last version.
+	#
+	# The timestamp format has to follow Debian Policy §4.4
+	#   https://www.debian.org/doc/debian-policy/ch-source.html#s-dpkgchangelog
+	# which is the same format as `date -R`
+	# To adhere to the specified format, the C or C.UTF-8 locale must be
+	# used as otherwise %a and %b will be locale dependent.
+	my $old_locale = setlocale(LC_TIME);
+	setlocale(LC_TIME, "C.UTF-8");
+	my $date = strftime "%a, %d %b %Y %H:%M:%S +0000", gmtime();
+	setlocale(LC_TIME, $old_locale);
 	print $clogpipe " -- " . $self->get_conf('MAINTAINER_NAME') . "  $date\n\n";
 	print $clogpipe $text;
 	close($clogpipe);
