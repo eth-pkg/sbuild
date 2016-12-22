@@ -2103,12 +2103,17 @@ sub build {
 	# The timestamp format has to follow Debian Policy §4.4
 	#   https://www.debian.org/doc/debian-policy/ch-source.html#s-dpkgchangelog
 	# which is the same format as `date -R`
-	# To adhere to the specified format, the C or C.UTF-8 locale must be
-	# used as otherwise %a and %b will be locale dependent.
-	my $old_locale = setlocale(LC_TIME);
-	setlocale(LC_TIME, "C.UTF-8");
-	my $date = strftime "%a, %d %b %Y %H:%M:%S +0000", gmtime();
-	setlocale(LC_TIME, $old_locale);
+	my $date;
+	if (defined $self->get_conf('BIN_NMU_TIMESTAMP')) {
+	    if ($self->get_conf('BIN_NMU_TIMESTAMP') =~ /^\+?[1-9]\d*$/) {
+		$date = strftime_c "%a, %d %b %Y %H:%M:%S +0000",
+		    gmtime($self->get_conf('BIN_NMU_TIMESTAMP'));
+	    } else {
+		$date = $self->get_conf('BIN_NMU_TIMESTAMP');
+	    }
+	} else {
+	    $date = strftime_c "%a, %d %b %Y %H:%M:%S +0000", gmtime();
+	}
 	print $clogpipe " -- " . $self->get_conf('MAINTAINER_NAME') . "  $date\n\n";
 	print $clogpipe $text;
 	close($clogpipe);

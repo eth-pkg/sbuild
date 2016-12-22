@@ -147,6 +147,9 @@ sub set_options {
 		       "binNMU=i" => sub {
 			   $self->set_conf('BIN_NMU_VERSION', $_[1]);
 		       },
+		       "binNMU-timestamp=s" => sub {
+			   $self->set_conf('BIN_NMU_TIMESTAMP', $_[1]);
+		       },
 		       "append-to-version=s" => sub {
 			   $self->set_conf('APPEND_TO_VERSION', $_[1]);
 		       },
