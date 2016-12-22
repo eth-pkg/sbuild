@@ -539,6 +539,10 @@ ARCH -- no source changes\[rq]. Please note that the versions in the
 \fIPACKAGE_VERSION[.dsc]\fR arguments still have to be the unmodified (non-NMU
 ones) so that the sources can be found. The version number in log files and
 mails will be modified by \fBsbuild\fR automatically.
+The \-\-append\-to\-version option has a similar effect but allows one to
+specify an arbitrary version suffix instead of a custom changelog entry. To
+have a custom version suffix and a custom changelog entry, use \-\-make\-binNMU
+and \-\-append\-to\-version at the same time with \-\-binNMU=0.
 This command line option sets the \fBBIN_NMU\fP configuration variable and sets the \fBBIN_NMU_VERSION\fP configuration variable to 1 if it was not set yet, for example by the --binNMU option. See
 .BR sbuild.conf (5)
 for more information.
@@ -547,6 +551,9 @@ for more information.
 The version number of the binary NMU.  This should be used in conjunction with
 \-\-make\-binNMU.  \fIversion\fP is a single number for the (+b\fIn\fR) format
 used for binary NMUs.
+If the argument is the empty string or zero, then the +b\fIn\fR suffix will not
+be appended.
+The +b\fIn\fR suffix will be appended after the string given via \-\-append\-to\-version.
 This command line option sets the \fBBIN_NMU_VERSION\fP configuration variable. See
 .BR sbuild.conf (5)
 for more information.
@@ -566,6 +573,9 @@ for more information.
 This option is similar to \-\-make\-binNMU except that it allows the user to
 specify an arbitrary string to be appended to the version number (immediately
 before the '+' in the Debian revision if \-\-make\-binNMU is also provided).
+To pass an arbitrary changelog text as well, combine this option with
+\-\-make\-binNMU but be aware that this will also add the +b\fIn\fR suffix
+unless you also pass \-\-binNMU=0 to disable it.
 This command line option sets the \fBAPPEND_TO_VERSION\fP configuration variable. See
 .BR sbuild.conf (5)
 for more information.
