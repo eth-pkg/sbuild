@@ -26,6 +26,7 @@ use warnings;
 use POSIX;
 use Fcntl;
 use File::Temp qw(mktemp);
+use File::Basename qw(basename);
 use File::Copy;
 use MIME::Base64;
 
@@ -246,7 +247,28 @@ sub setup {
 	    # Copy over all the extra binary packages from the host into the
 	    # chroot
 	    for my $deb (@{$self->get_conf('EXTRA_PACKAGES')}) {
-		$session->copy_to_chroot($deb, $extra_packages_archive_dir);
+		if (-f $deb) {
+		    my $base_deb = basename($deb);
+		    if ($session->test_regular_file("$extra_packages_archive_dir/$base_deb")) {
+			$self->log_warning("$base_deb already exists in $extra_packages_archive_dir inside the chroot. Skipping...\n");
+			next;
+		    }
+		    $session->copy_to_chroot($deb, $extra_packages_archive_dir);
+		} elsif (-d $deb) {
+		    opendir(D, $deb);
+		    while (my $f = readdir(D)) {
+			next if (! -f "$deb/$f");
+			next if ("$deb/$f" !~ /\.deb$/);
+			if ($session->test_regular_file("$extra_packages_archive_dir/$f")) {
+			    $self->log_warning("$f already exists in $extra_packages_archive_dir inside the chroot. Skipping...\n");
+			    next;
+			}
+			$session->copy_to_chroot("$deb/$f", $extra_packages_archive_dir);
+		    }
+		    closedir(D);
+		} else {
+		    $self->log_warning("$deb is neither a regular file nor a directory. Skipping...\n");
+		}
 	    }
 
 	    # Do code to run apt-ftparchive

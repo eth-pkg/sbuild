@@ -1326,14 +1326,17 @@ sub check_architectures {
 	    COMMAND => ['dpkg', '--print-foreign-architectures'],
 	    USER => $self->get_conf('USERNAME'),
 	});
-    for my $deb (@{$self->get_conf('EXTRA_PACKAGES')}) {
+    # we use an anonymous subroutine so that the referenced variables are
+    # automatically rebound to their current values
+    my $check_deb_arch = sub {
+	my $pkg = shift;
 	# Investigate the Architecture field of the binary package
 	my $arch = $self->get('Host')->read_command({
-		COMMAND => ['dpkg-deb', '--field', Cwd::abs_path($deb), 'Architecture'],
+		COMMAND => ['dpkg-deb', '--field', Cwd::abs_path($pkg), 'Architecture'],
 		USER => $self->get_conf('USERNAME')
-	});
+	    });
 	if (!defined $arch) {
-	    $self->log_warning("Failed to run dpkg-deb on $deb. Skipping...\n");
+	    $self->log_warning("Failed to run dpkg-deb on $pkg. Skipping...\n");
 	    next;
 	}
 	chomp $arch;
@@ -1341,7 +1344,22 @@ sub check_architectures {
 	# one of the configured foreign architectures are allowed.
 	if ($arch ne 'all' and $arch ne $build_arch
 		and !isin($arch, @all_foreign_arches)) {
-	    $self->log_warning("Extra package $deb of architecture $arch cannot be installed in the chroot\n");
+	    $self->log_warning("Extra package $pkg of architecture $arch cannot be installed in the chroot\n");
+	}
+    };
+    for my $deb (@{$self->get_conf('EXTRA_PACKAGES')}) {
+	if (-f $deb) {
+	    &$check_deb_arch($deb);
+	} elsif (-d $deb) {
+	    opendir(D, $deb);
+	    while (my $f = readdir(D)) {
+		next if (! -f "$deb/$f");
+		next if ("$deb/$f" !~ /\.deb$/);
+		&$check_deb_arch("$deb/$f");
+	    }
+	    closedir(D);
+	} else {
+	    $self->log_warning("$deb is neither a regular file nor a directory. Skipping...\n");
 	}
     }
 

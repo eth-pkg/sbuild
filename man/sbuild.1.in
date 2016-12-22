@@ -957,7 +957,7 @@ This command line option sets the \fBRESOLVE_ALTERNATIVES\fP configuration varia
 .BR sbuild.conf (5)
 for more information.
 .TP
-.BR \-\-extra\-package=\fIpackage.deb\fP
+.BR \-\-extra\-package=\fIpackage.deb|directory\fP
 Make \fIpackage.deb\fP available for build-dependency resolution, by
 adding it to a temporary archive created by sbuild.  This makes it
 easier to build packages against locally-built build dependencies,
@@ -965,6 +965,9 @@ without waiting for those packages to enter the main archive, or going
 through the hassle of maintaining a local archive and making it
 accessible inside the chroot.  \fIpackage.deb\fP is copied into the
 chroot, so it can refer to any path on the host system.
+If a directory is passed instead of a regular file, then all regular files
+inside that directory with a filename that ends in \fI.deb\fP will be added in
+the same fashion as it is done for individual packages.
 This command line option appends to the \fBEXTRA_PACKAGES\fP configuration variable. See
 .BR sbuild.conf (5)
 for more information.
