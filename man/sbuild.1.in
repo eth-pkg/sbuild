@@ -308,6 +308,10 @@ for more information.
 .BR "\-\-no\-apt\-update"
 Run (or do not run) apt-get update in the chroot before executing the build,
 overriding the default setting.
+This option has no effect on updating the internal sbuild apt repository, the
+repository for extra packages (see --extra-package) and the repositories given
+via --extra-repository. These are always updated. Thus, this option only
+influences updates of the default repositories of the chroot.
 This command line option sets the \fBAPT_UPDATE\fP configuration variable. See
 .BR sbuild.conf (5)
 for more information.
@@ -773,7 +777,11 @@ for more information.
 .TP
 .BR \-\-chroot\-update\-failed\-commands=\fIstring\fP
 Run these commands after any of 'apt-get update', 'apt-get upgrade' or 'apt-get
-dist-upgrade' failed. The environment is intact, and the failure can be
+dist-upgrade' failed.
+This hook is not run for updates of the internal sbuild apt repository, the
+repository for extra packages (see --extra-package) and the repositories given
+via --extra-repository.
+The environment is intact, and the failure can be
 investigated. Especially %SBUILD_SHELL is useful here. This option can be used
 multiple times to add multiple commands. Certain percent escapes are supported.
 To write a literal percent sign, escape it with another percent sign.See the

@@ -580,7 +580,9 @@ sub update_archive {
 	# available to it. (Note that the tempting optimization to run
 	# apt-get update -o pkgCacheFile::Generate=0 is broken before
 	# 872ed75 in apt 0.9.1.)
-	for my $list_file ($self->get('Dummy archive list file'), $self->get('Extra packages archive list file')) {
+	for my $list_file ($self->get('Dummy archive list file'),
+			   $self->get('Extra packages archive list file'),
+			   $self->get('Extra repositories archive list file')) {
 	    if (!$session->test_regular_file_readable($list_file)) {
 		next;
 	    }

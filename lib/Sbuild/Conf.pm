@@ -838,7 +838,7 @@ $environment_filter = [map /^FOOBAR$/ ? () : $_, Dpkg::Build::Info::get_build_en
 	    VARNAME => 'apt_update',
 	    GROUP => 'Chroot options',
 	    DEFAULT => 1,
-	    HELP => 'APT update.  1 to enable running "apt-get update" at the start of each build, or 0 to disable.',
+	    HELP => 'APT update.  1 to enable running "apt-get update" at the start of each build, or 0 to disable. This option has no effect on updating the internal sbuild apt repository, the repository for extra packages (see EXTRA_PACKAGES) and the repositories given via EXTRA_REPOSITORIES. These are always updated. Thus, this option only influences updates of the default repositories of the chroot.',
 	    CLI_OPTIONS => ['--apt-update', '--no-apt-update']
 	},
 	'APT_UPDATE_ARCHIVE_ONLY'		=> {
