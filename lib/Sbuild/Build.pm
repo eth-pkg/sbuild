@@ -2432,6 +2432,8 @@ sub build {
 
 	$self->log_subsection("Changes");
 
+	# we use an anonymous subroutine so that the referenced variables are
+	# automatically rebound to their current values
 	my $copy_changes = sub {
 	    my $changes = shift;
 
