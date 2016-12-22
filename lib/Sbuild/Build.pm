@@ -918,7 +918,7 @@ sub run_fetch_install_packages {
 	}
 	$self->set('Pkg Fail Stage', $e->failstage);
     }
-    if ( defined $self->get('Pkg Fail Stage')) {
+    if (!$self->get('ABORT') && defined $self->get('Pkg Fail Stage')) {
 	if ($self->get('Pkg Fail Stage') eq 'build' ) {
 	    if(!$self->run_external_commands("build-failed-commands")) {
 		Sbuild::Exception::Build->throw(error => "Failed to execute build-failed-commands",
