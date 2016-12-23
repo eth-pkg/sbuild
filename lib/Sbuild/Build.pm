@@ -40,6 +40,7 @@ use Dpkg::Control;
 use Dpkg::Index;
 use Dpkg::Version;
 use Dpkg::Deps qw(deps_concat deps_parse);
+use Dpkg::Changelog::Debian;
 use Scalar::Util 'refaddr';
 
 use MIME::Lite;
@@ -197,9 +198,23 @@ sub set_version {
     $osversion .= '-' . $pver->revision() unless $pver->{'no_revision'};
 
     # Add binNMU to version if needed.
-    if ($self->get_conf('BIN_NMU') || $self->get_conf('APPEND_TO_VERSION')) {
-	$version = binNMU_version($version, $self->get_conf('BIN_NMU_VERSION'),
-	    $self->get_conf('APPEND_TO_VERSION'));
+    if ($self->get_conf('BIN_NMU') || $self->get_conf('APPEND_TO_VERSION')
+	|| defined $self->get_conf('BIN_NMU_CHANGELOG')) {
+	if (defined $self->get_conf('BIN_NMU_CHANGELOG')) {
+	    # extract the binary version from the custom changelog entry
+	    open(CLOGFH, '<', \$self->get_conf('BIN_NMU_CHANGELOG'));
+	    my $changes = Dpkg::Changelog::Debian->new();
+	    $changes->parse(*CLOGFH, "descr");
+	    my @data = $changes->get_range({count => 1});
+	    $version = $data[0]->get_version();
+	    close(CLOGFH);
+	} else {
+	    # compute the binary version from the original version and the
+	    # requested binNMU and append-to-version parameters
+	    $version = binNMU_version($version,
+		$self->get_conf('BIN_NMU_VERSION'),
+		$self->get_conf('APPEND_TO_VERSION'));
+	}
     }
 
     my $bver = Dpkg::Version->new($version, check => 1);
@@ -2066,13 +2081,8 @@ sub build {
 				"^Distribution: " . $self->get_conf('DISTRIBUTION') . "\$");
     }
 
-    if ($self->get_conf('BIN_NMU') || $self->get_conf('APPEND_TO_VERSION')) {
-	if (!$self->get_conf('MAINTAINER_NAME')) {
-	    Sbuild::Exception::Build->throw(error => "No maintainer specified.",
-					    info => 'When making changelog additions for a binNMU or appending a version suffix, a maintainer must be specified for the changelog entry e.g. using $maintainer_name, $uploader_name or $key_id, (or the equivalent command-line options)',
-					    failstage => "check-space");
-	}
-
+    if ($self->get_conf('BIN_NMU') || $self->get_conf('APPEND_TO_VERSION')
+	|| defined $self->get_conf('BIN_NMU_CHANGELOG')) {
 	$self->log_subsubsection("Hack binNMU version");
 
 	my $text = $session->read_file("$dscdir/debian/changelog");
@@ -2092,47 +2102,61 @@ sub build {
 	    Sbuild::Exception::Build->throw(error => "Can't open debian/changelog for binNMU hack: $!",
 		failstage => "hack-binNMU");
 	}
-	$dists = $self->get_conf('DISTRIBUTION');
-
-	print $clogpipe "$name ($NMUversion) $dists; urgency=low, binary-only=yes\n\n";
-	if ($self->get_conf('APPEND_TO_VERSION')) {
-	    print $clogpipe "  * Append ", $self->get_conf('APPEND_TO_VERSION'),
-	    " to version number; no source changes\n";
-	}
-	if ($self->get_conf('BIN_NMU')) {
-	    print $clogpipe "  * Binary-only non-maintainer upload for $host_arch; ",
-	    "no source changes.\n";
-	    print $clogpipe "  * ", join( "    ", split( "\n", $self->get_conf('BIN_NMU') )), "\n";
-	}
-	print $clogpipe "\n";
-
-	# Earlier implementations used the date of the last changelog entry
-	# for the new entry so that Multi-Arch:same packages would be
-	# co-installable (their shared changelogs had to match). This is not
-	# necessary anymore as binNMU changelogs are now written into
-	# architecture specific paths. Re-using the date of the last changelog
-	# entry has the disadvantage that this will effect SOURCE_DATE_EPOCH
-	# which in turn will make the timestamps of the files in the new
-	# package equal to the last version which can confuse backup programs.
-	# By using the build date for the new binNMU changelog timestamp we
-	# make sure that the timestamps of changed files inside the new
-	# package advanced in comparison to the last version.
-	#
-	# The timestamp format has to follow Debian Policy §4.4
-	#   https://www.debian.org/doc/debian-policy/ch-source.html#s-dpkgchangelog
-	# which is the same format as `date -R`
-	my $date;
-	if (defined $self->get_conf('BIN_NMU_TIMESTAMP')) {
-	    if ($self->get_conf('BIN_NMU_TIMESTAMP') =~ /^\+?[1-9]\d*$/) {
-		$date = strftime_c "%a, %d %b %Y %H:%M:%S +0000",
-		    gmtime($self->get_conf('BIN_NMU_TIMESTAMP'));
-	    } else {
-		$date = $self->get_conf('BIN_NMU_TIMESTAMP');
-	    }
+	if (defined $self->get_conf('BIN_NMU_CHANGELOG')) {
+	    my $clogentry = $self->get_conf('BIN_NMU_CHANGELOG');
+	    # trim leading and trailing whitespace and linebreaks
+	    $clogentry =~ s/^\s+|\s+$//g;
+	    print $clogpipe $clogentry . "\n\n";
 	} else {
-	    $date = strftime_c "%a, %d %b %Y %H:%M:%S +0000", gmtime();
+	    if (!$self->get_conf('MAINTAINER_NAME')) {
+		Sbuild::Exception::Build->throw(error => "No maintainer specified.",
+		    info => 'When making changelog additions for a binNMU or appending a version suffix, a maintainer must be specified for the changelog entry e.g. using $maintainer_name, $uploader_name or $key_id, (or the equivalent command-line options)',
+		    failstage => "check-space");
+	    }
+
+	    $dists = $self->get_conf('DISTRIBUTION');
+
+	    print $clogpipe "$name ($NMUversion) $dists; urgency=low, binary-only=yes\n\n";
+	    if ($self->get_conf('APPEND_TO_VERSION')) {
+		print $clogpipe "  * Append ", $self->get_conf('APPEND_TO_VERSION'),
+		" to version number; no source changes\n";
+	    }
+	    if ($self->get_conf('BIN_NMU')) {
+		print $clogpipe "  * Binary-only non-maintainer upload for $host_arch; ",
+		"no source changes.\n";
+		print $clogpipe "  * ", join( "    ", split( "\n", $self->get_conf('BIN_NMU') )), "\n";
+	    }
+	    print $clogpipe "\n";
+
+	    # Earlier implementations used the date of the last changelog
+	    # entry for the new entry so that Multi-Arch:same packages would
+	    # be co-installable (their shared changelogs had to match). This
+	    # is not necessary anymore as binNMU changelogs are now written
+	    # into architecture specific paths. Re-using the date of the last
+	    # changelog entry has the disadvantage that this will effect
+	    # SOURCE_DATE_EPOCH which in turn will make the timestamps of the
+	    # files in the new package equal to the last version which can
+	    # confuse backup programs.  By using the build date for the new
+	    # binNMU changelog timestamp we make sure that the timestamps of
+	    # changed files inside the new package advanced in comparison to
+	    # the last version.
+	    #
+	    # The timestamp format has to follow Debian Policy §4.4
+	    #   https://www.debian.org/doc/debian-policy/ch-source.html#s-dpkgchangelog
+	    # which is the same format as `date -R`
+	    my $date;
+	    if (defined $self->get_conf('BIN_NMU_TIMESTAMP')) {
+		if ($self->get_conf('BIN_NMU_TIMESTAMP') =~ /^\+?[1-9]\d*$/) {
+		    $date = strftime_c "%a, %d %b %Y %H:%M:%S +0000",
+		    gmtime($self->get_conf('BIN_NMU_TIMESTAMP'));
+		} else {
+		    $date = $self->get_conf('BIN_NMU_TIMESTAMP');
+		}
+	    } else {
+		$date = strftime_c "%a, %d %b %Y %H:%M:%S +0000", gmtime();
+	    }
+	    print $clogpipe " -- " . $self->get_conf('MAINTAINER_NAME') . "  $date\n\n";
 	}
-	print $clogpipe " -- " . $self->get_conf('MAINTAINER_NAME') . "  $date\n\n";
 	print $clogpipe $text;
 	close($clogpipe);
 	$self->log("Created changelog entry for binNMU version $NMUversion\n");

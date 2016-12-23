@@ -997,6 +997,14 @@ $crossbuild_core_depends = {
 	    HELP => 'Suffix to append to version number.  May be useful for derivative distributions.',
 	    CLI_OPTIONS => ['--append-to-version']
 	},
+	'BIN_NMU_CHANGELOG'			=> {
+	    TYPE => 'STRING',
+	    VARNAME => 'bin_nmu_changelog',
+	    GROUP => 'Build options',
+	    DEFAULT => undef,
+	    HELP => 'The content of a binary-only changelog entry. Leading and trailing newlines will be stripped.',
+	    CLI_OPTIONS => ['--binNMU-changelog']
+	},
 	'GCC_SNAPSHOT'				=> {
 	    TYPE => 'BOOL',
 	    VARNAME => 'gcc_snapshot',

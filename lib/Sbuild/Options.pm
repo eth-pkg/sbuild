@@ -51,6 +51,7 @@ sub set_options {
     my ($opt_run_lintian, $opt_no_run_lintian);
     my ($opt_run_piuparts, $opt_no_run_piuparts);
     my ($opt_run_autopkgtest, $opt_no_run_autopkgtest);
+    my ($opt_make_binnmu, $opt_binnmu, $opt_binnmu_timestamp, $opt_binnmu_changelog, $opt_append_to_version);
 
     $self->add_options("arch=s" => sub {
 			   if (defined $opt_arch && $opt_arch ne $_[1]) {
@@ -140,18 +141,50 @@ sub set_options {
 			   $self->set_conf('BATCH_MODE', 1);
 		       },
 		       "make-binNMU=s" => sub {
+			   if ($opt_binnmu_changelog) {
+			       die "--make-binNMU cannot be used together with --binNMU-changelog";
+			   }
 			   $self->set_conf('BIN_NMU', $_[1]);
 			   $self->set_conf('BIN_NMU_VERSION', 1)
 			       if (!defined $self->get_conf('BIN_NMU_VERSION'));
+			   $opt_make_binnmu = 1;
 		       },
 		       "binNMU=i" => sub {
+			   if ($opt_binnmu_changelog) {
+			       die "--binNMU cannot be used together with --binNMU-changelog";
+			   }
 			   $self->set_conf('BIN_NMU_VERSION', $_[1]);
+			   $opt_binnmu = 1;
 		       },
 		       "binNMU-timestamp=s" => sub {
+			   if ($opt_binnmu_changelog) {
+			       die "--binNMU-timestamp cannot be used together with --binNMU-changelog";
+			   }
 			   $self->set_conf('BIN_NMU_TIMESTAMP', $_[1]);
+			   $opt_binnmu_timestamp = 1;
 		       },
 		       "append-to-version=s" => sub {
+			   if ($opt_binnmu_changelog) {
+			       die "--append-to-version cannot be used together with --binNMU-changelog";
+			   }
 			   $self->set_conf('APPEND_TO_VERSION', $_[1]);
+			   $opt_append_to_version = 1;
+		       },
+		       "binNMU-changelog=s" => sub {
+			   if ($opt_make_binnmu) {
+			       die "--binNMU-changelog cannot be used together with --make-binNMU";
+			   }
+			   if ($opt_binnmu) {
+			       die "--binNMU-changelog cannot be used together with --binNMU";
+			   }
+			   if ($opt_binnmu_timestamp) {
+			       die "--binNMU-changelog cannot be used together with --binNMU-timestamp";
+			   }
+			   if ($opt_append_to_version) {
+			       die "--binNMU-changelog cannot be used together with --append-to-version";
+			   }
+			   $self->set_conf('BIN_NMU_CHANGELOG', $_[1]);
+			   $opt_binnmu_changelog = 1;
 		       },
 		       "c|chroot=s" => sub {
 			   $self->set_conf('CHROOT', $_[1]);
