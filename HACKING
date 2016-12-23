@@ -56,6 +56,8 @@ New upstream releases:
 
 • Adjust the VERSION file with the new sbuild version and the release date.
 
+• git commit -m "Bump version to XXX" ChangeLog.in VERSION
+
 • Run scripts/git-tag-release which will tag the git repository and
   prompt for a GPG passphrase to sign the tag with your GPG public
   key.
