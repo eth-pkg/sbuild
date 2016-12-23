@@ -7,6 +7,38 @@ Full installation instructions are provided in the INSTALL file.  The
 README file also contains more specific notes regarding building and
 configuration.
 
+ * Major changes in 0.73.0:
+
+   1) starting-build-command and finished-build-commands are now run as root.
+
+   2) Output .buildinfo in buildlog.
+
+   3) The autopkgtest-virt backends are no longer supplied with the chroot
+      name.
+
+   4) Add SBUILD_BUILD_ARCH percent escape.
+
+   5) Use Dpkg::Build::Info::get_build_env_whitelist() to generate the default
+      of ENVIRONMENT_FILTER.
+
+   6) For binNMUs, instead of copying the timestamp of the last changelog
+      entry, generate a new one.
+
+   7) Add the --binNMU-timestamp command line option to allow one to pass a
+      custom timestamp for the new binNMU changelog entry.
+
+   8) Add option --binNMU-changelog which allows one to pass a complete
+      debian/changelog entry for binary-only builds.
+
+   9) Extra packages can now be used to upgrade already installed packages.
+
+  10) The autopkgtest backend now runs into its own process group.
+
+  11) Extra repositories are now unconditionally updated.
+
+  12) Allow passing a directory to --extra-package which will add all .deb
+      inside.
+
  * Major changes in 0.72.0:
 
    1) Add option --purge-extra-packages which makes sure to remove all
