@@ -368,14 +368,6 @@ sub setup ($) {
 	    HELP => 'Additional command-line options for dpkg-source',
 	    CLI_OPTIONS => ['--dpkg-source-opt', '--dpkg-source-opts']
 	},
-	'DCMD'					=> {
-	    TYPE => 'STRING',
-	    VARNAME => 'dcmd',
-	    GROUP => 'Programs',
-	    CHECK => $validate_program,
-	    DEFAULT => 'dcmd',
-	    HELP => 'Path to dcmd binary'
-	},
 	'MD5SUM'				=> {
 	    TYPE => 'STRING',
 	    VARNAME => 'md5sum',
