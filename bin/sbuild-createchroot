@@ -364,9 +364,9 @@ EOF
 } else {
     # Determine whether system has overlayfs capability
     my $uniontype = "none";
-    if (lc("$^O") =~ /linux/) {
-	system(qw(/sbin/modprobe overlay));
-	if (open(FILE, "/proc/filesystems")) {
+    if (lc("$^O") =~ /linux/ && -e '/sbin/modprobe') {
+	my $ret = system(qw(/sbin/modprobe overlay));
+	if ($ret == 0 && open(FILE, "/proc/filesystems")) {
 	    if (grep {/\soverlay$/} <FILE>) {
 		$uniontype = "overlay";
 	    }
