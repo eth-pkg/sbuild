@@ -1657,7 +1657,7 @@ sub run_lintian {
 	push @lintian_command, $dsc;
     }
 
-    $resolver->add_dependencies('LINTIAN', 'lintian', "", "", "", "", "");
+    $resolver->add_dependencies('LINTIAN', 'lintian:native', "", "", "", "", "");
     return 1 unless $resolver->install_core_deps('lintian', 'LINTIAN');
 
     $session->run_command(
@@ -1885,7 +1885,7 @@ sub explain_bd_uninstallable {
 	# restrictions, we don't want to limit ourselves by it. In cases where
 	# apt cannot find a solution, this check is supposed to allow the user
 	# to know that choosing a different resolver might fix the problem.
-	$resolver->add_dependencies('DOSE3', 'dose-distcheck', "", "", "", "", "");
+	$resolver->add_dependencies('DOSE3', 'dose-distcheck:native', "", "", "", "", "");
 	if (!$resolver->install_core_deps('dose3', 'DOSE3')) {
 	    return 0;
 	}
