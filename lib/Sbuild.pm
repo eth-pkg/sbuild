@@ -156,23 +156,26 @@ sub dump_file ($) {
 
 # set and list saved package list (used by sbuild-checkpackages)
 sub check_packages ($$) {
-    my $chroot = shift;
+    my $session = shift;
     my $mode = shift;
 
-    my $package_checklist = $chroot->get_conf('PACKAGE_CHECKLIST');
-    my $chroot_dir = $chroot->get('Location');
+    my $package_checklist = $session->get_conf('PACKAGE_CHECKLIST');
+    my $chroot_dir = $session->get('Location');
 
     my (@status, @ref, @install, @remove);
 
-    if (! open STATUS, "grep-status -F Status -s Package ' installed' '$chroot_dir/var/lib/dpkg/status' | awk '{print \$2}' |" ) {
-	print STDERR "Can't read dpkg status file in chroot: $!\n";
-	return 1;
-    }
-    while (<STATUS>) {
+    my $pipe = $session->pipe_command({
+	    COMMAND => ['dpkg-query', '--show', '--showformat=${Package} ${db:Status-Status}\n']
+	});
+    while (<$pipe>) {
 	chomp;
-	push @status, $_;
+	my @token = split / /, $_;
+	my $pkgname = shift @token;
+	my $state = shift @token;
+	next if $state ne "installed";
+	push @status, $pkgname;
     }
-    if (! close STATUS) {
+    if (! close $pipe) {
 	print STDERR "Error reading dpkg status file in chroot: $!\n";
 	return 1;
     }
