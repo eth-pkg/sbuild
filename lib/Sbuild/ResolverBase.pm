@@ -1596,7 +1596,7 @@ SCRIPTEND
 	{ COMMAND => ['perl', '-e', $packagessourcescmd],
 	    USER => "root", DIR => $dummy_archive_dir});
     if ($? ne 0) {
-	$self->log_error("cannot create dummy archive");
+	$self->log_error("cannot create dummy archive\n");
 	return 0;
     }
 

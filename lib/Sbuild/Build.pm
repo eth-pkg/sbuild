@@ -1191,7 +1191,7 @@ sub fetch_source_files {
     my $pdsc = Dpkg::Control->new(type => CTRL_PKG_SRC);
     $pdsc->set_options(allow_pgp => 1);
     if (!$pdsc->parse($pipe, "$build_dir/$dsc")) {
-	$self->log_error("Error parsing $build_dir/$dsc");
+	$self->log_error("Error parsing $build_dir/$dsc\n");
 	return 0;
     }
 
@@ -2010,7 +2010,7 @@ sub build {
 	      PRIORITY => 0,
 	      DIR => $dscdir});
 	if (!$clog) {
-	    $self->log_error("unable to read from dpkg-parsechangelog");
+	    $self->log_error("unable to read from dpkg-parsechangelog\n");
 	    Sbuild::Exception::Build->throw(error => "unable to read from dpkg-parsechangelog",
 					    failstage => "check-unpacked-version");
 	}
@@ -2026,7 +2026,7 @@ sub build {
     $self->log_subsubsection("Check disk space");
     chomp(my $current_usage = $session->read_command({ COMMAND => ["du", "-k", "-s", "$dscdir"]}));
     if ($?) {
-	$self->log_error("du exited with non-zero exit status $?");
+	$self->log_error("du exited with non-zero exit status $?\n");
 	Sbuild::Exception::Build->throw(error => "du exited with non-zero exit status $?", failstage => "check-space");
     }
     $current_usage =~ /^(\d+)/;
@@ -2039,7 +2039,7 @@ sub build {
 	}
 	close $pipe;
 	if ($?) {
-	    $self->log_error("df exited with non-zero exit status $?");
+	    $self->log_error("df exited with non-zero exit status $?\n");
 	    Sbuild::Exception::Build->throw(error => "df exited with non-zero exit status $?", failstage => "check-space");
 	}
 	if ($free < 2*$current_usage && $self->get_conf('CHECK_SPACE')) {
@@ -2057,14 +2057,14 @@ sub build {
 	  PRIORITY => 0,
 	  DIR => $dscdir });
     if (!$clogpipe) {
-	    $self->log_error("unable to read from dpkg-parsechangelog");
+	    $self->log_error("unable to read from dpkg-parsechangelog\n");
 	    Sbuild::Exception::Build->throw(error => "unable to read from dpkg-parsechangelog",
 					    failstage => "check-unpacked-version");
     }
 
     my $clog = Dpkg::Control->new(type => CTRL_CHANGELOG);
     if (!$clog->parse($clogpipe, "$dscdir/debian/changelog")) {
-	$self->log_error("unable to parse debian/changelog");
+	$self->log_error("unable to parse debian/changelog\n");
 	Sbuild::Exception::Build->throw(error => "unable to parse debian/changelog",
 	    failstage => "check-unpacked-version");
     }
@@ -2291,7 +2291,7 @@ sub build {
 	      DIR => $dscdir
 	    });
 	if (!$envcmd) {
-	    $self->log_error("unable to open pipe");
+	    $self->log_error("unable to open pipe\n");
 	    Sbuild::Exception::Build->throw(error => "unable to open pipe",
 					    failstage => "dump-build-env");
 	}
@@ -2317,7 +2317,7 @@ sub build {
 
     my $pipe = $session->pipe_command($command);
     if (!$pipe) {
-	$self->log_error("unable to open pipe");
+	$self->log_error("unable to open pipe\n");
 	Sbuild::Exception::Build->throw(error => "unable to open pipe",
 	    failstage => "dpkg-buildpackage");
     }

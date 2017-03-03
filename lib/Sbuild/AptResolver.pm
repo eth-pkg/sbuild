@@ -62,12 +62,12 @@ sub install_deps {
     $self->log_subsubsection("Setup apt archive");
 
     if (!$self->setup_apt_archive($dummy_pkg_name, @pkgs)) {
-	$self->log_error("Setting up apt archive failed");
+	$self->log_error("Setting up apt archive failed\n");
 	return 0;
     }
 
     if (!$self->update_archive()) {
-	$self->log_error("Updating apt archive failed");
+	$self->log_error("Updating apt archive failed\n");
 	return 0;
     }
 
