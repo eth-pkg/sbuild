@@ -1262,9 +1262,10 @@ $autopkgtest_root_args = [\'\', \'whatever\'];
 		"chroot-cleanup-commands" => [],
 		"post-build-commands" => [],
 	    },
-	    HELP => 'External commands to run at various stages of a build. Commands are held in a hash of arrays of arrays data structure.',
+	    HELP => 'External commands to run at various stages of a build. Commands are held in a hash of arrays of arrays data structure. There is no equivalent for the --anything-failed-commands command line option. All percent escapes mentioned in the sbuild man page can be used.',
 	    EXAMPLE =>
-'$external_commands = {
+'# general format
+$external_commands = {
     "pre-build-commands" => [
         [\'foo\', \'arg1\', \'arg2\'],
         [\'bar\', \'arg1\', \'arg2\', \'arg3\'],
@@ -1301,6 +1302,13 @@ $autopkgtest_root_args = [\'\', \'whatever\'];
         [\'foo\', \'arg1\', \'arg2\'],
         [\'bar\', \'arg1\', \'arg2\', \'arg3\'],
     ],
+};
+# the equivalent of specifying --anything-failed-commands=%SBUILD_SHELL on the
+# command line
+$external_commands = {
+    "chroot-update-failed-commands" => [ [ \'%SBUILD_SHELL\' ] ],
+    "build-deps-failed-commands" => [ [ \'%SBUILD_SHELL\' ] ],
+    "build-failed-commands" => [ [ \'%SBUILD_SHELL\' ] ],
 };',
 	    CLI_OPTIONS => ['--setup-hook', '--pre-build-commands', '--chroot-setup-commands', '--chroot-update-failed-commands', '--build-deps-failed-commands', '--build-failed-commands', '--anything-failed-commands', '--starting-build-commands', '--finished-build-commands', '--chroot-cleanup-commands', '--post-build-commands']
 	},
