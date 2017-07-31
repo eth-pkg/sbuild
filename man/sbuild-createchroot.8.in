@@ -37,6 +37,7 @@ sbuild\-createchroot \- create sbuild chroot
 .RB [ "\-\-no\-deb\-src" ]
 .RB [ "\-\-alias=\fIalias\fP" ]
 .RB [ \-\-extra\-repository=\fIspec\fP ]
+.RB [ "\-\-command\-prefix=\fIprefix\fP" ]
 .B SUITE TARGET-DIRECTORY DEBIAN-MIRROR-URI
 .RB [ SCRIPT ]
 .PP
@@ -206,6 +207,13 @@ to allow packages in the experimental distribution to fulfill
 build-dependencies. Note that the build chroot must already trust the key of
 this repository. See the EXAMPLES section for how to combine this option with
 --chroot-prefix and --alias.
+.TP
+.BR \-\-command\-prefix=\fIprefix\fP
+Set the chroot \fIcommand-prefix\fP option as specified. A common use-case is
+to specify eatmydata, thereby preventing all commands executed in the chroot
+from syncing data to disk. See
+.BR schroot.conf (5)
+for more details.
 .SH TARBALL FILE
 When creating an sbuild tarball \fIfile\fP, the compression format used to
 generate the tarball depends on the entension used in \fIfile\fP. Here is a

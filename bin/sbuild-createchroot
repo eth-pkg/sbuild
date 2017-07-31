@@ -84,6 +84,9 @@ sub setup {
 	'EXTRA_REPOSITORIES'			=> {
 	    DEFAULT => []
 	},
+	'COMMAND_PREFIX'			=> {
+	    DEFAULT => ''
+	},
     );
 
     $conf->set_allowed_keys(\%createchroot_keys);
@@ -160,6 +163,9 @@ sub set_options {
 	},
 	"extra-repository=s" => sub {
 	    push @{$self->get_conf('EXTRA_REPOSITORIES')}, $_[1];
+	},
+        "command-prefix=s" => sub {
+	    $self->set_conf('COMMAND_PREFIX', $_[1]);
 	});
 }
 
@@ -384,6 +390,10 @@ EOF
 if (scalar @{$conf->get('ALIASES')} > 0) {
     my $aliases = join ',', @{$conf->get('ALIASES')};
     $config_entry .= "aliases=$aliases\n";
+}
+
+if ($conf->get('COMMAND_PREFIX') ne '') {
+    $config_entry .= "command-prefix=" . $conf->get('COMMAND_PREFIX') . "\n";
 }
 
 if (-d "/etc/schroot/chroot.d") {
