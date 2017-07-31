@@ -1077,7 +1077,7 @@ $crossbuild_core_depends = {
 		my $conf = shift;
 		$conf->check('LINTIAN');
 	    },
-	    DEFAULT => 0,
+	    DEFAULT => 1,
 	    HELP => 'Run lintian?',
 	    CLI_OPTIONS => ['--run-lintian', '--no-run-lintian']
 	},
