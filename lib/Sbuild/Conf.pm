@@ -138,7 +138,7 @@ sub setup ($) {
 	    TYPE => 'BOOL',
 	    VARNAME => 'build_arch_all',
 	    GROUP => 'Build options',
-	    DEFAULT => 0,
+	    DEFAULT => 1,
 	    HELP => 'Build architecture: all packages by default.',
 	    CLI_OPTIONS => ['--arch-all', '--no-arch-all']
 	},

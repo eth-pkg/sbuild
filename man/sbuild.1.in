@@ -1175,9 +1175,8 @@ configuration variables \fBBUILD_ARCH_ANY\fR, \fBBUILD_ARCH_ALL\fR and
 .BR sbuild.conf (5)
 for a detailed explanation of these configuration variables.
 .PP
-By default, only \fBBUILD_ARCH_ANY\fR is set to true while \fBBUILD_ARCH_ALL\fR
-and \fBBUILD_SOURCE\fR are set to false. So by default only architecture
-specific binary packages will be built. This behaviour can be changed either by
+By default, \fBBUILD_ARCH_ANY\fR and \fBBUILD_ARCH_ALL\fR are set to true while
+\fBBUILD_SOURCE\fR is set to false. This behaviour can be changed either by
 using command line options or by modifying the configuration variables in your
 \fI~/.sbuildrc\fP. The relevant command line options to change the values of
 \fBBUILD_ARCH_ANY\fR, \fBBUILD_ARCH_ALL\fR and \fBBUILD_SOURCE\fR are
