@@ -35,6 +35,7 @@ man_MANS =				\
 	sbuild-apt.1			\
 	sbuild-checkpackages.1		\
 	sbuild-createchroot.8		\
+	sbuild-debian-developer-setup.1 \
 	sbuild-destroychroot.8		\
 	sbuild-hold.1			\
 	sbuild-setup.7			\

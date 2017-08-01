@@ -28,6 +28,7 @@ bin_SCRIPTS = 				\
 	sbuild-abort			\
 	sbuild-apt			\
 	sbuild-checkpackages		\
+	sbuild-debian-developer-setup   \
 	sbuild-update			\
 	sbuild-upgrade			\
 	sbuild-distupgrade		\
