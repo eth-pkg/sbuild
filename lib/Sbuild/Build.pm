@@ -940,11 +940,12 @@ sub run_fetch_install_packages {
 		    failstage => "run-build-failed-commands");
 	    }
 	} elsif($self->get('Pkg Fail Stage') eq 'install-deps' ) {
+            my $could_not_explain = undef;
+
 	    if (defined $self->get_conf('BD_UNINSTALLABLE_EXPLAINER')
 		&& $self->get_conf('BD_UNINSTALLABLE_EXPLAINER') ne '') {
 		if (!$self->explain_bd_uninstallable()) {
-		    Sbuild::Exception::Build->throw(error => "Failed to explain bd-uninstallable",
-			failstage => "explain-bd-uninstallable");
+                    $could_not_explain = 1;
 		}
 	    }
 
@@ -952,6 +953,11 @@ sub run_fetch_install_packages {
 		Sbuild::Exception::Build->throw(error => "Failed to execute build-deps-failed-commands",
 		    failstage => "run-build-deps-failed-commands");
 	    }
+
+            if( $could_not_explain ) {
+                Sbuild::Exception::Build->throw(error => "Failed to explain bd-uninstallable",
+                                                failstage => "explain-bd-uninstallable");
+            }
 	}
     }
 
