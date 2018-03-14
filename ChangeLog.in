@@ -7,6 +7,32 @@ Full installation instructions are provided in the INSTALL file.  The
 README file also contains more specific notes regarding building and
 configuration.
 
+ * Major changes in 0.74.0:
+
+   1) Install dose-distcheck and lintian for the native architecture
+
+   2) remove DCMD config value which is not used and just uselessly making
+      libsbuild-perl depend on devscripts
+
+   3) use dpkg-query instead of grep-status so that dependency on grep-dctrl is
+      not needed anymore
+
+   4) suppress schroot writing to stderr in sbuild-createchroot
+
+   5) check for modprobe in sbuild-createchroot
+
+   6) Add missing newline character to a bunch of error messages
+
+   7) dose3 failures no longer mask the --build-deps-failed-commands
+
+   8) Build arch: all packages by default.
+
+   9) Run lintian by default.
+
+   10) sbuild-createchroot: add --command-prefix
+
+   11) add sbuild-debian-developer-setup package
+
  * Major changes in 0.73.0:
 
    1) starting-build-command and finished-build-commands are now run as root.
