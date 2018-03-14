@@ -22,7 +22,6 @@
 
 use strict;
 use warnings;
-use autodie qw(:all);
 use v5.10;
 use Getopt::Long;
 use Sbuild qw(help_text version_text usage_error check_group_membership);
@@ -41,12 +40,12 @@ if (!defined($ENV{SUDO_USER})) {
     die "Please run sudo $0";
 }
 
-system("adduser", "--", $ENV{SUDO_USER}, "sbuild");
+system("adduser", "--", $ENV{SUDO_USER}, "sbuild") == 0
+    or die "adduser failed: $?";
 
 chomp(my $arch = `dpkg --print-architecture`);
 
 sub chroot_exists {
-    no autodie qw(system);
     system("schroot -i -c chroot:$suite-$arch-sbuild >/dev/null 2>&1") == 0
 }
 
@@ -58,7 +57,8 @@ if (!chroot_exists()) {
 	   "--alias=sid",
 	   "$suite",
 	   "/srv/chroot/$suite-$arch-sbuild",
-	   "http://localhost:3142/deb.debian.org/debian");
+	   "http://localhost:3142/deb.debian.org/debian") == 0
+	       or die "sbuild-createchroot failed: $!";
 } else {
     say "chroot $suite-$arch-sbuild already exists";
 }
