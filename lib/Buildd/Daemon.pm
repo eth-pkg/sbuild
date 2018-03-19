@@ -512,6 +512,7 @@ sub do_build {
 			'--apt-update',
 			'--no-apt-upgrade',
 			'--no-apt-distupgrade',
+			'--no-run-lintian',
 			'--batch',
 			"--stats-dir=" . $self->get_conf('HOME') . "/stats",
 			"--dist=" . $dist_config->get('DIST_NAME');
