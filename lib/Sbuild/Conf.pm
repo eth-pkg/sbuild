@@ -1056,16 +1056,6 @@ $crossbuild_core_depends = {
 	    TYPE => 'STRING',
 	    VARNAME => 'lintian',
 	    GROUP => 'Build validation',
-	    CHECK => sub {
-		my $conf = shift;
-		my $entry = shift;
-		my $key = $entry->{'NAME'};
-
-		# Only validate if needed.
-		if ($conf->get('RUN_LINTIAN')) {
-		    $validate_program->($conf, $entry);
-		}
-	    },
 	    DEFAULT => 'lintian',
 	    HELP => 'Path to lintian binary'
 	},
