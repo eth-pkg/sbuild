@@ -7,6 +7,10 @@ Full installation instructions are provided in the INSTALL file.  The
 README file also contains more specific notes regarding building and
 configuration.
 
+ * Major changes in 0.76.0:
+
+   1) sbuild-update-all: exit 0 when no chroots are set up.
+
  * Major changes in 0.75.0:
 
    1) buildd: only build arch:any packages
