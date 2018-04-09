@@ -76,7 +76,7 @@ exec 1>&8
 if ! ls /etc/schroot/chroot.d/$PATTERN >/dev/null 2>&1
 then
 	echo "No chroots defined"
-	break
+	exit 0
 fi
 
 for fullname in /etc/schroot/chroot.d/$PATTERN

@@ -63,9 +63,4 @@ if (!chroot_exists()) {
     say "chroot $suite-$arch-sbuild already exists";
 }
 
-if (! -e "/etc/cron.daily/sbuild-debian-developer-setup-update-all") {
-    symlink("/usr/share/doc/sbuild/examples/sbuild-update-all", "/etc/cron.daily/sbuild-debian-developer-setup-update-all");
-    say "ln -s /usr/share/doc/sbuild/examples/sbuild-update-all /etc/cron.daily/sbuild-debian-developer-setup-update-all";
-}
-
 say "Now run `newgrp sbuild', or log out and log in again.";
