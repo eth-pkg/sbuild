@@ -226,6 +226,51 @@ sub setup ($) {
 	    DEFAULT => ['-q'],
 	    HELP => 'Additional command-line options for schroot'
 	},
+	'UNSHARE_TMPDIR_TEMPLATE'			=> {
+	    TYPE => 'STRING',
+	    VARNAME => 'unshare_tmpdir_template',
+	    GROUP => 'Programs',
+	    DEFAULT => '/tmp/tmp.sbuild.XXXXXXXXXX',
+	    HELP => 'Template used to create the temporary unpack directory for the unshare chroot mode.'
+	    # CLI_OPTIONS => ['--unshare-tmpdir-template']
+	},
+	'UNSHARE_TARBALL'			=> {
+	    TYPE => 'STRING',
+	    VARNAME => 'unshare_tarball',
+	    GROUP => 'Programs',
+	    DEFAULT => '~/.local/share/sbuild/%r-%a.tar.gz',
+	    GET => sub {
+		my $conf = shift;
+		my $entry = shift;
+
+		my $retval = $conf->_get($entry->{'NAME'});
+
+		my $dist = $conf->get('DISTRIBUTION');
+		my $hostarch = $conf->get('HOST_ARCH');
+		my %percent = (
+		    '%' => '%',
+		    'a' => $hostarch, 'SBUILD_HOST_ARCH' => $hostarch,
+		    'r' => $dist, 'SBUILD_DISTRIBUTION' => $dist,
+		);
+
+		my $keyword_pat = join("|",
+		    sort {length $b <=> length $a || $a cmp $b} keys %percent);
+		$retval =~
+		    s{
+			# Match a percent followed by a valid keyword
+			\%($keyword_pat)
+		    }{
+			# Substitute with the appropriate value only if it's defined
+			$percent{$1} || $&
+		    }msxge;
+		# support for paths that start with a tilda for the user's
+		# home directory
+		$retval =~ s/^~/$conf->get('HOME')/e;
+		return $retval;
+	    },
+	    HELP => 'Tarball to use by the unshare chroot mode.',
+	    # CLI_OPTIONS => ['--unshare-tarball']
+	},
 	'AUTOPKGTEST_VIRT_SERVER'			=> {
 	    TYPE => 'STRING',
 	    VARNAME => 'autopkgtest_virt_server',
@@ -654,10 +699,10 @@ sub setup ($) {
 
 		die "Bad chroot mode \'" . $conf->get('CHROOT_MODE') . "\'"
 		    if !isin($conf->get('CHROOT_MODE'),
-			     qw(schroot sudo autopkgtest));
+			     qw(schroot sudo autopkgtest unshare));
 	    },
 	    DEFAULT => 'schroot',
-	    HELP => 'Mechanism to use for chroot virtualisation.  Possible value are "schroot" (default), "sudo" and "autopkgtest".',
+	    HELP => 'Mechanism to use for chroot virtualisation.  Possible value are "schroot" (default), "sudo", "autopkgtest" and "unshare".',
 	    CLI_OPTIONS => ['--chroot-mode']
 	},
 	'CHROOT_SPLIT'				=> {

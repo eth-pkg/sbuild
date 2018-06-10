@@ -28,7 +28,7 @@ sbuild \- build debian packages from source
 .RB [ \-\-archive=\fIarchive\fP ]
 .RB [ \-d \[or] \-\-dist=\fIdistribution\fP ]
 .RB [ \-c \[or] \-\-chroot=\fIchroot\fP ]
-.RB [ \-\-chroot-mode=\fIschroot|sudo|autopkgtest\fP ]
+.RB [ \-\-chroot-mode=\fIschroot|sudo|autopkgtest|unshare\fP ]
 .RB [ \-\-arch=\fIarchitecture\fP ]
 .RB [ \-\-arch\-any " \[or] " \-\-no\-arch\-any ]
 .RB [ \-\-build=\fIarchitecture\fP ]
@@ -267,11 +267,12 @@ This command line option sets the \fBCHROOT\fP configuration variable. See
 .BR sbuild.conf (5)
 for more information.
 .TP
-.BR "\-\-chroot-mode=\fIschroot|sudo|autopkgtest\fP"
+.BR "\-\-chroot-mode=\fIschroot|sudo|autopkgtest|unshare\fP"
 Select the desired chroot mode. Four values are possible: schroot (the
 default), sudo (which uses sudo to execute chroot in a directory from
-/etc/sbuild/chroot or ./chroot) and autopkgtest which uses the autopkgtest-virt-* binaries
-(selectable via the \-\-autopkgtest-virt-server option).
+/etc/sbuild/chroot or ./chroot), autopkgtest which uses the autopkgtest-virt-* binaries
+(selectable via the \-\-autopkgtest-virt-server option) and unshare (which uses linux
+namespaces for chroot and doesn't require superuser privileges).
 This command line option sets the \fBCHROOT_MODE\fP configuration variable. See
 .BR sbuild.conf (5)
 for more information.

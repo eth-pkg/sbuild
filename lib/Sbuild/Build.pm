@@ -50,6 +50,7 @@ use Sbuild qw($devnull binNMU_version copy isin debug send_mail
               dsc_files dsc_pkgver strftime_c);
 use Sbuild::Base;
 use Sbuild::ChrootInfoSchroot;
+use Sbuild::ChrootInfoUnshare;
 use Sbuild::ChrootInfoSudo;
 use Sbuild::ChrootInfoAutopkgtest;
 use Sbuild::ChrootRoot;
@@ -419,6 +420,8 @@ sub run_chroot_session {
 	    $chroot_info = Sbuild::ChrootInfoSchroot->new($self->get('Config'));
 	} elsif ($self->get_conf('CHROOT_MODE') eq 'autopkgtest') {
 	    $chroot_info = Sbuild::ChrootInfoAutopkgtest->new($self->get('Config'));
+	} elsif ($self->get_conf('CHROOT_MODE') eq 'unshare') {
+	    $chroot_info = Sbuild::ChrootInfoUnshare->new($self->get('Config'));
 	} else {
 	    $chroot_info = Sbuild::ChrootInfoSudo->new($self->get('Config'));
 	}

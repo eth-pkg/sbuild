@@ -90,6 +90,8 @@ sub setup ($$$) {
 	$chroot_info = Sbuild::ChrootInfoSchroot->new($conf);
     } elsif ($conf->get('CHROOT_MODE') eq 'autopkgtest') {
 	$chroot_info = Sbuild::ChrootInfoAutopkgtest->new($conf);
+    } elsif ($conf->get('CHROOT_MODE') eq 'unshare') {
+	$chroot_info = Sbuild::ChrootInfoUnshare->new($conf);
     } else {
 	$chroot_info = Sbuild::ChrootInfoSudo->new($conf);
     }
