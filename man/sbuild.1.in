@@ -108,7 +108,8 @@ sbuild \- build debian packages from source
 .SH DESCRIPTION
 \fBsbuild\fR rebuilds Debian binary packages from the corresponding Debian
 source, installing any missing source dependencies.  The build takes place in a
-dedicated clean build environment (chroot), rather than on the host system.
+dedicated clean build environment, rather than on the host system. For an
+overview of the supported chroot backends see the section \fBCHROOT MODES\fR.
 .PP
 \fBsbuild\fR can fetch the Debian source over a network, or it can use
 locally available sources.
@@ -139,17 +140,6 @@ configuration file.
 .PP
 You can build either using a local package with its .dsc file or a
 remote one by specifying an explicit dpkg version.
-.PP
-Note: When using schroot (recommended), the chroot having the name (or alias)
-of the specified distribution will be used; schroot uses a chroot named
-\fI$distribution\-$arch-sbuild\fP, \fI$distribution\-sbuild\fP,
-\fI$distribution\-$arch\fP or \fI$distribution\fP, in that order of preference.
-The \-c or \-\-chroot option may be used to override the chroot to be
-used. When configured to use sudo (deprecated), sbuild will look for a symlink
-to a chroot with the same name as the distribution specified.  sbuild will use
-a symlink to the chroot located in \fI/etc/sbuild/chroot/$distribution\fP, or
-must be run in a directory containing a \fIchroot\-$distribution\fP symlink to
-the chroot (not recommended, but done for backward compatibility).
 .SH OPTIONS
 Options set on the command line overwrite settings made in the configuration
 file.
@@ -273,6 +263,9 @@ default), sudo (which uses sudo to execute chroot in a directory from
 /etc/sbuild/chroot or ./chroot), autopkgtest which uses the autopkgtest-virt-* binaries
 (selectable via the \-\-autopkgtest-virt-server option) and unshare (which uses linux
 namespaces for chroot and doesn't require superuser privileges).
+See the section
+.BR "CHROOT MODES"
+for more information.
 This command line option sets the \fBCHROOT_MODE\fP configuration variable. See
 .BR sbuild.conf (5)
 for more information.
@@ -1164,6 +1157,69 @@ finds one. This command line option sets the \fBBD_UNINSTALLABLE_EXPLAINER\fP
 configuration variable. See
 .BR sbuild.conf (5)
 for more information.
+.SH CHROOT MODES
+
+The main purpose of sbuild is to build Debian packages in a clean chroot
+environment. Provisioning and managing these chroot environments is not done by
+sbuild itself but by multiple backends. The default backend is schroot which is
+an suid binary that allows regular users to enter a chroot environment. But
+sbuild also allows one to build packages in a qemu virtual machine, lxc, lxd or
+on a remote host reached by ssh using the autopkgtest backend. The backend can
+be chosen using the \f[CB]--chroot-mode\fP command line argument or the
+\fI$chroot_mode\fP configuration parameter.
+.TP
+.BR schroot
+The default and recommended backend. It is also used on Debian buildd machines.
+The easiest way to set up sbuild for use with the schroot backend is by using
+sbuild-createchroot which will also write out the necessary schroot
+configuration files in /etc. To use the chroots, the current user has to be
+added to the sbuild group, for example by running sbuild-adduser.  Updating
+these schroot backends can be done using sbuild-update. See the respective man
+pages for more information about how to use these programs.  Schroot supports
+chroots from directories, tarballs, filesystem images and block devices.
+Schroot provides ephemeral chroots either by unpacking a tarball into a
+temporary directory, by using an overlay filesystem for directory chroots or by
+using btrfs or lvm snapshots. Chroots usable by schroot are configured through
+files in /etc/schroot/chroot.d/. When building for a specific distribution and
+architecture, sbuild will choose the chroot that is named (or has the alias)
+\fI$distribution\-$arch-sbuild\fP, \fI$distribution\-sbuild\fP,
+\fI$distribution\-$arch\fP or \fI$distribution\fP, in that order of preference.
+The used chroot name can be overridden using the \-c or \-\-chroot options.
+.TP
+.BR sudo
+This backend is deprecated and only provided for backwards compatibility and
+testing purposes. It operates by plainly entering the chosen chroot directory
+using "sudo chroot". Thus, this backend also does not provide ephemeral
+chroots. The sudo backend chooses the directory to use by searching for a
+symlink or directory located at \fI/etc/sbuild/chroot/$distribution\fP or in
+the current directory named \fIchroot\-$distribution\fP.
+.TP
+.BR autopkgtest
+This is an experimental backend that allows one to build packages in chroots as
+they are supported by autopkgtest. This allows one to build packages in lxc or
+lxd containers, a qemu virtual machine or on a remote host via ssh. Which
+autopkgtest server to use is determined via the
+\f[CB]--autopkgtest-virt-server\fP option. Since autopkgtest (in contrast to
+schroot) does not maintain a registry of available containers or (virtual)
+machines, it is necessary to manually specify them using the
+\f[CB]--autopkgtest-virt-server-opts=\fP command line argument. To avoid having
+to manually type the right container or machine name every time when sbuild is
+executed, percent escapes are permitted.
+.TP
+.BR unshare
+This is an experimental backend that allows one to build packages inside
+chroots provided by arbitrary tarballs. This allows one to set up an arbitrary
+build environment without having to become root. Building packages with schroot
+also doesn't require sudo (schroot is suid root) but setting up and updating
+chroots requires superuser permissions. The unshare backend only makes use of
+two small suid binaries (newuidmap and newgidmap) and only requires root once
+for enabling unprivileged userns clones (Debian carries a patch against the
+Linux kernel that disables this feature by detault). So after setting
+kernel.unprivileged_userns_clone=1 /etc/sysctl.d/, this backend allows
+arbitrary tarballs containing chroot environments to be used for package
+building. The default tarball location is in ~/.local/share/sbuild/%r-%a.tar.gz
+(sbuild supports percent escapes for the tarball path) and can be changed via
+the unshare_tarball configuration option.
 .SH BUILD ARTIFACTS
 Sbuild is meant to be used to build architecture specific binary packages from
 a given source package. In addition, sbuild is also able to generate
