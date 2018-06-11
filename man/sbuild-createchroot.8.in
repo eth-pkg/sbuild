@@ -240,7 +240,7 @@ If no extension is specified, sbuild\-createchroot will rename \fIfile\fP to
 \fIfile.tar.gz\fP and generate \fIfile.tar.gz\fP as a compressed tarball using gzip.
 .SH EXAMPLES
 To create a bootstrapped file type sid (unstable) chroot ready for use with
-sbuild and saved in \fI/var/cache/sbuild/sbuild.tar.gz\fP using the
+sbuild and saved in \fI/srv/chroot/unstable-amd64.tar.gz\fP using the
 \fIhttpredir.debian.org\fP Debian http mirror redirector service and using a
 temporary directory as the target:
 .PP
