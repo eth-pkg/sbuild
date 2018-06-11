@@ -22,6 +22,7 @@ sbuild\-createchroot \- create sbuild chroot
 .RB [ \-h \[or] \-\-help " \[or] " \-V \[or] \-\-version ]
 .RB [ \-\-verbose ]
 .RB [ \-\-arch=\fIarch\fP ]
+.RB [ \-\-chroot-prefix=\fIprefix\fP ]
 .RB [ \-\-chroot-suffix=\fIsuffix\fP ]
 .RB [ \-\-foreign ]
 .RB [ \-\-resolve-deps " \[or] " \-\-no-resolve-deps ]
