@@ -39,11 +39,11 @@ sbuild\-createchroot \- create sbuild chroot
 .RB [ "\-\-alias=\fIalias\fP" ]
 .RB [ \-\-extra\-repository=\fIspec\fP ]
 .RB [ "\-\-command\-prefix=\fIprefix\fP" ]
-.B SUITE TARGET-DIRECTORY DEBIAN-MIRROR-URI
-.RB [ SCRIPT ]
+.B SUITE TARGET-DIRECTORY [DEBIAN-MIRROR-URI
+.RB [ SCRIPT ]]
 .PP
 .B buildd\-create\-chroot
-.B USER SUITE TARGET-DIRECTORY DEBIAN-MIRROR-URI
+.B USER SUITE TARGET-DIRECTORY [DEBIAN-MIRROR-URI]
 .SH DESCRIPTION
 \fBsbuild\-createchroot\fR runs
 .BR debootstrap (1)
@@ -157,7 +157,7 @@ does not already exist.
 .TP
 .B DEBIAN-MIRROR-URI
 An \f[CR]http://\fP, \f[CR]file:///\fP, or \f[CR]ssh:///\fP URI
-pointing to a suitable archive mirror.
+pointing to a suitable archive mirror. Defaults to http://httpredir.debian.org/debian.
 .TP
 .B SCRIPT
 debootstrap script to run.  Not typically required.

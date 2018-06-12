@@ -203,7 +203,7 @@ exit 1 if !defined($options);
 
 
 usage_error("sbuild-createchroot",
-	    "Incorrect number of options") if (@ARGV <3 || @ARGV >4);
+	    "Incorrect number of options") if (@ARGV <2 || @ARGV >4);
 
 if ($conf->get('CHROOT_MODE') eq 'unshare' and !$conf->get('MAKE_SBUILD_TARBALL')) {
     usage_error("sbuild-createchroot",
@@ -257,10 +257,11 @@ if ($conf->get('CHROOT_MODE') eq 'schroot') {
 # Create the target directory in advance so abs_path (which is buggy)
 # won't fail.  Remove if abs_path is replaced by something better.
 makedir($ARGV[1], 0755);
-my $target = abs_path($ARGV[1]);
-my $mirror = $ARGV[2];
+$target = abs_path($ARGV[1]);
 my $script = undef;
+my $mirror = "http://httpredir.debian.org/debian";
 
+$mirror = $ARGV[2] if $#ARGV >= 2;
 $script = $ARGV[3] if $#ARGV == 3;
 
 if ($conf->get('VERBOSE')) {
