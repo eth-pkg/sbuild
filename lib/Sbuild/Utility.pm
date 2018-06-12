@@ -45,6 +45,7 @@ sub get_dist ($);
 sub setup ($$$);
 sub cleanup ($);
 sub shutdown ($);
+sub get_unshare_cmd($);
 
 my $current_session;
 
@@ -54,7 +55,9 @@ BEGIN {
 
     @ISA = qw(Exporter);
 
-    @EXPORT = qw(setup cleanup shutdown check_url download);
+    @EXPORT = qw(setup cleanup shutdown check_url download get_unshare_cmd
+    read_subuid_subgid CLONE_NEWNS CLONE_NEWUTS CLONE_NEWIPC CLONE_NEWUSER
+    CLONE_NEWPID CLONE_NEWNET);
 
     $SIG{'INT'} = \&shutdown;
     $SIG{'TERM'} = \&shutdown;
@@ -358,6 +361,214 @@ sub _get_proxy {
 
     # At this point there should be no proxy settings. Return undefined.
     return 0;
+}
+
+# from sched.h
+use constant {
+    CLONE_NEWNS   => 0x20000,
+    CLONE_NEWUTS  => 0x4000000,
+    CLONE_NEWIPC  => 0x8000000,
+    CLONE_NEWUSER => 0x10000000,
+    CLONE_NEWPID  => 0x20000000,
+    CLONE_NEWNET  => 0x40000000,
+};
+
+sub get_unshare_cmd($) {
+    my $options = shift;
+
+    my @idmap = @{$options->{'IDMAP'}};
+
+    my $unshare_flags = CLONE_NEWUSER;
+
+    if (defined($options->{'UNSHARE_FLAGS'})) {
+	$unshare_flags |= $options->{'UNSHARE_FLAGS'};
+    }
+
+    my $uidmapcmd = "";
+    my $gidmapcmd = "";
+    foreach (@idmap) {
+	my ($t, $hostid, $nsid, $range) = @{$_};
+	if ($t ne "u" and $t ne "g" and $t ne "b") {
+	    die "invalid idmap type: $t";
+	}
+	if ($t eq "u" or $t eq "b") {
+	    $uidmapcmd .= " $hostid $nsid $range";
+	}
+	if ($t eq "g" or $t eq "b") {
+	    $gidmapcmd .= " $hostid $nsid $range";
+	}
+    }
+    my $idmapcmd = '';
+    if ($uidmapcmd ne "") {
+	$idmapcmd .= "0 == system \"newuidmap \$ppid $uidmapcmd\" or die \"newuidmap failed: \$!\";";
+    }
+    if ($gidmapcmd ne "") {
+	$idmapcmd .= "0 == system \"newgidmap \$ppid $gidmapcmd\" or die \"newgidmap failed: \$!\";";
+    }
+
+    my $command = <<"EOF";
+require 'syscall.ph';
+
+# Create a pipe for the parent process to signal the child process that it is
+# done with calling unshare() so that the child can go ahead setting up
+# uid_map and gid_map.
+pipe my \$rfh, my \$wfh;
+
+# We have to do this dance with forking a process and then modifying the
+# parent from the child because:
+#  - new[ug]idmap can only be called on a process id after that process has
+#    unshared the user namespace
+#  - a process looses its capabilities if it performs an execve() with nonzero
+#    user ids see the capabilities(7) man page for details.
+#  - a process that unshared the user namespace by default does not have the
+#    privileges to call new[ug]idmap on itself
+#
+# this also works the other way around (the child setting up a user namespace
+# and being modified from the parent) but that way, the parent would have to
+# stay around until the child exited (so a pid would be wasted). Additionally,
+# that variant would require an additional pipe to let the parent signal the
+# child that it is done with calling new[ug]idmap. The way it is done here,
+# this signaling can instead be done by wait()-ing for the exit of the child.
+my \$ppid = \$\$;
+my \$cpid = fork() // die "fork() failed: \$!";
+if (\$cpid == 0) {
+	# child
+
+	# Close the writing descriptor at our end of the pipe so that we see EOF
+	# when parent closes its descriptor.
+	close \$wfh;
+
+	# Wait for the parent process to finish its unshare() call by waiting for
+	# an EOF.
+	0 == sysread \$rfh, my \$c, 1 or die "read() did not receive EOF";
+
+	# The program's new[ug]idmap have to be used because they are setuid root.
+	# These privileges are needed to map the ids from /etc/sub[ug]id to the
+	# user namespace set up by the parent. Without these privileges, only the
+	# id of the user itself can be mapped into the new namespace.
+	#
+	# Since new[ug]idmap is setuid root we also don't need to write "deny" to
+	# /proc/\$\$/setgroups beforehand (this is otherwise required for
+	# unprivileged processes trying to write to /proc/\$\$/gid_map since kernel
+	# version 3.19 for security reasons) and therefore the parent process
+	# keeps its ability to change its own group here.
+	#
+	# Since /proc/\$ppid/[ug]id_map can only be written to once, respectively,
+	# instead of making multiple calls to new[ug]idmap, we assemble a command
+	# line that makes one call each.
+	$idmapcmd
+	exit 0;
+}
+
+# parent
+
+# After fork()-ing, the parent immediately calls unshare...
+0 == syscall &SYS_unshare, $unshare_flags or die "unshare() failed: \$!";
+
+# .. and then signals the child process that we are done with the unshare()
+# call by sending an EOF.
+close \$wfh;
+
+# Wait for the child process to finish its setup by waiting for its exit.
+\$cpid == waitpid \$cpid, 0 or die "waitpid() failed: \$!";
+if (\$? != 0) {
+	die "child had a non-zero exit status: \$?";
+}
+
+# Currently we are nobody (uid and gid are 65534). So we become root user and
+# group instead.
+#
+# We are using direct syscalls instead of setting \$(, \$), \$< and \$> because
+# then perl would do additional stuff which we don't need or want here, like
+# checking /proc/sys/kernel/ngroups_max (which might not exist). It would also
+# also call setgroups() in a way that makes the root user be part of the
+# group unknown.
+0 == syscall &SYS_setgid, 0 or die "setgid failed: \$!";
+0 == syscall &SYS_setuid, 0 or die "setuid failed: \$!";
+0 == syscall &SYS_setgroups, 0, 0 or die "setgroups failed: \$!";
+EOF
+
+    if ($options->{'FORK'}) {
+	$command .= <<"EOF";
+# When the pid namespace is also unshared, then processes expect a master pid
+# to always be alive within the namespace. To achieve this, we fork() here
+# instead of exec() to always have one dummy process running as pid 1 inside
+# the namespace. This is also what the unshare tool does when used with the
+# --fork option.
+#
+# Otherwise, without a pid 1, new processes cannot be forked anymore after pid
+# 1 finished.
+my \$cpid = fork() // die "fork() failed: \$!";
+if (\$cpid != 0) {
+    # The parent process will stay alive as pid 1 in this namespace until
+    # the child finishes executing. This is important because pid 1 must
+    # never die or otherwise nothing new can be forked.
+    \$cpid == waitpid \$cpid, 0 or die "waitpid() failed: \$!";
+    exit (\$? >> 8);
+}
+EOF
+    }
+
+    $command .= 'exec { $ARGV[0] } @ARGV or die "exec() failed: $!";';
+    # remove code comments
+    $command =~ s/^\s*#.*$//gm;
+    # remove whitespace at beginning and end
+    $command =~ s/^\s+//gm;
+    $command =~ s/\s+$//gm;
+    # remove linebreaks
+    $command =~ s/\n//gm;
+    return ('perl', '-e', $command);
+}
+
+sub read_subuid_subgid() {
+    my $username = getpwuid $<;
+    my ($subid, $num_subid, $fh, $n);
+    my @result = ();
+
+    if (! -e "/etc/subuid") {
+	printf STDERR "/etc/subuid doesn't exist\n";
+	return;
+    }
+    if (! -r "/etc/subuid") {
+	printf STDERR "/etc/subuid is not readable\n";
+	return;
+    }
+
+    open $fh, "<", "/etc/subuid" or die "cannot open /etc/subuid for reading: $!";
+    while (my $line = <$fh>) {
+	($n, $subid, $num_subid) = split(/:/, $line, 3);
+	last if ($n eq $username);
+    }
+    close $fh;
+    push @result, ["u", 0, $subid, $num_subid];
+
+    if (scalar(@result) < 1) {
+	printf STDERR "/etc/subuid does not contain an entry for $username\n";
+	return;
+    }
+    if (scalar(@result) > 1) {
+	printf STDERR "/etc/subuid contains multiple entries for $username\n";
+	return;
+    }
+
+    open $fh, "<", "/etc/subgid" or die "cannot open /etc/subgid for reading: $!";
+    while (my $line = <$fh>) {
+	($n, $subid, $num_subid) = split(/:/, $line, 3);
+	last if ($n eq $username);
+    }
+    close $fh;
+    push @result, ["g", 0, $subid, $num_subid];
+
+    if (scalar(@result) < 2) {
+	printf STDERR "/etc/subgid does not contain an entry for $username\n";
+	return;
+    }
+    if (scalar(@result) > 2) {
+	printf STDERR "/etc/subgid contains multiple entries for $username\n";
+	return;
+    }
+
+    return @result;
 }
 
 1;
