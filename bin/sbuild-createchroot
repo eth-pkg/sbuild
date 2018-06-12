@@ -24,6 +24,8 @@
 use strict;
 use warnings;
 
+use English;
+
 use Sbuild::AptResolver;
 
 package Conf;
@@ -181,9 +183,11 @@ use POSIX;
 use Getopt::Long qw(:config no_ignore_case auto_abbrev gnu_getopt);
 use Sbuild qw(dump_file help_text version_text usage_error check_packages);
 use Sbuild::ChrootPlain;
+use Sbuild::ChrootUnshare;
 use Sbuild::ChrootRoot;
 use Sbuild::Sysconfig;
 use Sbuild::Conf qw();
+use Sbuild::Utility;
 use File::Basename qw(dirname);
 use File::Path qw(mkpath rmtree);
 use File::Temp qw(tempfile);
@@ -254,6 +258,18 @@ if ($conf->get('CHROOT_MODE') eq 'schroot') {
     waitpid($pid, 0);
 }
 
+my $target = $ARGV[1];
+if (-e $target) {
+    if (!-d $target) {
+	die "$target exists and is not a directory";
+    }
+    # attempt to remove target. If the directory was not empty, then this
+    # operation will fail and we can die. If the directory was empty, then we
+    # will recreate it anyways
+    if (!rmdir($target)) {
+	die "$target is not empty";
+    }
+}
 # Create the target directory in advance so abs_path (which is buggy)
 # won't fail.  Remove if abs_path is replaced by something better.
 makedir($ARGV[1], 0755);
@@ -298,17 +314,86 @@ if ($conf->get('VERBOSE')) {
     print "I: Running $debootstrap_bin " . join(' ',@args) . "\n";
 }
 
+my @idmap;
+if ($conf->get('CHROOT_MODE') eq 'unshare') {
+    @idmap = read_subuid_subgid;
+    # sanity check
+    if (scalar(@idmap) != 2 || $idmap[0][0] ne 'u' || $idmap[1][0] ne 'g') {
+	printf STDERR "invalid idmap\n";
+	return 0;
+    }
+}
+
 # Run debootstrap with specified options.
 if (!$conf->get('SETUP_ONLY')) {
     if ($conf->get('CHROOT_MODE') eq 'unshare') {
-	exit 42;
+	makedir($target, 0755);
+
+	my $outer_gid = $REAL_GROUP_ID+0;
+	system(get_unshare_cmd({
+		    IDMAP => [['u', '0', $REAL_USER_ID, '1'],
+			['g', '0', $outer_gid, '1'],
+			['u', '1', $idmap[0][2], '1'],
+			['g', '1', $idmap[1][2], '1'],
+		    ]
+		}), 'chown', '1:1', $target);
+	my @cmd = ('env', 'PATH=/usr/sbin:/usr/bin:/sbin:/bin',
+	    get_unshare_cmd({UNSHARE_FLAGS => CLONE_NEWNS | CLONE_NEWPID | CLONE_NEWUTS | CLONE_NEWIPC, FORK => 1, IDMAP => \@idmap}), 'sh', '-c', "
+	    rootdir=\"\$1\"; shift;
+	    hostname sbuild;
+	    mkdir -p \"\$rootdir/dev\";
+	    for f in null zero full random urandom tty; do
+		touch \"\$rootdir/dev/\$f\";
+		chmod -rwx \"\$rootdir/dev/\$f\";
+		mount -o bind \"/dev/\$f\" \"\$rootdir/dev/\$f\";
+	    done;
+	    mkdir -p \"\$rootdir/sys\";
+	    mount -o rbind /sys \"\$rootdir/sys\";
+	    mkdir -p \"\$rootdir/proc\";
+	    mount -t proc proc \"\$rootdir/proc\";
+	    mkdir -p \"\$rootdir/fakebin\";
+	    ln -sf /bin/true \"\$rootdir/fakebin/mknod\";
+	    ln -sf /bin/true \"\$rootdir/fakebin/mount\";
+	    export PATH=\"\$rootdir/fakebin:/fakebin:\$PATH\"
+	    \"\$@\";
+	    exit_status=\$?;
+	    rm \"\$rootdir/fakebin/mknod\" \"\$rootdir/fakebin/mount\";
+	    rm -d \"\$rootdir/fakebin\";
+	    exit \$exit_status;
+	    ", '--', $target, $debootstrap, @args
+	);
+	!system(@cmd) or die "E: Error running @cmd";
     } else {
 	!system($debootstrap, @args) or die "E: Error running $debootstrap_bin";
     }
 }
 
 if (!($conf->get('SETUP_ONLY') && $conf->get('MAKE_SBUILD_TARBALL'))) {
+    my $sources_list = "";
+
+    # Add deb-src to /etc/apt/sources.list.
+    if ($conf->get('DEB_SRC')) {
+	my $comps = join(' ',split(/,/,$conf->get('COMPONENTS')));
+	$sources_list .= "deb-src $mirror $suite $comps\n";
+    }
+
+    # Add extra repositories to /etc/apt/sources.list
+    for my $repo (@{$conf->get('EXTRA_REPOSITORIES')}) {
+	$sources_list .= "$repo\n";
+    }
+
+    my $passwd_sbuild = `getent passwd sbuild`;
+    my $group_sbuild = `getent group sbuild`;
+
     my $setup_script = <<"EOF";
+open (my \$passwd_fd, ">>", "\$target/etc/passwd") or die "cannot open /etc/passwd";
+print \$passwd_fd \$passwd_sbuild;
+close(\$passwd_fd);
+open (my \$group_fd, ">>", "\$target/etc/group") or die "cannot open /etc/group";
+print \$group_fd \$group_sbuild;
+close(\$group_fd);
+
+
 # Set up minimal /etc/hosts if it didn't exist yet. Normally, the package
 # netbase would create the file.
 my \$hosts = "\${target}/etc/hosts";
@@ -351,31 +436,47 @@ chmod(0775, \$policy_rc_d) == 1
 # Display /usr/sbin/policy-rc.d.
 print "I: Configured /usr/sbin/policy-rc.d:\n";
 dump_file("\$policy_rc_d");
+EOF
 
-if (\$conf->get('DEB_SRC') || scalar \@{\$conf->get('EXTRA_REPOSITORIES')} > 0) {
-    my \$sources = "\${target}/etc/apt/sources.list";
-    open(SOURCES, ">>\$sources")
-	or die "E: Can't open \$sources for writing";
+    if ($conf->get('DEB_SRC') || scalar @{$conf->get('EXTRA_REPOSITORIES')} > 0) {
+	$setup_script .= <<"EOF";
+my \$sources = "\${target}/etc/apt/sources.list";
+open(SOURCES, ">>\$sources")
+    or die "E: Can't open \$sources for writing";
 
-    # Add deb-src to /etc/apt/sources.list.
-    if (\$conf->get('DEB_SRC')) {
-	my \$comps = join(' ',split(/,/,\$conf->get('COMPONENTS')));
-	print SOURCES "deb-src \$mirror \$suite \$comps\n";
+print SOURCES <<"EOF2";
+$sources_list
+EOF2
+close SOURCES or die "E: Can't close \$sources";
+EOF
     }
 
-    # Add extra repositories to /etc/apt/sources.list
-    for my \$repo (\@{\$conf->get('EXTRA_REPOSITORIES')}) {
-	print SOURCES "\$repo\n";
-    }
-    close SOURCES or die "E: Can't close \$sources";
-}
-
+    $setup_script .= <<"EOF";
 # Display /etc/apt/sources.list.
 print "I: Configured APT /etc/apt/sources.list:\n";
 dump_file("\${target}/etc/apt/sources.list");
 print "I: Please add any additional APT sources to \${target}/etc/apt/sources.list\n";
 EOF
-    eval $setup_script;
+    if ($conf->get('CHROOT_MODE') eq 'unshare') {
+    my $group_sbuild = `getent group sbuild`;
+	$setup_script = <<"EOF";
+use strict;
+use warnings;
+use Sbuild qw(dump_file);
+my \$target = \$ARGV[0];
+my \$passwd_sbuild = \$ARGV[1];
+my \$group_sbuild = \$ARGV[2];
+$setup_script
+EOF
+	!system(get_unshare_cmd(
+		{IDMAP => \@idmap}), 'perl', '-e', $setup_script, $target, $passwd_sbuild, $group_sbuild
+	) or die "E: failed running setup script";
+    } else {
+	eval $setup_script;
+	if ($@) {
+	    die "E: failed running setup script: $@\n";
+	}
+    }
 }
 
 if ($conf->get('CHROOT_MODE') eq 'schroot') {
@@ -502,12 +603,8 @@ if ($conf->get('CHROOT_MODE') eq 'schroot' || $conf->get('CHROOT_MODE') eq 'sudo
 }
 
 if (!$conf->get('SETUP_ONLY') || !$conf->get('MAKE_SBUILD_TARBALL')) {
-    # FIXME: adapt for unshare
-    # Add sbuild user and group to chroot
-    system("getent passwd sbuild >> '$target/etc/passwd'");
-    system("getent group sbuild >> '$target/etc/group'");
-
-    if ($conf->get('ARCH') eq $conf->get('HOST_ARCH')) {
+    # FIXME: also update packages with the unshare backend
+    if ($conf->get('ARCH') eq $conf->get('HOST_ARCH') && $conf->get('CHROOT_MODE') ne 'unshare') {
 	my $session = Sbuild::ChrootPlain->new($conf, $target);
 	my $host = Sbuild::ChrootRoot->new($conf);
 	if (defined($session)) {
@@ -540,7 +637,7 @@ if (!$conf->get('SETUP_ONLY') || !$conf->get('MAKE_SBUILD_TARBALL')) {
 		$session = undef;
 	    }
 	}
-    } else {
+    } elsif ($conf->get('ARCH') ne $conf->get('HOST_ARCH')) {
 	print "W: The selected architecture and the current architecture do not match\n";
 	print "W: (" . $conf->get('BUILD_ARCH') . " versus " . $conf->get('ARCH') . ").\n";
 	print "W: Not automatically updating APT package lists.\n";
@@ -553,25 +650,39 @@ if (!$conf->get('SETUP_ONLY') || !$conf->get('MAKE_SBUILD_TARBALL')) {
 # the sbuild chroot directory created, unless it's been requested to keep the
 # directory.
 if ($conf->get('MAKE_SBUILD_TARBALL') && !$conf->get('SETUP_ONLY')) {
-    # FIXME: adapt for unshare
     my ($tmpfh, $tmpfile) = tempfile("XXXXXX");
     my @program_list;
 
     # Change program arguments accordingly
     if ($conf->get('MAKE_SBUILD_TARBALL') =~ /\.tar$/) {
-        @program_list = ("/bin/tar", "-cf", "$tmpfile", "-C", "$target", "./");
+        @program_list = ("/bin/tar", "-c", "-C", "$target");
     } elsif ($conf->get('MAKE_SBUILD_TARBALL') =~ /(\.tar\.gz|\.tgz)$/) {
-        @program_list = ("/bin/tar", "-czf", "$tmpfile", "-C", "$target", "./");
+        @program_list = ("/bin/tar", "-cz", "-C", "$target");
     } elsif ($conf->get('MAKE_SBUILD_TARBALL') =~ /(\.tar\.bz2|\.tbz)$/) {
-        @program_list = ("/bin/tar", "-cjf", "$tmpfile", "-C", "$target", "./");
+        @program_list = ("/bin/tar", "-cj", "-C", "$target");
     } elsif ($conf->get('MAKE_SBUILD_TARBALL') =~ /(\.tar\.lz|\.tlz)$/) {
-        @program_list = ("/bin/tar", "--lzma", "-cf", "$tmpfile", "-C", "$target", "./");
+        @program_list = ("/bin/tar", "--lzma", "-c", "-C", "$target");
     } elsif ($conf->get('MAKE_SBUILD_TARBALL') =~ /(\.tar\.xz|\.txz)$/) {
-        @program_list = ("/bin/tar", "-cJf", "$tmpfile", "-C", "$target", "./");
+        @program_list = ("/bin/tar", "-cJ", "-C", "$target");
     }
 
+    if ($conf->get('CHROOT_MODE') ne 'unshare') {
+	push @program_list, '-f', $tmpfile;
+    }
+    push @program_list, './';
+
     print "I: Creating tarball...\n";
-    system(@program_list) == 0 or die "Could not create chroot tarball: $?\n";
+    if ($conf->get('CHROOT_MODE') eq 'unshare') {
+	open(my $in, '-|', get_unshare_cmd(
+		{IDMAP => \@idmap}), @program_list
+	) or die "could not exec tar";
+	open(my $out, '>', $tmpfile);
+	copy($in, $out);
+	close($out) or die "Failed to close $tmpfile";
+	close($in) or die "Could not create chroot tarball: $?\n";
+    } else {
+	system(@program_list) == 0 or die "Could not create chroot tarball: $?\n";
+    }
 
     makedir(dirname($conf->get('MAKE_SBUILD_TARBALL')), 0755);
     move("$tmpfile", $conf->get('MAKE_SBUILD_TARBALL'));
@@ -580,7 +691,15 @@ if ($conf->get('MAKE_SBUILD_TARBALL') && !$conf->get('SETUP_ONLY')) {
     print "I: Done creating " . $conf->get('MAKE_SBUILD_TARBALL') . "\n";
 
     if (! $conf->get('KEEP_SBUILD_CHROOT_DIR')) {
-	rmtree("$target");
+	if ($conf->get('CHROOT_MODE') eq 'unshare') {
+	    # this looks like a recipe for disaster, but since we execute "rm -rf" with
+	    # lxc-usernsexec, we only have permission to delete the files that were
+	    # created with the fake root user
+	    system(get_unshare_cmd({IDMAP => \@idmap}), 'rm', '-rf', $target);
+	    rmdir($target) or die "Unable to remove $target";
+	} else {
+	    rmtree("$target");
+	}
 	print "I: chroot $target has been removed.\n";
     } else {
 	print "I: chroot $target has been kept.\n";

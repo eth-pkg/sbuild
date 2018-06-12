@@ -28,6 +28,7 @@ bin_SCRIPTS = 				\
 	sbuild-abort			\
 	sbuild-apt			\
 	sbuild-checkpackages		\
+	sbuild-createchroot		\
 	sbuild-debian-developer-setup   \
 	sbuild-update			\
 	sbuild-upgrade			\
@@ -45,7 +46,6 @@ bin_SCRIPTS = 				\
 
 sbin_SCRIPTS = 			\
 	sbuild-adduser		\
-	sbuild-createchroot	\
 	sbuild-destroychroot
 
 sbuilddata_SCRIPTS =		\

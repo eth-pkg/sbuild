@@ -24,6 +24,7 @@ sbuild\-createchroot \- create sbuild chroot
 .RB [ \-\-arch=\fIarch\fP ]
 .RB [ \-\-chroot-prefix=\fIprefix\fP ]
 .RB [ \-\-chroot-suffix=\fIsuffix\fP ]
+.RB [ \-\-chroot-mode=\fIschroot|sudo|unshare\fP ]
 .RB [ \-\-foreign ]
 .RB [ \-\-resolve-deps " \[or] " \-\-no-resolve-deps ]
 .RB [ \-\-keep-debootstrap-dir ]
@@ -108,6 +109,20 @@ also be used to create chroots with any other type of customization. It is a
 shortcut for creating a base chroot and then having to manually copy it and
 edit the configuration files.
 .TP
+.BR \-\-chroot-mode=\fIschroot|sudo|unshare\fP
+The sbuild chroot backend to generate the chroot for. The autopkgtest backend
+is not supported by this method because of the diversity of container types it
+supports. To generate a chroot for schroot and sudo, sbuild-createchroot must
+be executed with superuser privileges (for example by using sudo). Because of
+backwards compatibility, choosing schroot implies sudo (but not the other way
+round). Choosing unshare requires the \fI\-\-make\-sbuild\-tarball\fP option.
+Creating a chroot for the unshare backend can be done by a normal user (without
+sudo) but it requires Linux user namespaces to be enabled (via "sysctl -w
+kernel.unprivileged_userns_clone=1"). Chroot tarballs created for the unshare
+backend are also compatible with the schroot backend if a respective schroot
+config file is manually created by the user or by running sbuild-createchroot
+with the  \fI--setup-only\fP option. Defaults to 'schroot'.
+.TP
 .BR \-\-foreign
 Only perform the initial unpack phase of bootstrapping.  This is required if
 the target and host architectures do not match.  Note that debootstrap requires
@@ -167,6 +182,8 @@ debootstrap script to run.  Not typically required.
 Don't run debootstrap.  Only perform the setup tasks on an already existing
 chroot.  This is useful for converting an existing chroot for use with sbuild
 which has already been created using a tool such as debootstrap.
+Some configuration steps can only be carried out on a directory chroot and
+thus, this option is not useful with the unshare backend.
 .TP
 .BR \-\-make\-sbuild\-tarball=\fIfile\fP
 Create a bootstrapped file type chroot ready for use with sbuild and save it as
@@ -194,6 +211,9 @@ Debian unstable is also known as sid. Additionally, sbuild chooses the
 distribution by the latest changelog entry which could list \fIUNRELEASED\fP
 for packages that the maintainer is currently working on. For Debian it thus
 makes sense to add \fIUNRELEASED\fP as an alias for a Debian unstable chroot.
+This option is only allowed when choosing \fI--chroot-mode=schroot\fP.
+For similar functionality with \fI--chroot-mode=unshare\fP you can work with
+symlinks.
 See the EXAMPLES section for how to use this option in practice.
 .TP
 .BR \-\-extra\-repository=\fIspec\fP
@@ -212,7 +232,8 @@ this repository. See the EXAMPLES section for how to combine this option with
 .BR \-\-command\-prefix=\fIprefix\fP
 Set the chroot \fIcommand-prefix\fP option as specified. A common use-case is
 to specify eatmydata, thereby preventing all commands executed in the chroot
-from syncing data to disk. See
+from syncing data to disk. This option is only allowed when choosing
+\fI--chroot-mode=schroot\fP. See
 .BR schroot.conf (5)
 for more details.
 .SH TARBALL FILE
@@ -240,7 +261,8 @@ If no extension is specified, sbuild\-createchroot will rename \fIfile\fP to
 \fIfile.tar.gz\fP and generate \fIfile.tar.gz\fP as a compressed tarball using gzip.
 .SH EXAMPLES
 To create a bootstrapped file type sid (unstable) chroot ready for use with
-sbuild and saved in \fI/srv/chroot/unstable-amd64.tar.gz\fP using the
+sbuild and schroot (the default backend), saved in
+\fI/srv/chroot/unstable-amd64.tar.gz\fP using the
 \fIhttpredir.debian.org\fP Debian http mirror redirector service and using a
 temporary directory as the target:
 .PP
@@ -252,9 +274,10 @@ temporary directory as the target:
 .br
 \f[CB]    http://httpredir.debian.org/debian\fP\[CR]
 .PP
-To create a plain type sid (unstable) chroot in \fI/srv/chroot/unstable\fP using
-the \fIhttpredir.debian.org\fP Debian http mirror redirector service and with
-aliases for \fIunstable\fP and \fIUNRELEASED\fP:
+To create a plain type sid (unstable) schroot chroot in
+\fI/srv/chroot/unstable\fP using the \fIhttpredir.debian.org\fP Debian http
+mirror redirector service and with aliases for \fIunstable\fP and
+\fIUNRELEASED\fP:
 .PP
 \f[CR]% \f[CB]sudo sbuild\-createchroot sid /srv/chroot/unstable-amd64 \fP\fP\\
 .br
@@ -262,7 +285,7 @@ aliases for \fIunstable\fP and \fIUNRELEASED\fP:
 .br
 \f[CB]    http://httpredir.debian.org/debian\fP\[CR]
 .PP
-To create a chroot to build for Jessie backports:
+To create a schroot chroot to build for Jessie backports:
 .PP
 \f[CR]% \f[CB]sudo sbuild\-createchroot \fP\fP\\
 .br
@@ -274,7 +297,7 @@ To create a chroot to build for Jessie backports:
 .br
 \f[CB]    http://httpredir.debian.org/debian\fP\[CR]
 .PP
-To create a chroot to build for experimental using a custom chroot prefix:
+To create a schroot chroot to build for experimental using a custom chroot prefix:
 .PP
 \f[CR]% \f[CB]sudo sbuild\-createchroot \fP\fP\\
 .br
@@ -285,6 +308,17 @@ To create a chroot to build for experimental using a custom chroot prefix:
     unstable /srv/chroot/unstable-experimental-amd64 \fP\fP\\
 .br
 \f[CB]    http://httpredir.debian.org/debian\fP\[CR]
+.PP
+Creating a chroot for the unshare backend does not require superuser privileges
+(no sudo). The path for the tarball is the default path expected by sbuild for
+the unshare backend:
+.PP
+\f[CR]% \f[CB]sbuild-createchroot --chroot-mode=unshare \\
+.br
+    --make-sbuild-tarball=~/.local/share/sbuild/unstable-amd64.tar.gz \\
+.br
+    sid `mktemp -d` http://httpredir.debian.org/debian/ \\
+.PP
 .SH HISTORY
 sbuild\-createchroot was previously known as \fBbuildd.chroot\fP.
 buildd.chroot performed exactly the same tasks, but additionally created a
