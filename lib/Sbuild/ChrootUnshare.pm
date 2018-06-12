@@ -398,21 +398,21 @@ sub get_command_internal {
 	$dir = '/';
     }
 
-    my $enablelo = '';
-    my $unshare = $CLONE_NEWNS | $CLONE_NEWPID | $CLONE_NEWUTS | $CLONE_NEWIPC;
+    my $network_setup = 'cat /etc/resolv.conf > "$rootdir/etc/resolv.conf";';
+    my $unshare = CLONE_NEWNS | CLONE_NEWPID | CLONE_NEWUTS | CLONE_NEWIPC;
     if (defined($options->{'DISABLE_NETWORK'}) && $options->{'DISABLE_NETWORK'}) {
-	$unshare |= $CLONE_NEWNET;
-	$enablelo = 'ip link set lo up;';
+	$unshare |= CLONE_NEWNET;
+	$network_setup = 'ip link set lo up;> "$rootdir/etc/resolv.conf";';
     }
 
     @cmdline = (
 	'env', 'PATH=/usr/sbin:/usr/bin:/sbin:/bin',
-	$self->_get_unshare_cmd({UNSHARE_FLAGS => $unshare, FORK => 1}), 'sh', '-c', "
+	get_unshare_cmd({UNSHARE_FLAGS => $unshare, FORK => 1, IDMAP => $self->get('Uid Gid Map')}), 'sh', '-c', "
 	rootdir=\"\$1\"; shift;
 	user=\"\$1\"; shift;
 	dir=\"\$1\"; shift;
 	hostname sbuild;
-	$enablelo
+	$network_setup
 	mkdir -p \"\$rootdir/dev\";
 	for f in null zero full random urandom tty; do
 	    touch \"\$rootdir/dev/\$f\";
