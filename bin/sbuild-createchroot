@@ -274,71 +274,73 @@ if (!$conf->get('SETUP_ONLY')) {
     !system($debootstrap, @args) or die "E: Error running $debootstrap_bin";
 }
 
-# Set up minimal /etc/hosts if it didn't exist yet. Normally, the package
-# netbase would create the file.
-my $hosts = "${target}/etc/hosts";
-if (! -e $hosts) {
-    open(HOSTS, ">$hosts")
-	or die "Can't open $hosts for writing";
-    # write the default content that would be created by the netbase package
-    print HOSTS <<"EOF";
+if (!$conf->get('SETUP_ONLY') || !$conf->get('MAKE_SBUILD_TARBALL')) {
+    # Set up minimal /etc/hosts if it didn't exist yet. Normally, the package
+    # netbase would create the file.
+    my $hosts = "${target}/etc/hosts";
+    if (! -e $hosts) {
+	open(HOSTS, ">$hosts")
+	    or die "Can't open $hosts for writing";
+	# write the default content that would be created by the netbase package
+	print HOSTS <<"EOF";
 127.0.0.1	localhost
 ::1		localhost ip6-localhost ip6-loopback
 ff02::1		ip6-allnodes
 ff02::2		ip6-allrouters
 
 EOF
-    close HOSTS or die "Can't close $hosts";
+	close HOSTS or die "Can't close $hosts";
 
-    # Display /etc/hosts.
-    print "I: Configured /etc/hosts:\n";
-    dump_file("$hosts");
-}
+	# Display /etc/hosts.
+	print "I: Configured /etc/hosts:\n";
+	dump_file("$hosts");
+    }
 
-# Set up minimal /usr/sbin/policy-rc.d.
-my $policy_rc_d = "${target}/usr/sbin/policy-rc.d";
-open(POLICY_RC_D, ">$policy_rc_d")
-    or die "Can't open $policy_rc_d for writing";
-print POLICY_RC_D <<"EOF";
+    # Set up minimal /usr/sbin/policy-rc.d.
+    my $policy_rc_d = "${target}/usr/sbin/policy-rc.d";
+    open(POLICY_RC_D, ">$policy_rc_d")
+	or die "Can't open $policy_rc_d for writing";
+    print POLICY_RC_D <<"EOF";
 #!/bin/sh
 echo "All runlevel operations denied by policy" >&2
 exit 101
 EOF
 
-close POLICY_RC_D or die "Can't close $policy_rc_d";
+    close POLICY_RC_D or die "Can't close $policy_rc_d";
 
-my (undef, undef, $uid, undef) = getpwnam('root');
-chown($uid, -1, $policy_rc_d) == 1
-    or die "E: Failed to set root: ownership on $policy_rc_d";
-chmod(0775, $policy_rc_d) == 1
-    or die "E: Failed to set 0755 permissions on $policy_rc_d";
+    my (undef, undef, $uid, undef) = getpwnam('root');
+    chown($uid, -1, $policy_rc_d) == 1
+	or die "E: Failed to set root: ownership on $policy_rc_d";
+    chmod(0775, $policy_rc_d) == 1
+	or die "E: Failed to set 0755 permissions on $policy_rc_d";
 
-# Display /usr/sbin/policy-rc.d.
-print "I: Configured /usr/sbin/policy-rc.d:\n";
-dump_file("$policy_rc_d");
+    # Display /usr/sbin/policy-rc.d.
+    print "I: Configured /usr/sbin/policy-rc.d:\n";
+    dump_file("$policy_rc_d");
 
-if ($conf->get('DEB_SRC') || scalar @{$conf->get('EXTRA_REPOSITORIES')} > 0) {
-    my $sources = "${target}/etc/apt/sources.list";
-    open(SOURCES, ">>$sources")
-        or die "E: Can't open $sources for writing";
+    if ($conf->get('DEB_SRC') || scalar @{$conf->get('EXTRA_REPOSITORIES')} > 0) {
+	my $sources = "${target}/etc/apt/sources.list";
+	open(SOURCES, ">>$sources")
+	    or die "E: Can't open $sources for writing";
 
-    # Add deb-src to /etc/apt/sources.list.
-    if ($conf->get('DEB_SRC')) {
-	my $comps = join(' ',split(/,/,$conf->get('COMPONENTS')));
-	print SOURCES "deb-src $mirror $suite $comps\n";
+	# Add deb-src to /etc/apt/sources.list.
+	if ($conf->get('DEB_SRC')) {
+	    my $comps = join(' ',split(/,/,$conf->get('COMPONENTS')));
+	    print SOURCES "deb-src $mirror $suite $comps\n";
+	}
+
+	# Add extra repositories to /etc/apt/sources.list
+	for my $repo (@{$conf->get('EXTRA_REPOSITORIES')}) {
+	    print SOURCES "$repo\n";
+	}
+	close SOURCES or die "E: Can't close $sources";
     }
 
-    # Add extra repositories to /etc/apt/sources.list
-    for my $repo (@{$conf->get('EXTRA_REPOSITORIES')}) {
-	print SOURCES "$repo\n";
-    }
-    close SOURCES or die "E: Can't close $sources";
+    # Display /etc/apt/sources.list.
+    print "I: Configured APT /etc/apt/sources.list:\n";
+    dump_file("${target}/etc/apt/sources.list");
+    print "I: Please add any additional APT sources to ${target}/etc/apt/sources.list\n";
 }
-
-# Display /etc/apt/sources.list.
-print "I: Configured APT /etc/apt/sources.list:\n";
-dump_file("${target}/etc/apt/sources.list");
-print "I: Please add any additional APT sources to ${target}/etc/apt/sources.list\n";
 
 # Write out schroot chroot configuration.
 
@@ -459,55 +461,57 @@ if ((defined $chrootlink) && (! $conf->get('MAKE_SBUILD_TARBALL'))) {
     }
 }
 
-# Add sbuild user and group to chroot
-system("getent passwd sbuild >> '$target/etc/passwd'");
-system("getent group sbuild >> '$target/etc/group'");
+if (!$conf->get('SETUP_ONLY') || !$conf->get('MAKE_SBUILD_TARBALL')) {
+    # Add sbuild user and group to chroot
+    system("getent passwd sbuild >> '$target/etc/passwd'");
+    system("getent group sbuild >> '$target/etc/group'");
 
-if ($conf->get('ARCH') eq $conf->get('HOST_ARCH')) {
-    my $session = Sbuild::ChrootPlain->new($conf, $target);
-    my $host = Sbuild::ChrootRoot->new($conf);
-    if (defined($session)) {
-	$session->set('Log Stream', \*STDOUT);
+    if ($conf->get('ARCH') eq $conf->get('HOST_ARCH')) {
+	my $session = Sbuild::ChrootPlain->new($conf, $target);
+	my $host = Sbuild::ChrootRoot->new($conf);
+	if (defined($session)) {
+	    $session->set('Log Stream', \*STDOUT);
 
-	if (!$session->begin_session() || !$host->begin_session()) {
-	    print STDERR "E: Error creating chroot session: skipping apt update\n";
-	} else {
-	    my $resolver = Sbuild::AptResolver->new($conf, $session, $host);
-	    $resolver->setup();
+	    if (!$session->begin_session() || !$host->begin_session()) {
+		print STDERR "E: Error creating chroot session: skipping apt update\n";
+	    } else {
+		my $resolver = Sbuild::AptResolver->new($conf, $session, $host);
+		$resolver->setup();
 
-	    print "I: Setting reference package list.\n";
-	    check_packages($session, "set");
+		print "I: Setting reference package list.\n";
+		check_packages($session, "set");
 
-	    print "I: Updating chroot.\n";
-	    my $status = $resolver->update();
-	    print "W: Failed to update APT package lists\n"
+		print "I: Updating chroot.\n";
+		my $status = $resolver->update();
+		print "W: Failed to update APT package lists\n"
 		if ($status);
 
-	    $status = $resolver->distupgrade();
-	    print "W: Failed to upgrade chroot\n"
+		$status = $resolver->distupgrade();
+		print "W: Failed to upgrade chroot\n"
 		if ($status);
 
-	    $status = $resolver->clean();
-	    print "W: Failed to clean up downloaded packages\n"
+		$status = $resolver->clean();
+		print "W: Failed to clean up downloaded packages\n"
 		if ($status);
 
-	    $resolver->cleanup();
-	    $session->end_session();
-	    $session = undef;
+		$resolver->cleanup();
+		$session->end_session();
+		$session = undef;
+	    }
 	}
+    } else {
+	print "W: The selected architecture and the current architecture do not match\n";
+	print "W: (" . $conf->get('BUILD_ARCH') . " versus " . $conf->get('ARCH') . ").\n";
+	print "W: Not automatically updating APT package lists.\n";
+	print "I: Run \"apt-get update\" and \"apt-get dist-upgrade\" prior to use.\n";
+	print "I: Run \"sbuild-checkpackages --set\" to set reference package list.\n";
     }
-} else {
-    print "W: The selected architecture and the current architecture do not match\n";
-    print "W: (" . $conf->get('BUILD_ARCH') . " versus " . $conf->get('ARCH') . ").\n";
-    print "W: Not automatically updating APT package lists.\n";
-    print "I: Run \"apt-get update\" and \"apt-get dist-upgrade\" prior to use.\n";
-    print "I: Run \"sbuild-checkpackages --set\" to set reference package list.\n";
 }
 
 # This block makes the tarball chroot if one has been requested and delete
 # the sbuild chroot directory created, unless it's been requested to keep the
 # directory.
-if ($conf->get('MAKE_SBUILD_TARBALL')) {
+if ($conf->get('MAKE_SBUILD_TARBALL') && !$conf->get('SETUP_ONLY')) {
     my ($tmpfh, $tmpfile) = tempfile("XXXXXX");
     my @program_list;
 
