@@ -318,6 +318,7 @@ sub begin_session {
 	'--exclude=./dev/null',
 	'--exclude=./dev/zero',
 	'--exclude=./dev/tty',
+	'--exclude=./dev/ptmx',
 	'--directory', $rootdir,
 	'--extract', '--file', $tarball
     );
