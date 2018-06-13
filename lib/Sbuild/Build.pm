@@ -2322,6 +2322,7 @@ sub build {
 	PRIORITY => 0,
 	DIR => $dscdir,
 	STREAMERR => \*STDOUT,
+	DISABLE_NETWORK => 1,
     };
 
     my $pipe = $session->pipe_command($command);
