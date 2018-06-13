@@ -572,10 +572,20 @@ sub read_subuid_subgid() {
 }
 
 sub test_unshare() {
-    require 'syscall.ph';
-
-    my $ret = syscall &SYS_unshare, CLONE_NEWUSER;
-    if ($ret == -1) {
+    # we spawn a new per process because if unshare succeeds, we would
+    # otherwise have unshared the sbuild process itself which we don't want
+    my $pid = fork();
+    if ($pid == 0) {
+	require "syscall.ph";
+	my $ret = syscall &SYS_unshare, CLONE_NEWUSER;
+	if (($ret >> 8) == 0) {
+	    exit 0;
+	} else {
+	    exit 1;
+	}
+    }
+    waitpid($pid, 0);
+    if (($? >> 8) != 0) {
 	printf STDERR "E: unshare failed: $!\n";
 	my $procfile = '/proc/sys/kernel/unprivileged_userns_clone';
 	open(my $fh, '<', $procfile) or die "failed to open $procfile";
