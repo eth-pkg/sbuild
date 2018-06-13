@@ -275,7 +275,7 @@ if (-e $target) {
 makedir($ARGV[1], 0755);
 $target = abs_path($ARGV[1]);
 my $script = undef;
-my $mirror = "http://httpredir.debian.org/debian";
+my $mirror = "http://deb.debian.org/debian";
 
 $mirror = $ARGV[2] if $#ARGV >= 2;
 $script = $ARGV[3] if $#ARGV == 3;

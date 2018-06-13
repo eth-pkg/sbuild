@@ -172,7 +172,7 @@ does not already exist.
 .TP
 .B DEBIAN-MIRROR-URI
 An \f[CR]http://\fP, \f[CR]file:///\fP, or \f[CR]ssh:///\fP URI
-pointing to a suitable archive mirror. Defaults to http://httpredir.debian.org/debian.
+pointing to a suitable archive mirror. Defaults to http://deb.debian.org/debian.
 .TP
 .B SCRIPT
 debootstrap script to run.  Not typically required.
@@ -222,7 +222,7 @@ line suitable for an apt
 .BR sources.list (5)
 file. For instance, you might use
 .nh
-.B \-\-extra\-repository="deb http://httpredir.debian.org/debian experimental main"
+.B \-\-extra\-repository="deb http://deb.debian.org/debian experimental main"
 .hy
 to allow packages in the experimental distribution to fulfill
 build-dependencies. Note that the build chroot must already trust the key of
@@ -263,7 +263,7 @@ If no extension is specified, sbuild\-createchroot will rename \fIfile\fP to
 To create a bootstrapped file type sid (unstable) chroot ready for use with
 sbuild and schroot (the default backend), saved in
 \fI/srv/chroot/unstable-amd64.tar.gz\fP using the
-\fIhttpredir.debian.org\fP Debian http mirror redirector service and using a
+\fIdeb.debian.org\fP Debian http mirror redirector service and using a
 temporary directory as the target:
 .PP
 \f[CR]% \f[CB]sudo sbuild\-createchroot \fP\fP\\
@@ -272,10 +272,10 @@ temporary directory as the target:
 .br
     sid `mktemp \-d` \fP\fP\\
 .br
-\f[CB]    http://httpredir.debian.org/debian\fP\[CR]
+\f[CB]    http://deb.debian.org/debian\fP\[CR]
 .PP
 To create a plain type sid (unstable) schroot chroot in
-\fI/srv/chroot/unstable\fP using the \fIhttpredir.debian.org\fP Debian http
+\fI/srv/chroot/unstable\fP using the \fIdeb.debian.org\fP Debian http
 mirror redirector service and with aliases for \fIunstable\fP and
 \fIUNRELEASED\fP:
 .PP
@@ -283,31 +283,31 @@ mirror redirector service and with aliases for \fIunstable\fP and
 .br
     \-\-alias=unstable \-\-alias=UNRELEASED \fP\fP\\
 .br
-\f[CB]    http://httpredir.debian.org/debian\fP\[CR]
+\f[CB]    http://deb.debian.org/debian\fP\[CR]
 .PP
 To create a schroot chroot to build for Jessie backports:
 .PP
 \f[CR]% \f[CB]sudo sbuild\-createchroot \fP\fP\\
 .br
-    \-\-extra\-repository="deb http://httpredir.debian.org/debian jessie-backports main" \fP\fP\\
+    \-\-extra\-repository="deb http://deb.debian.org/debian jessie-backports main" \fP\fP\\
 .br
     \-\-chroot-prefix=jessie-backports \fP\fP\\
 .br
     jessie /srv/chroot/jessie-backports-amd64 \fP\fP\\
 .br
-\f[CB]    http://httpredir.debian.org/debian\fP\[CR]
+\f[CB]    http://deb.debian.org/debian\fP\[CR]
 .PP
 To create a schroot chroot to build for experimental using a custom chroot prefix:
 .PP
 \f[CR]% \f[CB]sudo sbuild\-createchroot \fP\fP\\
 .br
-    \-\-extra\-repository="deb http://httpredir.debian.org/debian experimental main" \fP\fP\\
+    \-\-extra\-repository="deb http://deb.debian.org/debian experimental main" \fP\fP\\
 .br
     \-\-chroot-prefix=experimental \fP\fP\\
 .br
     unstable /srv/chroot/unstable-experimental-amd64 \fP\fP\\
 .br
-\f[CB]    http://httpredir.debian.org/debian\fP\[CR]
+\f[CB]    http://deb.debian.org/debian\fP\[CR]
 .PP
 Creating a chroot for the unshare backend does not require superuser privileges
 (no sudo). The path for the tarball is the default path expected by sbuild for
@@ -317,7 +317,7 @@ the unshare backend:
 .br
     --make-sbuild-tarball=~/.local/share/sbuild/unstable-amd64.tar.gz \\
 .br
-    sid `mktemp -d` http://httpredir.debian.org/debian/ \\
+    sid `mktemp -d` http://deb.debian.org/debian/ \\
 .PP
 .SH HISTORY
 sbuild\-createchroot was previously known as \fBbuildd.chroot\fP.
