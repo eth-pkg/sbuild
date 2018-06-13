@@ -101,9 +101,9 @@ Add a custom suffix to the chroot name. Defaults to '\-sbuild'.
 .TP
 .BR \-\-chroot\-prefix=\fIprefix\fP
 Add a custom prefix to the chroot name. Defaults to SUITE.  This is useful to
-create variants of a base suite like jessie-backports to which the backports
+create variants of a base suite like stretch-backports to which the backports
 archive can be manually added after the base chroot was created using
-sbuild-shell. This way, a normal jessie chroot and a jessie-backports chroot
+sbuild-shell. This way, a normal stretch chroot and a stretch-backports chroot
 can exist side-by-side.  Besides this common use case, this functionality can
 also be used to create chroots with any other type of customization. It is a
 shortcut for creating a base chroot and then having to manually copy it and
@@ -162,8 +162,8 @@ Download signatures for retrieved \fIRelease\fP files and check them against
 empty string to disable signature checking.
 .TP
 .B SUITE
-The distribution to bootstrap (e.g. \[oq]sarge\[cq], \[oq]etch\[cq],
-\[oq]lenny\[cq], \[oq]sid\[cq]).  A complete list may be found in
+The distribution to bootstrap (e.g. \[oq]stretch[cq], \[oq]buster\[cq],
+\[oq]bullseye\[cq], \[oq]sid\[cq]).  A complete list may be found in
 \fI/usr/share/debootstrap/scripts\fP.
 .TP
 .B TARGET-DIRECTORY
@@ -285,15 +285,15 @@ mirror redirector service and with aliases for \fIunstable\fP and
 .br
 \f[CB]    http://deb.debian.org/debian\fP\[CR]
 .PP
-To create a schroot chroot to build for Jessie backports:
+To create a schroot chroot to build for stretch backports:
 .PP
 \f[CR]% \f[CB]sudo sbuild\-createchroot \fP\fP\\
 .br
-    \-\-extra\-repository="deb http://deb.debian.org/debian jessie-backports main" \fP\fP\\
+    \-\-extra\-repository="deb http://deb.debian.org/debian stretch-backports main" \fP\fP\\
 .br
-    \-\-chroot-prefix=jessie-backports \fP\fP\\
+    \-\-chroot-prefix=stretch-backports \fP\fP\\
 .br
-    jessie /srv/chroot/jessie-backports-amd64 \fP\fP\\
+    stretch /srv/chroot/stretch-backports-amd64 \fP\fP\\
 .br
 \f[CB]    http://deb.debian.org/debian\fP\[CR]
 .PP
