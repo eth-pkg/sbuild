@@ -327,6 +327,11 @@ if ($conf->get('CHROOT_MODE') eq 'unshare') {
 # Run debootstrap with specified options.
 if (!$conf->get('SETUP_ONLY')) {
     if ($conf->get('CHROOT_MODE') eq 'unshare') {
+	if(!test_unshare) {
+	    print STDERR "E: unable to to unshare\n";
+	    exit 1;
+	}
+
 	makedir($target, 0755);
 
 	my $outer_gid = $REAL_GROUP_ID+0;

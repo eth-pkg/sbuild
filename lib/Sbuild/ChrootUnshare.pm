@@ -64,6 +64,11 @@ sub begin_session {
     my @cmd;
     my $exit;
 
+    if(!test_unshare) {
+	print STDERR "E: unable to to unshare\n";
+	return 0;
+    }
+
     my @unshare_cmd = get_unshare_cmd({IDMAP => \@idmap});
 
     my $rootdir = mkdtemp($self->get_conf('UNSHARE_TMPDIR_TEMPLATE'));

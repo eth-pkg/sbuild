@@ -57,7 +57,7 @@ BEGIN {
 
     @EXPORT = qw(setup cleanup shutdown check_url download get_unshare_cmd
     read_subuid_subgid CLONE_NEWNS CLONE_NEWUTS CLONE_NEWIPC CLONE_NEWUSER
-    CLONE_NEWPID CLONE_NEWNET);
+    CLONE_NEWPID CLONE_NEWNET test_unshare);
 
     $SIG{'INT'} = \&shutdown;
     $SIG{'TERM'} = \&shutdown;
@@ -569,6 +569,26 @@ sub read_subuid_subgid() {
     }
 
     return @result;
+}
+
+sub test_unshare() {
+    require 'syscall.ph';
+
+    my $ret = syscall &SYS_unshare, CLONE_NEWUSER;
+    if ($ret == -1) {
+	printf STDERR "E: unshare failed: $!\n";
+	my $procfile = '/proc/sys/kernel/unprivileged_userns_clone';
+	open(my $fh, '<', $procfile) or die "failed to open $procfile";
+	chomp(my $content = do { local $/; <$fh> });
+	close($fh);
+	if ($content ne "1") {
+	    print STDERR "I: /proc/sys/kernel/unprivileged_userns_clone is set to $content\n";
+	    print STDERR "I: try running: sudo sysctl -w kernel.unprivileged_userns_clone=1\n";
+	    print STDERR "I: or permanently enable unprivileged usernamespaces by putting the setting into /etc/sysctl.d/\n";
+	}
+	return 0;
+    }
+    return 1;
 }
 
 1;
