@@ -1532,9 +1532,7 @@ Before you use sbuild for the first time, you have to do some setup depending
 on the chroot backend you are using. The default backend is schroot. To use
 sbuild with the schroot backend, you need to add your user to the sbuild group
 and create a schroot chroot. The latter can be accomplished by using
-sbuild-createchroot(8). If the chroot contains a Debian derivative with apt (<<
-0.8.16~exp3), or a Debian release before Wheezy, then it is also required to
-create gpg key pairs using sbuild-update --keygen. After this one time setup,
+sbuild-createchroot(8). After this one time setup,
 you can now use sbuild to build packages like this:
 .PP
 \f[CR]% \f[CB]sbuild \-d unstable bash\fP\fP

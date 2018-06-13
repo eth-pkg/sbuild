@@ -33,7 +33,7 @@ BEGIN {
     @ISA = qw(Exporter);
 
     @EXPORT = qw(basesetup shell hold_packages unhold_packages
-                 list_packages set_package_status generate_keys);
+                 list_packages set_package_status);
 }
 
 sub basesetup ($$);
@@ -42,7 +42,6 @@ sub hold_packages ($$@);
 sub unhold_packages ($$@);
 sub list_packages ($$@);
 sub set_package_status ($$$@);
-sub generate_keys ($$);
 
 sub basesetup ($$) {
     my $session = shift;
@@ -222,105 +221,6 @@ sub set_package_status ($$$@) {
     if (!close $pipe) {
 	print STDERR "Can't run dpkg --set-selections in chroot\n";
     }
-
-    return $?;
-}
-
-sub generate_keys ($$) {
-    my $host = shift;
-    my $conf = shift;
-
-    my ($tmpfh, $tmpfilename) = tempfile();
-    print $tmpfh <<"EOF";
-Key-Type: RSA
-Key-Length: 1024
-Name-Real: Sbuild Signer
-Name-Comment: Sbuild Build Dependency Archive Key
-Name-Email: buildd-tools-devel\@lists.alioth.debian.org
-Expire-Date: 0
-%commit
-EOF
-    close($tmpfh);
-
-    my $gnupghome = $ENV{'GNUPGHOME'};
-    if (!$gnupghome) {
-	$gnupghome = $ENV{'HOME'};
-	if (!$gnupghome) {
-	    my @pwinfo = getpwuid($<);
-	    die "Can't get passwd entry for uid $<: $!" if (!@pwinfo);
-	    print STDERR "W: HOME not set in environment; falling back to $pwinfo[7]\n";
-	    $gnupghome = $pwinfo[7];
-	}
-	$gnupghome .= '/.gnupg';
-    }
-    if (! -d $gnupghome) {
-	mkdir $gnupghome, 0700 or die "failed to create $gnupghome";
-    }
-
-    $host->run_command(
-	{ COMMAND => ['chown', ':sbuild', $tmpfilename],
-	  USER => $conf->get('USERNAME'),
-	  DIR => '/' });
-    if ($?) {
-	print STDERR "E: Failed to set :sbuild ownership on $tmpfilename\n";
-	return $?
-    }
-    $host->run_command(
-	{ COMMAND => ['chmod', '0660', $tmpfilename],
-	  USER => $conf->get('USERNAME'),
-	  DIR => '/' });
-    if ($?) {
-	print STDERR "E: Failed to set 0660 permissions on $tmpfilename\n";
-	return $?
-    }
-
-    my @command = ('gpg', '--no-options', '--pinentry-mode', 'loopback', '--passphrase-file', '/dev/null', '--no-default-keyring', '--batch', '--gen-key',
-                   $tmpfilename);
-    $host->run_command(
-        { COMMAND => \@command,
-	  USER => $conf->get('BUILD_USER'),
-          PRIORITY => 0,
-          DIR => '/'});
-    if ($?) {
-        return $?;
-    }
-
-    # export keys
-    @command = ('gpg', '--batch', '--yes', '--export-secret-keys',
-	        '--output', $conf->get('SBUILD_BUILD_DEPENDS_SECRET_KEY'),
-	        'buildd-tools-devel@lists.alioth.debian.org');
-    $host->run_command(
-	{ COMMAND => \@command,
-	  USER => $conf->get('BUILD_USER'),
-	  PRIORITY => 0,
-	  DIR => '/'});
-    if ($?) {
-	print STDERR "E: Unable to export secret key.";
-	return $?;
-    }
-
-    @command = ('gpg', '--batch', '--yes', '--export',
-	        '--output', $conf->get('SBUILD_BUILD_DEPENDS_PUBLIC_KEY'),
-	        'buildd-tools-devel@lists.alioth.debian.org');
-    $host->run_command(
-	{ COMMAND => \@command,
-	  USER => $conf->get('BUILD_USER'),
-	  PRIORITY => 0,
-	  DIR => '/'});
-    if ($?) {
-	print STDERR "E: Unable to export public key.";
-	return $?;
-    }
-
-    # Keys needs to be readable by 'sbuild' group.
-    @command = ('chmod', '640',
-                $conf->get('SBUILD_BUILD_DEPENDS_SECRET_KEY'),
-                $conf->get('SBUILD_BUILD_DEPENDS_PUBLIC_KEY'));
-    $host->run_command(
-        { COMMAND => \@command,
-	  USER => $conf->get('BUILD_USER'),
-          PRIORITY => 0,
-          DIR => '/'});
 
     return $?;
 }

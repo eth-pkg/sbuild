@@ -56,5 +56,4 @@ EXTRA_DIST =			\
 	$(exampleconf_DATA)	\
 	$(COMPAT_SETUP)		\
 	$(SETUP)		\
-	apt-keys		\
 	sbuild-debuild.conf

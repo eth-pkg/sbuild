@@ -1396,20 +1396,6 @@ $external_commands = {
 	    HELP => 'Should the dependency resolver use alternatives in Build-Depends, Build-Depends-Arch and Build-Depends-Indep?  By default, using \'apt\' resolver, only the first alternative will be used; all other alternatives will be removed.  When using the \'aptitude\' resolver, it will default to using all alternatives.  Note that this does not include architecture-specific alternatives, which are reduced to the build architecture prior to alternatives removal.  This should be left disabled when building for unstable; it may be useful when building for experimental or backports.  Set to undef to use the default, 1 to enable, or 0 to disable.',
 	    CLI_OPTIONS => ['--resolve-alternatives', '--no-resolve-alternatives']
 	},
-	'SBUILD_BUILD_DEPENDS_SECRET_KEY'		=> {
-	    TYPE => 'STRING',
-	    VARNAME => 'sbuild_build_depends_secret_key',
-	    GROUP => 'Dependency resolution',
-	    DEFAULT => '/var/lib/sbuild/apt-keys/sbuild-key.sec',
-	    HELP => 'GPG secret key for temporary local apt archive.'
-	},
-	'SBUILD_BUILD_DEPENDS_PUBLIC_KEY'		=> {
-	    TYPE => 'STRING',
-	    VARNAME => 'sbuild_build_depends_public_key',
-	    GROUP => 'Dependency resolution',
-	    DEFAULT => '/var/lib/sbuild/apt-keys/sbuild-key.pub',
-	    HELP => 'GPG public key for temporary local apt archive.'
-	},
 	'EXTRA_PACKAGES'				=> {
 	    TYPE => 'ARRAY:STRING',
 	    VARNAME => 'extra_packages',
