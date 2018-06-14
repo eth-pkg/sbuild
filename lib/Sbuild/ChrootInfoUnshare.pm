@@ -23,8 +23,6 @@ package Sbuild::ChrootInfoUnshare;
 use Sbuild::ChrootInfo;
 use Sbuild::ChrootUnshare;
 
-use Dpkg::Index;
-
 use strict;
 use warnings;
 
