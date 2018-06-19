@@ -21,8 +21,6 @@
 # Import default modules into main
 package main;
 use Sbuild qw($devnull);
-use Sbuild::ChrootInfoSchroot;
-use Sbuild::ChrootInfoSudo;
 use Sbuild::Sysconfig;
 
 $ENV{'LC_ALL'} = "POSIX";
@@ -88,14 +86,20 @@ sub setup ($$$) {
     $chroot = get_dist($chroot);
 
     # TODO: Allow user to specify arch.
+    # Use require instead of 'use' to avoid circular dependencies when
+    # ChrootInfo modules happen to make use of this module
     my $chroot_info;
     if ($conf->get('CHROOT_MODE') eq 'schroot') {
+	require Sbuild::ChrootInfoSchroot;
 	$chroot_info = Sbuild::ChrootInfoSchroot->new($conf);
     } elsif ($conf->get('CHROOT_MODE') eq 'autopkgtest') {
+	require Sbuild::ChrootInfoAutopkgtest;
 	$chroot_info = Sbuild::ChrootInfoAutopkgtest->new($conf);
     } elsif ($conf->get('CHROOT_MODE') eq 'unshare') {
+	require Sbuild::ChrootInfoUnshare;
 	$chroot_info = Sbuild::ChrootInfoUnshare->new($conf);
     } else {
+	require Sbuild::ChrootInfoSudo;
 	$chroot_info = Sbuild::ChrootInfoSudo->new($conf);
     }
 
