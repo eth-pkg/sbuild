@@ -53,7 +53,7 @@ my $conf = Sbuild::Conf::new();
 exit 1 if !defined($conf);
 my $options = Sbuild::Options->new($conf, "sbuild", "1");
 exit 1 if !defined($options);
-check_group_membership();
+check_group_membership() if $conf->get('CHROOT_MODE') eq 'schroot';
 
 if (!$conf->get('MAINTAINER_NAME') &&
     ($conf->get('BIN_NMU') || $conf->get('APPEND_TO_VERSION'))) {
