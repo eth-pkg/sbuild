@@ -77,13 +77,13 @@ sub get_dist ($) {
 
 sub setup ($$$) {
     my $namespace = shift;
-    my $chroot = shift;
+    my $distribution = shift;
     my $conf = shift;
 
     $conf->set('VERBOSE', 1);
     $conf->set('NOLOG', 1);
 
-    $chroot = get_dist($chroot);
+    $distribution = get_dist($distribution);
 
     # TODO: Allow user to specify arch.
     # Use require instead of 'use' to avoid circular dependencies when
@@ -106,7 +106,7 @@ sub setup ($$$) {
     my $session;
 
     $session = $chroot_info->create($namespace,
-				    $chroot,
+				    $distribution,
 				    undef, # TODO: Add --chroot option
 				    $conf->get('BUILD_ARCH'));
 
@@ -126,7 +126,7 @@ sub setup ($$$) {
     $Sbuild::Utility::current_session = $session;
 
     if (!$session->begin_session()) {
-	print STDERR "Error setting up $chroot chroot\n";
+	print STDERR "Error setting up $distribution chroot\n";
 	return undef;
     }
 

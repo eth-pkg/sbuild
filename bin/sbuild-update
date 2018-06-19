@@ -134,9 +134,9 @@ my $status = 0;
 my $host = Sbuild::ChrootRoot->new($conf);
 
 foreach (@ARGV) {
-    my $chroot = Sbuild::Utility::get_dist($_);
+    my $distribution = Sbuild::Utility::get_dist($_);
 
-    my $session = setup('source', $chroot, $conf) or die "Chroot setup failed";
+    my $session = setup('source', $distribution, $conf) or die "Chroot setup failed";
     if (!$host->begin_session()) {
 	die "Chroot setup failed";
     }
@@ -149,7 +149,7 @@ foreach (@ARGV) {
     $resolver->setup();
 
     if ($conf->get('UPDATE')) {
-	print "$chroot: Performing update.\n";
+	print "$distribution: Performing update.\n";
 	$status = $resolver->update($session, $conf);
 	$status >>= 8;
 	if ($status) {
@@ -159,7 +159,7 @@ foreach (@ARGV) {
     }
 
     if ($conf->get('UPGRADE')) {
-	print "$chroot: Performing upgrade.\n";
+	print "$distribution: Performing upgrade.\n";
 	my $status = $resolver->upgrade($session, $conf);
 	$status >>= 8;
 	if ($status) {
@@ -169,7 +169,7 @@ foreach (@ARGV) {
     }
 
     if ($conf->get('DISTUPGRADE')) {
-	print "$chroot: Performing dist-upgrade.\n";
+	print "$distribution: Performing dist-upgrade.\n";
 	my $status = $resolver->distupgrade($session, $conf);
 	$status >>= 8;
 	if ($status) {
@@ -179,7 +179,7 @@ foreach (@ARGV) {
     }
 
     if ($conf->get('CLEAN')) {
-	print "$chroot: Performing clean.\n";
+	print "$distribution: Performing clean.\n";
 	my $status = $resolver->clean($session, $conf);
 	$status >>= 8;
 	if ($status) {
@@ -189,7 +189,7 @@ foreach (@ARGV) {
     }
 
     if ($conf->get('AUTOCLEAN')) {
-	print "$chroot: Performing autoclean.\n";
+	print "$distribution: Performing autoclean.\n";
 	my $status = $resolver->autoclean($session, $conf);
 	$status >>= 8;
 	if ($status) {
@@ -199,7 +199,7 @@ foreach (@ARGV) {
     }
 
     if ($conf->get('AUTOREMOVE')) {
-	print "$chroot: Performing autoremove.\n";
+	print "$distribution: Performing autoremove.\n";
 	my $status = $resolver->autoremove($session, $conf);
 	$status >>= 8;
 	if ($status) {
