@@ -229,6 +229,11 @@ if ($conf->get('CHROOT_MODE') ne 'schroot' and $conf->get('COMMAND_PREFIX')) {
 	"--command-prefix requires --chroot-mode=schroot")
 }
 
+if ($conf->get('MAKE_SBUILD_TARBALL') and -e $conf->get('MAKE_SBUILD_TARBALL')) {
+    print STDERR "E: tarball already exists: ". $conf->get('MAKE_SBUILD_TARBALL') . "\n";
+    exit 1;
+}
+
 # Make sure fakeroot and build-essential are installed
 $conf->set('INCLUDE', add_items($conf->get('INCLUDE'),
 				"fakeroot",
