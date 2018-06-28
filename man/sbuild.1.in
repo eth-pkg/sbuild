@@ -1050,17 +1050,17 @@ string. This option allows one to specify a custom path where the package is
 built inside the chroot. The sbuild user in the chroot must have permissions to
 create the path. Common writable locations are subdirectories of /tmp or
 /build. Using /tmp might be dangerous, because (depending on the chroot
-backend) the /tmp inside the chroot might be a world writable location that can
+mode) the /tmp inside the chroot might be a world writable location that can
 be accessed by processes outside the chroot. The directory /build can only be
 accessed by the sbuild user and group and should be a safe location.  The
 buildpath must be an empty directory because the last component of the path
 will be removed after the build is finished.  Notice that depending on the
-chroot backend (see --chroot-mode), some locations inside the chroot might be
+chroot mode (see --chroot-mode), some locations inside the chroot might be
 bind mounts that are shared with other sbuild instances. You must avoid using
 these shared locations as the build path or otherwise concurrent runs of sbuild
-will likely fail. With the default schroot chroot backend, the directory /build
+will likely fail. With the default schroot chroot mode, the directory /build
 is shared between multiple schroot sessions. You can change this behaviour in
-/etc/schroot/sbuild/fstab. The behaviour of other chroot backends will vary.
+/etc/schroot/sbuild/fstab. The behaviour of other chroot modes will vary.
 This command line option sets the \fBBUILD_PATH\fP configuration variable. See
 .BR sbuild.conf (5)
 for more information.
@@ -1068,7 +1068,7 @@ for more information.
 .BR \-\-autopkgtest-virt-server=\fIschroot|lxc|chroot|qemu|ssh\fP
 The autopkgtest virtualization server. Can be specified with or without the autopkgtest-virt-
 prefix.  For instance, the following set of command line options will use the
-autopkgtest-virt-schroot backend for a package build:
+autopkgtest-virt-schroot chroot mode for a package build:
 .nh
 .B \-\-chroot-mode=autopkgtest \-\-autopkgtest\-virt\-server=schroot \-\-chroot unstable-amd64-sbuild
 .hy
@@ -1172,20 +1172,19 @@ configuration variable. See
 .BR sbuild.conf (5)
 for more information.
 .SH CHROOT MODES
-
 The main purpose of sbuild is to build Debian packages in a clean chroot
 environment. Provisioning and managing these chroot environments is not done by
-sbuild itself but by multiple backends. The default backend is schroot which is
-an suid binary that allows regular users to enter a chroot environment. But
-sbuild also allows one to build packages in a qemu virtual machine, lxc, lxd or
-on a remote host reached by ssh using the autopkgtest backend. The backend can
-be chosen using the \f[CB]--chroot-mode\fP command line argument or the
-\fI$chroot_mode\fP configuration parameter.
+sbuild itself but by multiple backends. The default backend (or chroot mode) is
+schroot which is an suid binary that allows regular users to enter a chroot
+environment. But sbuild also allows one to build packages in a qemu virtual
+machine, lxc, lxd or on a remote host reached by ssh using the autopkgtest
+backend. The backend can be chosen using the \f[CB]--chroot-mode\fP command
+line argument or the \fI$chroot_mode\fP configuration parameter.
 .TP
 .BR schroot
-The default and recommended backend. It is also used on Debian buildd machines.
-The easiest way to set up sbuild for use with the schroot backend is by using
-sbuild-createchroot which will also write out the necessary schroot
+The default and recommended chroot mode. It is also used on Debian buildd
+machines.  The easiest way to set up sbuild for use with the schroot backend is
+by using sbuild-createchroot which will also write out the necessary schroot
 configuration files in /etc. To use the chroots, the current user has to be
 added to the sbuild group, for example by running sbuild-adduser.  Updating
 these schroot backends can be done using sbuild-update. See the respective man
@@ -1193,24 +1192,25 @@ pages for more information about how to use these programs.  Schroot supports
 chroots from directories, tarballs, filesystem images and block devices.
 Schroot provides ephemeral chroots either by unpacking a tarball into a
 temporary directory, by using an overlay filesystem for directory chroots or by
-using btrfs or lvm snapshots. Chroots usable by schroot are configured through
-files in /etc/schroot/chroot.d/. When building for a specific distribution and
-architecture, sbuild will choose the chroot that is named (or has the alias)
-\fI$distribution\-$arch-sbuild\fP, \fI$distribution\-sbuild\fP,
+using btrfs or lvm snapshots. Chroots usable by schroot are defined by
+configuration files in /etc/schroot/chroot.d/. When building for a specific
+distribution and architecture, sbuild will choose the chroot that is named (or
+has the alias) \fI$distribution\-$arch-sbuild\fP, \fI$distribution\-sbuild\fP,
 \fI$distribution\-$arch\fP or \fI$distribution\fP, in that order of preference.
 The used chroot name can be overridden using the \-c or \-\-chroot options.
 .TP
 .BR sudo
-This backend is deprecated and only provided for backwards compatibility and
-testing purposes. It operates by plainly entering the chosen chroot directory
-using "sudo chroot". Thus, this backend also does not provide ephemeral
-chroots. The sudo backend chooses the directory to use by searching for a
-symlink or directory located at \fI/etc/sbuild/chroot/$distribution\fP or in
-the current directory named \fIchroot\-$distribution\fP.
+This chroot mode is deprecated and only provided for backwards compatibility
+and testing purposes. It operates by plainly entering the chosen chroot
+directory using "sudo chroot". Thus, this backend also does not provide
+ephemeral chroots. The sudo chroot mode searches for a symlink or directory
+located at \fI/etc/sbuild/chroot/\fP or in the current directory, prefixed with
+\fIchroot\-\fP. The expected names are resolved in the same order as for the
+schroot chroot mode and can be overridden using the \-c or \-\-chroot options.
 .TP
 .BR autopkgtest
-This is an experimental backend that allows one to build packages in chroots as
-they are supported by autopkgtest. This allows one to build packages in lxc or
+This is an experimental chroot mode that allows one to build packages in any
+chroot supported by autopkgtest. This allows one to build packages in lxc or
 lxd containers, a qemu virtual machine or on a remote host via ssh. Which
 autopkgtest server to use is determined via the
 \f[CB]--autopkgtest-virt-server\fP option. Since autopkgtest (in contrast to
@@ -1231,9 +1231,9 @@ for enabling unprivileged userns clones (Debian carries a patch against the
 Linux kernel that disables this feature by detault). So after setting
 kernel.unprivileged_userns_clone=1 /etc/sysctl.d/, this backend allows
 arbitrary tarballs containing chroot environments to be used for package
-building. The default tarball location is in ~/.local/share/sbuild/%r-%a.tar.gz
-(sbuild supports percent escapes for the tarball path) and can be changed via
-the unshare_tarball configuration option.
+building. The default tarball location is in ~/.cache/sbuild/. The expected
+names are resolved in the same order as for the schroot chroot mode and can be
+overridden using the \-c or \-\-chroot options.
 .SH BUILD ARTIFACTS
 Sbuild is meant to be used to build architecture specific binary packages from
 a given source package. In addition, sbuild is also able to generate
@@ -1543,7 +1543,7 @@ At the end of the build, the local archive is removed, along with the rest of
 the build tree.
 .SH EXAMPLES
 Before you use sbuild for the first time, you have to do some setup depending
-on the chroot backend you are using. The default backend is schroot. To use
+on the chroot mode you are using. The default chroot mode is schroot. To use
 sbuild with the schroot backend, you need to add your user to the sbuild group
 and create a schroot chroot. The latter can be accomplished by using
 sbuild-createchroot(8). After this one time setup,
