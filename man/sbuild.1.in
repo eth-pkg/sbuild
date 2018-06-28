@@ -250,9 +250,23 @@ This command line option sets the \fBBATCH_MODE\fP configuration variable. See
 for more information.
 .TP
 .BR \-c ", " "\-\-chroot=\fIchroot\fP"
-Use the specified chroot. If not specified, the default is the first of
-\fI$distribution\-$arch\-sbuild\fP, \fI$distribution\-sbuild\fP,
-\fI$distribution\-$arch\fP or \fI$distribution\fP that exists.
+Specifies the chroot to use. The effect of this option depends on the selected
+chroot mode.  With the \fBschroot\fP chroot mode, this option specifies the
+schroot name or alias to use. If not specified, the default is the first of
+schroot name or alias that matches \fI$distribution\-$arch\-sbuild\fP,
+\fI$distribution\-sbuild\fP, \fI$distribution\-$arch\fP or \fI$distribution\fP
+that exists.  With the \fBsudo\fP chroot mode, this option specifies the chroot
+directory to use.  The directory is either expected in /etc/sbuild/chroot (in
+buildd sbuild mode) or in the current directory, prefixed with "chroot-" (in
+user sbuild mode, the default). If not specified, the default is to search for
+a directory in the respective locations named in the same way as for the
+schroot mode.  With the \fBunshare\fP chroot mode, if this option is a path,
+then it specifies the location of the chroot tarball directly. Otherwise, a
+tarball with equal basename from ~/.cache/sbuild will be used. If not
+specified, the default is to search for a tarball named in the same way as for
+the schroot mode under ~/.cache/sbuild.  With the \fBautopkgtest\fP chroot mode
+this option has no effect.  The --autopkgtest-virt-server-opts are used to pick
+the chroot in autopkgtest chroot mode.
 This command line option sets the \fBCHROOT\fP configuration variable. See
 .BR sbuild.conf (5)
 for more information.
