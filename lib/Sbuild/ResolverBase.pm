@@ -942,23 +942,22 @@ sub get_dpkg_status {
     my $self = shift;
     my @interest = @_;
     my %result;
-    local( *STATUS );
 
     debug("Requesting dpkg status for packages: @interest\n");
-    my $dpkg_status_file = $self->get('Session')->get('Location') . '/var/lib/dpkg/status';
-    if (!open( STATUS, '<', $dpkg_status_file)) {
-	$self->log("Can't open $dpkg_status_file: $!\n");
+    my $STATUS = $self->get('Session')->get_read_file_handle('/var/lib/dpkg/status');
+    if (!$STATUS) {
+	$self->log("Can't open /var/lib/dpkg/status inside chroot: $!\n");
 	return ();
     }
     local( $/ ) = "";
-    while( <STATUS> ) {
+    while( <$STATUS> ) {
 	my( $pkg, $status, $version, $provides );
 	/^Package:\s*(.*)\s*$/mi and $pkg = $1;
 	/^Status:\s*(.*)\s*$/mi and $status = $1;
 	/^Version:\s*(.*)\s*$/mi and $version = $1;
 	/^Provides:\s*(.*)\s*$/mi and $provides = $1;
 	if (!$pkg) {
-	    $self->log_error("parse error in $dpkg_status_file: no Package: field\n");
+	    $self->log_error("parse error in /var/lib/dpkg/status: no Package: field\n");
 	    next;
 	}
 	if (defined($version)) {
@@ -967,7 +966,7 @@ sub get_dpkg_status {
 	    debug("$pkg status: $status\n") if $self->get_conf('DEBUG') >= 2;
 	}
 	if (!$status) {
-	    $self->log_error("parse error in $dpkg_status_file: no Status: field for package $pkg\n");
+	    $self->log_error("parse error in /var/lib/dpkg/status: no Status: field for package $pkg\n");
 	    next;
 	}
 	if ($status !~ /\sinstalled$/) {
@@ -977,7 +976,7 @@ sub get_dpkg_status {
 	    next;
 	}
 	if (!defined $version || $version eq "") {
-	    $self->log_error("parse error in $dpkg_status_file: no Version: field for package $pkg\n");
+	    $self->log_error("parse error in /var/lib/dpkg/status: no Version: field for package $pkg\n");
 	    next;
 	}
 	$result{$pkg} = { Installed => 1, Version => $version }
@@ -990,7 +989,7 @@ sub get_dpkg_status {
 	    }
 	}
     }
-    close( STATUS );
+    close( $STATUS );
     return \%result;
 }
 
