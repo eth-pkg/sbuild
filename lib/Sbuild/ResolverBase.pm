@@ -128,12 +128,12 @@ sub setup {
     }
 
     if (!$session->chown($aptconf, $self->get_conf('BUILD_USER'), 'sbuild')) {
-	$self->log_error("E: Failed to set " . $self->get_conf('BUILD_USER') .
+	$self->log_error("Failed to set " . $self->get_conf('BUILD_USER') .
 			 ":sbuild ownership on apt.conf at $aptconf\n");
 	return 0;
     }
     if (!$session->chmod($aptconf, '0664')) {
-	$self->log_error("E: Failed to set 0664 permissions on apt.conf at $aptconf\n");
+	$self->log_error("Failed to set 0664 permissions on apt.conf at $aptconf\n");
 	return 0;
     }
 
@@ -209,18 +209,18 @@ sub setup {
 	    if (! defined $self->get('Extra packages path')) {
 		my $tmpdir = $session->mktemp({ TEMPLATE => $self->get('Build Dir') . '/resolver-XXXXXX', DIRECTORY => 1});
 		if (!$tmpdir) {
-		    $self->log_error("E: mktemp -d " . $self->get('Build Dir') . '/resolver-XXXXXX failed\n');
+		    $self->log_error("mktemp -d " . $self->get('Build Dir') . '/resolver-XXXXXX failed\n');
 		    return 0;
 		}
 		$self->set('Extra packages path', $tmpdir);
 	    }
 	    if (!$session->chown($self->get('Extra packages path'), $self->get_conf('BUILD_USER'), 'sbuild')) {
-		$self->log_error("E: Failed to set " . $self->get_conf('BUILD_USER') .
+		$self->log_error("Failed to set " . $self->get_conf('BUILD_USER') .
 		    ":sbuild ownership on extra packages dir\n");
 		return 0;
 	    }
 	    if (!$session->chmod($self->get('Extra packages path'), '0770')) {
-		$self->log_error("E: Failed to set 0770 permissions on extra packages dir\n");
+		$self->log_error("Failed to set 0770 permissions on extra packages dir\n");
 		return 0;
 	    }
 	    my $extra_packages_dir = $self->get('Extra packages path');
@@ -1007,18 +1007,18 @@ sub setup_apt_archive {
     if (! defined $self->get('Dummy package path')) {
 	my $tmpdir = $session->mktemp({ TEMPLATE => $self->get('Build Dir') . '/resolver-XXXXXX', DIRECTORY => 1});
 	if (!$tmpdir) {
-	    $self->log_error("E: mktemp -d " . $self->get('Build Dir') . '/resolver-XXXXXX failed\n');
+	    $self->log_error("mktemp -d " . $self->get('Build Dir') . '/resolver-XXXXXX failed\n');
 	    return 0;
 	}
 	$self->set('Dummy package path', $tmpdir);
     }
     if (!$session->chown($self->get('Dummy package path'), $self->get_conf('BUILD_USER'), 'sbuild')) {
-	$self->log_error("E: Failed to set " . $self->get_conf('BUILD_USER') .
+	$self->log_error("Failed to set " . $self->get_conf('BUILD_USER') .
 			 ":sbuild ownership on dummy package dir\n");
 	return 0;
     }
     if (!$session->chmod($self->get('Dummy package path'), '0770')) {
-	$self->log_error("E: Failed to set 0770 permissions on dummy package dir\n");
+	$self->log_error("Failed to set 0770 permissions on dummy package dir\n");
 	return 0;
     }
     my $dummy_dir = $self->get('Dummy package path');
@@ -1041,7 +1041,7 @@ sub setup_apt_archive {
         return 0;
     }
     if (!$session->chown($dummy_gpghome, $self->get_conf('BUILD_USER'), 'sbuild')) {
-	$self->log_error('E: Failed to set ' . $self->get_conf('BUILD_USER') .
+	$self->log_error('Failed to set ' . $self->get_conf('BUILD_USER') .
 			 ':sbuild ownership on $dummy_gpghome\n');
 	return 0;
     }
@@ -1213,7 +1213,7 @@ EOF
 		      $dummy_pkg_dir,
 		      $dummy_archive_dir) {
 	if (!$session->chown($path, $self->get_conf('BUILD_USER'), 'sbuild')) {
-	    $self->log_error("E: Failed to set " . $self->get_conf('BUILD_USER')
+	    $self->log_error("Failed to set " . $self->get_conf('BUILD_USER')
 			   . ":sbuild ownership on $path\n");
 	    return 0;
 	}

@@ -1015,16 +1015,16 @@ sub copy_to_chroot {
 
     $self->check_abort();
     if(!$session->copy_to_chroot($source, $chrootdest)) {
-	$self->log_error("E: Failed to copy $source to $chrootdest\n");
+	$self->log_error("Failed to copy $source to $chrootdest\n");
 	return 0;
     }
 
     if (!$session->chown($chrootdest, $self->get_conf('BUILD_USER'), 'sbuild')) {
-	$self->log_error("E: Failed to set sbuild group ownership on $chrootdest\n");
+	$self->log_error("Failed to set sbuild group ownership on $chrootdest\n");
 	return 0;
     }
     if (!$session->chmod($chrootdest, "ug=rw,o=r,a-s")) {
-	$self->log_error("E: Failed to set 0644 permissions on $chrootdest\n");
+	$self->log_error("Failed to set 0644 permissions on $chrootdest\n");
 	return 0;
     }
 
