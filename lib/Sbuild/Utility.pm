@@ -44,6 +44,7 @@ sub setup ($$$);
 sub cleanup ($);
 sub shutdown ($);
 sub get_unshare_cmd($);
+sub get_tar_compress_option($);
 
 my $current_session;
 
@@ -55,7 +56,7 @@ BEGIN {
 
     @EXPORT = qw(setup cleanup shutdown check_url download get_unshare_cmd
     read_subuid_subgid CLONE_NEWNS CLONE_NEWUTS CLONE_NEWIPC CLONE_NEWUSER
-    CLONE_NEWPID CLONE_NEWNET test_unshare);
+    CLONE_NEWPID CLONE_NEWNET test_unshare get_tar_compress_options);
 
     $SIG{'INT'} = \&shutdown;
     $SIG{'TERM'} = \&shutdown;
@@ -603,6 +604,31 @@ sub test_unshare() {
 	return 0;
     }
     return 1;
+}
+
+# tar cannot figure out the decompression program when receiving data on
+# standard input, thus we do it ourselves. This is copied from tar's
+# src/suffix.c
+sub get_tar_compress_options($) {
+    my $filename = shift;
+    if ($filename =~ /\.(gz|tgz|taz)$/) {
+	return ('--gzip');
+    } elsif ($filename =~ /\.(Z|taZ)$/) {
+	return ('--compress');
+    } elsif ($filename =~ /\.(bz2|tbz|tbz2|tz2)$/) {
+	return ('--bzip2');
+    } elsif ($filename =~ /\.lz$/) {
+	return ('--lzip');
+    } elsif ($filename =~ /\.(lzma|tlz)$/) {
+	return ('--lzma');
+    } elsif ($filename =~ /\.lzo$/) {
+	return ('--lzop');
+    } elsif ($filename =~ /\.lz4$/) {
+	return ('--use-compress-program', 'lz4');
+    } elsif ($filename =~ /\.(xz|txz)$/) {
+	return ('--xz');
+    }
+    return ();
 }
 
 1;

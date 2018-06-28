@@ -661,21 +661,8 @@ if (!$conf->get('SETUP_ONLY') || !$conf->get('MAKE_SBUILD_TARBALL')) {
 # directory.
 if ($conf->get('MAKE_SBUILD_TARBALL') && !$conf->get('SETUP_ONLY')) {
     my ($tmpfh, $tmpfile) = tempfile("XXXXXX");
-    my @program_list;
-
-    # Change program arguments accordingly
-    if ($conf->get('MAKE_SBUILD_TARBALL') =~ /\.tar$/) {
-        @program_list = ("/bin/tar", "-c", "-C", "$target");
-    } elsif ($conf->get('MAKE_SBUILD_TARBALL') =~ /(\.tar\.gz|\.tgz)$/) {
-        @program_list = ("/bin/tar", "-cz", "-C", "$target");
-    } elsif ($conf->get('MAKE_SBUILD_TARBALL') =~ /(\.tar\.bz2|\.tbz)$/) {
-        @program_list = ("/bin/tar", "-cj", "-C", "$target");
-    } elsif ($conf->get('MAKE_SBUILD_TARBALL') =~ /(\.tar\.lz|\.tlz)$/) {
-        @program_list = ("/bin/tar", "--lzma", "-c", "-C", "$target");
-    } elsif ($conf->get('MAKE_SBUILD_TARBALL') =~ /(\.tar\.xz|\.txz)$/) {
-        @program_list = ("/bin/tar", "-cJ", "-C", "$target");
-    }
-
+    my @program_list = ("/bin/tar", "-c", "-C", $target);
+    push @program_list, get_tar_compress_options($conf->get('MAKE_SBUILD_TARBALL'));
     if ($conf->get('CHROOT_MODE') ne 'unshare') {
 	push @program_list, '-f', $tmpfile;
     }
