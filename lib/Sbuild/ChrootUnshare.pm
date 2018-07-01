@@ -142,6 +142,13 @@ sub begin_session {
 	return 0;
     }
 
+    # some initial setup
+    for my $user ($self->get_conf('USERNAME'), $self->get_conf('BUILD_USER')) {
+	system('env', 'PATH=/usr/sbin:/usr/bin:/sbin:/bin', @unshare_cmd,
+	    '/usr/sbin/chroot', $rootdir, 'sh', '-c',
+	    "id -u \"$user\">/dev/null 2>&1 || adduser --system --quiet --ingroup sbuild --no-create-home --home /nonexistent --disabled-login --disabled-password \"$user\"");
+    }
+
     $self->set('Session ID', $rootdir);
 
     $self->set('Location', '/sbuild-unshare-dummy-location');
