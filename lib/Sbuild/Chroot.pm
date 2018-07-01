@@ -79,11 +79,9 @@ sub new {
 sub _setup_options {
     my $self = shift;
 
-    if ($self->get('Location') ne '/') {
-	if (basesetup($self, $self->get('Config'))) {
-	    print STDERR "Failed to set up chroot\n";
-	    return 0;
-	}
+    if (basesetup($self, $self->get('Config'))) {
+	print STDERR "Failed to set up chroot\n";
+	return 0;
     }
 
     return 1;
