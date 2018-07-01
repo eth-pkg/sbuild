@@ -1401,7 +1401,7 @@ sub hash_file($$)
 	return $hash;
 }
 
-system_redir_stdout('Packages', 'dpkg-scanpackages', '.', '/dev/null');
+system_redir_stdout('Packages', 'dpkg-scanpackages', '-m', '.', '/dev/null');
 system_redir_stdout('Sources', 'dpkg-scansources', '.', '/dev/null');
 
 gzip 'Packages' => 'Packages.gz' or die "gzip failed: $GzipError\n";
