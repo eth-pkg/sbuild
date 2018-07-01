@@ -91,6 +91,9 @@ sub set_options {
 			   if ($opt_no_arch_all) {
 			       die "--arch-all cannot be used together with --no-arch-all";
 			   }
+			   if ($opt_make_binnmu) {
+			       die "--arch-all cannot be used together with --make-binNMU";
+			   }
 			   $self->set_conf('BUILD_ARCH_ALL', 1);
 			   $opt_arch_all = 1;
 		       },
@@ -148,6 +151,7 @@ sub set_options {
 			   $self->set_conf('BIN_NMU_VERSION', 1)
 			       if (!defined $self->get_conf('BIN_NMU_VERSION'));
 			   $opt_make_binnmu = 1;
+			   $self->set_conf('BUILD_ARCH_ALL', 0);
 		       },
 		       "binNMU=i" => sub {
 			   if ($opt_binnmu_changelog) {

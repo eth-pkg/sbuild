@@ -553,6 +553,7 @@ specify an arbitrary version suffix instead of a custom changelog entry. To
 have a custom version suffix and a custom changelog entry, use \-\-make\-binNMU
 and \-\-append\-to\-version at the same time with \-\-binNMU=0.
 This option is incompatible with \-\-binNMU\-changelog.
+This option implies --no-arch-all.
 This command line option sets the \fBBIN_NMU\fP configuration variable and sets the \fBBIN_NMU_VERSION\fP configuration variable to 1 if it was not set yet, for example by the --binNMU option. See
 .BR sbuild.conf (5)
 for more information.
