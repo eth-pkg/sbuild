@@ -261,6 +261,9 @@ if ($conf->get('CHROOT_MODE') eq 'schroot') {
 	$line ne "source:$chrootname\n" or die "chroot with name $chrootname already exists";
     }
     waitpid($pid, 0);
+    if (($? >> 8) != 0) {
+	die "schroot exited with non-zero exit status";
+    }
 }
 
 my $target = $ARGV[1];
