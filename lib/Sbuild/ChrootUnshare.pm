@@ -179,8 +179,8 @@ sub end_session {
     # we ignore the exit status, because the command will fail to remove the
     # unpack directory itself because of insufficient permissions
 
-    if(!rmdir($self->get('Session ID'))) {
-	print STDERR "unable to remove " . $self->get('Session ID') . "\n";
+    if(-d $self->get('Session ID') && !rmdir($self->get('Session ID'))) {
+	print STDERR "unable to remove " . $self->get('Session ID') . ": $!\n";
 	$self->set('Session ID', "");
 	return 0;
     }
