@@ -3075,7 +3075,7 @@ sub open_build_log {
 		# Filter out any matching patterns
 		foreach my $pattern (@filter) {
 		    ($text,$replacement) = @{$pattern};
-		    s/$text/$replacement/g;
+		    s/\Q$text\E/$replacement/g;
 		}
 	    }
 	    if (m/Deprecated key/ || m/please update your configuration/) {
