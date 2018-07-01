@@ -67,7 +67,10 @@ sub begin_session {
 
     return 0 if !defined $self->get('Chroot ID');
 
-    return 0 if !$self->_setup_options();
+    # only setup plain chroot if the directory is not the root of the host
+    if ($self->get('Location') ne '/') {
+	return 0 if !$self->_setup_options();
+    }
 
     return 1;
 }
