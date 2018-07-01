@@ -57,8 +57,12 @@ sub basesetup ($$) {
     if ($?) {
 	# This will require root privileges.  However, this should
 	# only get run at initial chroot setup time.
-	my $groupfile = $session->get('Location') . "/etc/group";
-	system("getent group sbuild >> $groupfile");
+	$session->run_command(
+	    { COMMAND => ['groupadd', '--system', 'sbuild'],
+	      USER => 'root',
+	      STREAMIN => $devnull,
+	      STREAMOUT => $devnull,
+	      DIR => '/' });
 	if ($?) {
 	    print STDERR "E: Failed to create group sbuild\n";
 	    return $?
