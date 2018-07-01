@@ -1641,6 +1641,7 @@ sub run_lintian {
     my $session = $self->get('Session');
 
     return 1 unless ($self->get_conf('RUN_LINTIAN'));
+    $self->set('Lintian Reason', 'error');
 
     if (!defined($session)) {
 	$self->log_error("Session is undef. Cannot run lintian.\n");
@@ -1680,12 +1681,10 @@ sub run_lintian {
           DIR => $self->get('Build Dir')
         });
     my $status = $? >> 8;
-    $self->set('Lintian Reason', 'pass');
 
     $self->log("\n");
     if ($?) {
         my $why = "unknown reason";
-	$self->set('Lintian Reason', 'error');
 	$self->set('Lintian Reason', 'fail') if ($status == 1);
         $why = "runtime error" if ($status == 2);
         $why = "policy violation" if ($status == 1);
@@ -1693,6 +1692,8 @@ sub run_lintian {
         $self->log_error("Lintian run failed ($why)\n");
 
         return 0;
+    } else {
+	$self->set('Lintian Reason', 'pass');
     }
 
     $self->log_info("Lintian run was successful.\n");
