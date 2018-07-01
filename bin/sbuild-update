@@ -51,6 +51,9 @@ sub setup {
 	'AUTOREMOVE'			=> {
 	    DEFAULT => 0
 	},
+	'CHROOT_MODE'				=> {
+	    DEFAULT => 'schroot'
+	},
     );
 
     $conf->set_allowed_keys(\%update_keys);
@@ -74,6 +77,9 @@ sub set_options {
     my $self = shift;
 
     $self->add_options(
+	"chroot-mode=s" => sub {
+	    $self->set_conf('CHROOT_MODE', $_[1]);
+	},
 	"arch=s" => sub {
 	    $self->set_conf('ARCH', $_[1]);
 	    $self->set_conf('HOST_ARCH', $_[1]);
@@ -116,7 +122,7 @@ Conf::setup($conf);
 exit 1 if !defined($conf);
 my $options = Options->new($conf, "sbuild-update", "1");
 exit 1 if !defined($options);
-check_group_membership();
+check_group_membership() if $conf->get('CHROOT_MODE') eq 'schroot';
 
 if ($conf->get('COMPAT')) {
     my $msg = "$0 will perform apt-get command 'update' now, however this ";

@@ -24,6 +24,7 @@ sbuild\-update \- update, upgrade, and clean an sbuild chroot with apt-get
 .RB [ \-u \[or] \-\-update ] " " [ \-g \[or] \-\-upgrade ] " "
 .RB [ \-d \[or] \-\-dist\-upgrade ] " " [ \-c \[or] \-\-clean ] " "
 .RB [ \-a \[or] \-\-autoclean ] " " [ \-r \[or] \-\-autoremove ]
+.RB [ \-\-chroot-mode=\fIschroot|sudo|unshare\fP ]
 .RB CHROOT1 " [" CHROOT2 " [" CHROOT\f[BI]n\fP... ]]
 .br
 .RB "(DEPRECATED) " sbuild\-upgrade
@@ -80,6 +81,15 @@ Perform an \f[CB]apt\-get autoclean\fP.
 .BR \-r ", " \-\-autoremove
 Perform an \f[CB]apt\-get autoremove\fP.
 .SS Chroot selection
+.TP
+.BR \-\-chroot-mode=\fIschroot|sudo|unshare\fP
+The sbuild chroot backend of the chroot to update.  The autopkgtest backend is
+not supported by this method because autopkgtest backends are always ephemeral
+and changes never persist.  To update a chroot for schroot and sudo,
+sbuild-update must be executed with superuser privileges (for example by using
+sudo).  Creating a chroot for the unshare backend can be done by a normal user
+(without sudo) but it requires Linux user namespaces to be enabled (via "sysctl
+-w kernel.unprivileged_userns_clone=1").  Defaults to 'schroot'.
 .TP
 .B CHROOT
 The chroot to use.  Note that \[oq]o\[cq], \[oq]s\[cq],
