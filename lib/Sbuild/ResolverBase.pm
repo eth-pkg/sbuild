@@ -416,6 +416,16 @@ sub setup {
 
     }
 
+    #Prepare a path to build a dummy package containing our deps:
+    if (! defined $self->get('Dummy package path')) {
+	my $tmpdir = $session->mktemp({ TEMPLATE => $self->get('Build Dir') . '/resolver-XXXXXX', DIRECTORY => 1});
+	if (!$tmpdir) {
+	    $self->log_error("mktemp -d " . $self->get('Build Dir') . '/resolver-XXXXXX failed\n');
+	    return 0;
+	}
+	$self->set('Dummy package path', $tmpdir);
+    }
+
     return 1;
 }
 
@@ -1004,15 +1014,6 @@ sub setup_apt_archive {
     my $session = $self->get('Session');
 
 
-    #Prepare a path to build a dummy package containing our deps:
-    if (! defined $self->get('Dummy package path')) {
-	my $tmpdir = $session->mktemp({ TEMPLATE => $self->get('Build Dir') . '/resolver-XXXXXX', DIRECTORY => 1});
-	if (!$tmpdir) {
-	    $self->log_error("mktemp -d " . $self->get('Build Dir') . '/resolver-XXXXXX failed\n');
-	    return 0;
-	}
-	$self->set('Dummy package path', $tmpdir);
-    }
     if (!$session->chown($self->get('Dummy package path'), $self->get_conf('BUILD_USER'), 'sbuild')) {
 	$self->log_error("Failed to set " . $self->get_conf('BUILD_USER') .
 			 ":sbuild ownership on dummy package dir\n");

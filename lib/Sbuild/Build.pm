@@ -648,6 +648,11 @@ sub run_chroot_session_locked {
 						failstage => "resolver setup");
 	}
 
+	my $filter;
+	$filter = $resolver->get('Dummy package path');
+	$filter =~ s;^/;;;
+	$self->build_log_filter($filter , 'RESOLVERDIR');
+
 	$self->check_abort();
 	$self->run_chroot_update();
 
