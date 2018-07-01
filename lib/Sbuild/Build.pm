@@ -1760,6 +1760,13 @@ sub run_autopkgtest {
 
     $self->log_subsubsection("autopkgtest");
 
+    my $session = $self->get('Session');
+    if (!$session->test_regular_file($self->get('Build Dir') . '/' . $self->get('DSC Dir') . '/debian/tests/control')) {
+	$self->set('Autopkgtest Reason', 'no tests');
+	$self->log_info("Autopkgtest was not executed because this package is missing debian/tests/control.\n");
+	return 1;
+    }
+
     my $autopkgtest = $self->get_conf('AUTOPKGTEST');
     my @autopkgtest_command;
     # The default value is the empty array.
@@ -1795,7 +1802,6 @@ sub run_autopkgtest {
 	if (! -f $dsc || ! -r $dsc) {
 	    my $build_dir = $self->get('Build Dir');
 	    $tmpdir = mkdtemp("/tmp/tmp.sbuild.XXXXXXXXXX");
-	    my $session = $self->get('Session');
 	    if (!$session->copy_from_chroot("$build_dir/$dsc", "$tmpdir/$dsc")) {
 		$self->log_error("cannot copy .dsc from chroot\n");
 		rmdir $tmpdir;
