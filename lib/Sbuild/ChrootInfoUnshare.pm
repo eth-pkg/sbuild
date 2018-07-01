@@ -55,6 +55,7 @@ sub get_info_all {
 	$xdg_cache_home = $ENV{'XDG_CACHE_HOME'} . '/sbuild';
     }
 
+    my $num_found = 0;
     if (opendir my $dh, $xdg_cache_home) {
 	while (defined(my $file = readdir $dh)) {
 	    next if $file eq '.' || $file eq '..';
@@ -65,8 +66,13 @@ sub get_info_all {
 		$chroots->{'chroot'}->{$file} = 1;
 	    }
 	    $chroots->{'source'}->{$file} = 1;
+	    $num_found += 1;
 	}
 	closedir $dh;
+    }
+
+    if ($num_found == 0) {
+	print STDERR "I: No tarballs found in $xdg_cache_home\n";
     }
 
     $self->set('Chroots', $chroots);
