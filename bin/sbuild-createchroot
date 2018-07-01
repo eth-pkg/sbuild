@@ -672,7 +672,7 @@ if ($conf->get('MAKE_SBUILD_TARBALL') && !$conf->get('SETUP_ONLY')) {
     if ($conf->get('CHROOT_MODE') eq 'unshare') {
 	open(my $in, '-|', get_unshare_cmd(
 		{IDMAP => \@idmap}), @program_list
-	) or die "could not exec tar";
+	) // die "could not exec tar";
 	open(my $out, '>', $tmpfile);
 	copy($in, $out);
 	close($out) or die "Failed to close $tmpfile";
