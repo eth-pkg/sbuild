@@ -1288,14 +1288,7 @@ EOF
 	    return 0;
 	}
 
-	# We always trust the dummy apt repositories.
-	# This means that if SBUILD_BUILD_DEPENDS_{SECRET|PUBLIC}_KEY do not
-	# exist and thus the dummy repositories do not get signed, apt will
-	# still trust it. This allows one to run sbuild without generating
-	# keys which is useful on machines with little randomness.
-	# Older apt from squeeze will still require keys to be generated as it
-	# ignores the trusted=yes. Older apt ignoring this is also why we can add
-	# this unconditionally.
+	# We always trust the dummy apt repositories by setting trusted=yes.
 	#
 	# We use copy:// instead of file:// as URI because the latter will make
 	# apt use symlinks in /var/lib/apt/lists. These symlinks will become
