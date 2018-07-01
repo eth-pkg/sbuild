@@ -203,6 +203,12 @@ sub begin_session {
 
     $self->set('Session Purged', 1);
 
+    # if a source type chroot was requested, then we need to memorize the
+    # tarball location for when the session is ended
+    if ($namespace eq "source") {
+	$self->set('Tarball', $tarball);
+    }
+
     return 0 if !$self->_setup_options();
 
     return 1;
@@ -212,6 +218,27 @@ sub end_session {
     my $self = shift;
 
     return if $self->get('Session ID') eq "";
+
+    if (defined($self->get('Tarball'))) {
+	my ($tmpfh, $tmpfile) = tempfile("XXXXXX");
+	my @program_list = ("/bin/tar", "-c", "-C", $self->get('Session ID'));
+	push @program_list, get_tar_compress_options($self->get('Tarball'));
+	push @program_list, './';
+
+	print "I: Creating tarball...\n";
+	open(my $in, '-|', get_unshare_cmd(
+		{IDMAP => $self->get('Uid Gid Map')}), @program_list
+	) // die "could not exec tar";
+	if (copy($in, $tmpfile) != 1 ) {
+	    die "unable to copy: $!\n";
+	}
+	close($in) or die "Could not create chroot tarball: $?\n";
+
+	move("$tmpfile", $self->get('Tarball'));
+	chmod 0644, $self->get('Tarball');
+
+	print "I: Done creating " . $self->get('Tarball') . "\n";
+    }
 
     print STDERR "Cleaning up chroot (session id " . $self->get('Session ID') . ")\n"
     if $self->get_conf('DEBUG');
