@@ -26,6 +26,7 @@ use warnings;
 use English;
 use Sbuild::Utility;
 use File::Temp qw(mkdtemp);
+use File::Copy;
 
 BEGIN {
     use Exporter ();
@@ -101,6 +102,8 @@ sub begin_session {
 	return 0;
     }
 
+    # The tarball might be in a location where it cannot be accessed by the
+    # user from within the unshared namespace
     if (! -r $tarball) {
 	print STDERR "$tarball is not readable\n";
 	return 0;
@@ -116,12 +119,23 @@ sub begin_session {
 	'--exclude=./dev/tty',
 	'--exclude=./dev/ptmx',
 	'--directory', $rootdir,
-	'--extract', '--file', $tarball
+	'--extract'
     );
+    push @cmd, get_tar_compress_options($tarball);
+
     if ($self->get_conf('DEBUG')) {
 	printf STDERR "running @cmd\n";
     }
-    system(@cmd);
+    my $pid = open(my $out, '|-', @cmd);
+    if (!defined($pid)) {
+	print STDERR "Can't fork: $!\n";
+	return 0;
+    }
+    if (copy($tarball, $out) != 1) {
+	print STDERR "copy() failed: $!\n";
+	return 0;
+    }
+    close($out);
     $exit = $? >> 8;
     if ($exit) {
 	print STDERR "bad exit status ($exit): @cmd\n";
