@@ -59,7 +59,9 @@ sub _create {
 
     my $chroot = undef;
 
-    $chroot = Sbuild::ChrootUnshare->new($self->get('Config'), $chroot_id);
+    if (defined($chroot_id)) {
+	$chroot = Sbuild::ChrootUnshare->new($self->get('Config'), $chroot_id);
+    }
 
     return $chroot;
 }
