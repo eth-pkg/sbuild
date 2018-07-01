@@ -1124,7 +1124,7 @@ This command line option sets the \fBSBUILD_MODE\fP configuration variable. See
 .BR sbuild.conf (5)
 for more information.
 .TP
-.BR \-\tstats\-dir=\fIdirectory\fP
+.BR \-\-stats\-dir=\fIdirectory\fP
 Directory for writing build statistics to.
 This command line option sets the \fBSTATS_DIR\fP configuration variable. See
 .BR sbuild.conf (5)
