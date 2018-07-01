@@ -529,7 +529,9 @@ END
 	$self->build_log_colour('green', '^Status: successful$');
 	$self->build_log_colour('yellow', '^Keeping session: ');
 	$self->build_log_colour('red', '^Lintian:');
+	$self->build_log_colour('yellow', '^Lintian: warn$');
 	$self->build_log_colour('green', '^Lintian: pass$');
+	$self->build_log_colour('green', '^Lintian: info$');
 	$self->build_log_colour('red', '^Piuparts:');
 	$self->build_log_colour('green', '^Piuparts: pass$');
 	$self->build_log_colour('red', '^Autopkgtest:');
@@ -1675,12 +1677,14 @@ sub run_lintian {
     $resolver->add_dependencies('LINTIAN', 'lintian:native', "", "", "", "", "");
     return 1 unless $resolver->install_core_deps('lintian', 'LINTIAN');
 
-    $session->run_command(
+    my $lintian_output = $session->read_command(
         { COMMAND => \@lintian_command,
           PRIORITY => 0,
           DIR => $self->get('Build Dir')
         });
     my $status = $? >> 8;
+
+    $self->log($lintian_output);
 
     $self->log("\n");
     if ($?) {
@@ -1694,6 +1698,12 @@ sub run_lintian {
         return 0;
     } else {
 	$self->set('Lintian Reason', 'pass');
+	if ($lintian_output =~ m/^I: /m) {
+	    $self->set('Lintian Reason', 'info');
+	}
+	if ($lintian_output =~ m/^W: /m) {
+	    $self->set('Lintian Reason', 'warn');
+	}
     }
 
     $self->log_info("Lintian run was successful.\n");
