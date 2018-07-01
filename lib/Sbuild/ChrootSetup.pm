@@ -24,7 +24,7 @@ use strict;
 use warnings;
 
 use File::Temp qw(tempfile);
-use Sbuild qw($devnull);
+use Sbuild qw($devnull shellescape);
 
 BEGIN {
     use Exporter ();
@@ -69,31 +69,36 @@ sub basesetup ($$) {
 	}
     }
 
+    my $build_path = '/build';
+    if (defined($session->get_conf('BUILD_PATH')) && $session->get_conf('BUILD_PATH')) {
+	$build_path = $session->get_conf('BUILD_PATH');
+    }
+
     $session->run_command(
 	{ COMMAND => ['/bin/sh', '-c',
-		      'set -e; if [ ! -d /build ] ; then mkdir -m 0775 /build; fi'],
+		      'set -e; if [ ! -d ' . (shellescape $build_path) . ' ] ; then mkdir -m 0775 ' . (shellescape $build_path) . '; fi'],
 	  USER => 'root',
 	  DIR => '/' });
     if ($?) {
-	print STDERR "E: Failed to create build directory /build\n";
+	print STDERR "E: Failed to create build directory $build_path\n";
 	return $?
     }
 
     $session->run_command(
-	{ COMMAND => ['chown', 'sbuild:sbuild', '/build'],
+	{ COMMAND => ['chown', 'sbuild:sbuild', $build_path],
 	  USER => 'root',
 	  DIR => '/' });
     if ($?) {
-	print STDERR "E: Failed to set sbuild:sbuild ownership on /build\n";
+	print STDERR "E: Failed to set sbuild:sbuild ownership on $build_path\n";
 	return $?
     }
 
     $session->run_command(
-	{ COMMAND => ['chmod', '02770', '/build'],
+	{ COMMAND => ['chmod', '02770', $build_path],
 	  USER => 'root',
 	  DIR => '/' });
     if ($?) {
-	print STDERR "E: Failed to set 0750 permissions on /build\n";
+	print STDERR "E: Failed to set 0750 permissions on $build_path\n";
 	return $?
     }
 
