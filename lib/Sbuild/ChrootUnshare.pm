@@ -219,7 +219,7 @@ sub get_command_internal {
 	mount -o rbind /sys \"\$rootdir/sys\";
 	mkdir -p \"\$rootdir/proc\";
 	mount -t proc proc \"\$rootdir/proc\";
-	/usr/sbin/chroot \"\$rootdir\" sh -c \"id -u \\\"\$user\\\">/dev/null 2>&1 || adduser --system --quiet --group --no-create-home --home /nonexistent --disabled-login --disabled-password \\\"\$user\\\"\";
+	/usr/sbin/chroot \"\$rootdir\" sh -c \"id -u \\\"\$user\\\">/dev/null 2>&1 || adduser --system --quiet --ingroup sbuild --no-create-home --home /nonexistent --disabled-login --disabled-password \\\"\$user\\\"\";
 	exec /usr/sbin/chroot \"\$rootdir\" /sbin/runuser -u \"\$user\" -- sh -c \"cd \\\"\\\$1\\\" && shift && \\\"\\\$@\\\"\" -- \"\$dir\" \"\$@\";
 	", '--', $self->get('Session ID'), $user, $dir
     );
