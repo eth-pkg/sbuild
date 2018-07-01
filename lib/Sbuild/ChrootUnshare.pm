@@ -25,8 +25,9 @@ use warnings;
 
 use English;
 use Sbuild::Utility;
-use File::Temp qw(mkdtemp);
+use File::Temp qw(mkdtemp tempfile);
 use File::Copy;
+use Cwd qw(abs_path);
 
 BEGIN {
     use Exporter ();
@@ -51,6 +52,55 @@ sub new {
 
 sub begin_session {
     my $self = shift;
+    my $chroot = $self->get('Chroot ID');
+
+    return 0 if !defined $chroot;
+
+    my $namespace = undef;
+    if ($chroot =~ m/^(chroot|source):(.+)$/) {
+	$namespace = $1;
+	$chroot = $2;
+    }
+
+    my $tarball = undef;
+    if ($chroot =~ '/') {
+	if (! -e $chroot) {
+	    print STDERR "Chroot $chroot does not exist\n";
+	    return 0;
+	}
+	$tarball = abs_path($chroot);
+    } else {
+	my $xdg_cache_home = $ENV{'HOME'} . "/.cache/sbuild";
+	if (defined($ENV{'XDG_CACHE_HOME'})) {
+	    $xdg_cache_home = $ENV{'XDG_CACHE_HOME'} . '/sbuild';
+	}
+	system('pwd');
+
+	if (opendir my $dh, $xdg_cache_home) {
+	    while (defined(my $file = readdir $dh)) {
+		next if $file eq '.' || $file eq '..';
+		my $path = "$xdg_cache_home/$file";
+		# FIXME: support directory chroots
+		#if (-d $path) {
+		#    if ($file eq $chroot) {
+		#	$tarball = $path;
+		#	last;
+		#    }
+		#} else {
+		    if ($file =~ /^$chroot\.t.+$/) {
+			$tarball = $path;
+			last;
+		    }
+		#}
+	    }
+	    closedir $dh;
+	}
+
+	if (!defined($tarball)) {
+	    print STDERR "Unable to find $chroot in $xdg_cache_home\n";
+	    return 0;
+	}
+    }
 
     my @idmap = read_subuid_subgid;
 
@@ -94,8 +144,6 @@ sub begin_session {
 	print STDERR "bad exit status ($exit): @cmd\n";
 	return 0;
     }
-
-    my $tarball = $self->get_conf('UNSHARE_TARBALL');
 
     if (! -e $tarball) {
 	print STDERR "$tarball does not exist, check \$unshare_tarball config option\n";

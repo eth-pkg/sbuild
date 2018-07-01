@@ -315,7 +315,7 @@ the unshare backend:
 .PP
 \f[CR]% \f[CB]sbuild-createchroot --chroot-mode=unshare \\
 .br
-    --make-sbuild-tarball=~/.local/share/sbuild/unstable-amd64.tar.gz \\
+    --make-sbuild-tarball ~/.cache/sbuild/unstable-amd64.tar.gz \\
 .br
     sid `mktemp -d` http://deb.debian.org/debian/ \\
 .PP

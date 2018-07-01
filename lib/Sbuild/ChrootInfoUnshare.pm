@@ -50,6 +50,25 @@ sub get_info_all {
 
     my $chroots = {};
 
+    my $xdg_cache_home = $ENV{'HOME'} . "/.cache/sbuild";
+    if (defined($ENV{'XDG_CACHE_HOME'})) {
+	$xdg_cache_home = $ENV{'XDG_CACHE_HOME'} . '/sbuild';
+    }
+
+    if (opendir my $dh, $xdg_cache_home) {
+	while (defined(my $file = readdir $dh)) {
+	    next if $file eq '.' || $file eq '..';
+	    next if $file !~ /^[^-]+-[^-]+(-[^-]+)?(-sbuild)?\.t.+$/;
+	    my $isdir = -d "$xdg_cache_home/$file";
+	    $file =~ s/\.t.+$//; # chop off extension
+	    if (! $isdir) {
+		$chroots->{'chroot'}->{$file} = 1;
+	    }
+	    $chroots->{'source'}->{$file} = 1;
+	}
+	closedir $dh;
+    }
+
     $self->set('Chroots', $chroots);
 }
 
