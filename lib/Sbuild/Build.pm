@@ -895,13 +895,29 @@ sub run_fetch_install_packages {
 	if ($self->get('Pkg Status') eq "successful") {
 	    $self->log_subsection("Post Build");
 
+	    # Run lintian.
+	    $self->check_abort();
+	    my $ret = $self->run_lintian();
+	    if (!$ret && $self->get_conf('LINTIAN_REQUIRE_SUCCESS')) {
+		$self->set('Pkg Fail Stage', "post-build");
+		$self->set_status("failed");
+	    }
+
 	    # Run piuparts.
 	    $self->check_abort();
-	    $self->run_piuparts();
+	    my $ret = $self->run_piuparts();
+	    if (!$ret && $self->get_conf('PIUPARTS_REQUIRE_SUCCESS')) {
+		$self->set('Pkg Fail Stage', "post-build");
+		$self->set_status("failed");
+	    }
 
 	    # Run autopkgtest.
 	    $self->check_abort();
-	    $self->run_autopkgtest();
+	    $ret = $self->run_autopkgtest();
+	    if (!$ret && $self->get_conf('AUTOPKGTEST_REQUIRE_SUCCESS')) {
+		$self->set('Pkg Fail Stage', "post-build");
+		$self->set_status("failed");
+	    }
 
 	    # Run post build external commands
 	    $self->check_abort();
@@ -2505,14 +2521,6 @@ sub build {
 	if (!$session->chmod($self->get('Build Dir'), 'g+w', { RECURSIVE => 1 })) {
 	    $self->log_error("chmod g+w " . $self->get('Build Dir') . " failed.\n");
 	    return 0;
-	}
-
-	if (!$rv) {
-	    $self->log_subsection("Post Build Chroot");
-
-	    # Run lintian.
-	    $self->check_abort();
-	    $self->run_lintian();
 	}
 
 	$self->log_subsection("Changes");

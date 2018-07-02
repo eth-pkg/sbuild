@@ -1087,6 +1087,13 @@ $crossbuild_core_depends = {
 	    HELP => 'Options to pass to lintian.  Each option is a separate arrayref element.  For example, [\'-i\', \'-v\'] to add -i and -v.',
 	    CLI_OPTIONS => ['--lintian-opt', '--lintian-opts']
 	},
+	'LINTIAN_REQUIRE_SUCCESS'				=> {
+	    TYPE => 'BOOL',
+	    VARNAME => 'lintian_require_success',
+	    GROUP => 'Build validation',
+	    DEFAULT => 0,
+	    HELP => 'Let sbuild fail if lintian fails.'
+	},
 	'PIUPARTS'				=> {
 	    TYPE => 'STRING',
 	    VARNAME => 'piuparts',
@@ -1171,6 +1178,13 @@ $piuparts_root_args = [\'\', \'whatever\'];
 ',
 	    CLI_OPTIONS => ['--piuparts-root-arg', '--piuparts-root-args']
 	},
+	'PIUPARTS_REQUIRE_SUCCESS'				=> {
+	    TYPE => 'BOOL',
+	    VARNAME => 'piuparts_require_success',
+	    GROUP => 'Build validation',
+	    DEFAULT => 0,
+	    HELP => 'Let sbuild fail if piuparts fails.'
+	},
 	'AUTOPKGTEST'				=> {
 	    TYPE => 'STRING',
 	    VARNAME => 'autopkgtest',
@@ -1254,6 +1268,13 @@ $autopkgtest_root_args = [\'\'];
 $autopkgtest_root_args = [\'\', \'whatever\'];
 ',
 	    CLI_OPTIONS => ['--autopkgtest-root-arg', '--autopkgtest-root-args']
+	},
+	'AUTOPKGTEST_REQUIRE_SUCCESS'				=> {
+	    TYPE => 'BOOL',
+	    VARNAME => 'autopkgtest_require_success',
+	    GROUP => 'Build validation',
+	    DEFAULT => 0,
+	    HELP => 'Let sbuild fail if autopkgtest fails.'
 	},
 	'EXTERNAL_COMMANDS'			=> {
 	    TYPE => 'HASH:ARRAY:STRING',
