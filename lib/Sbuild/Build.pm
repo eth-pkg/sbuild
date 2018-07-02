@@ -1677,17 +1677,28 @@ sub run_lintian {
     $resolver->add_dependencies('LINTIAN', 'lintian:native', "", "", "", "", "");
     return 1 unless $resolver->install_core_deps('lintian', 'LINTIAN');
 
-    my $lintian_output = $session->read_command(
+    # we are not using read_command() because we also need the output for
+    # non-zero exit codes
+    my $pipe = $session->pipe_command(
         { COMMAND => \@lintian_command,
           PRIORITY => 0,
-          DIR => $self->get('Build Dir')
+          DIR => $self->get('Build Dir'),
+	  PIPE => "in"
         });
-    my $status = $? >> 8;
-
-    $self->log($lintian_output);
+    if (!$pipe) {
+        $self->log_error("Failed to exec Lintian: $!\n");
+	return 0;
+    }
+    my $lintian_output = "";
+    while (my $line = <$pipe>) {
+	$self->log($line);
+	$lintian_output .= $line;
+    }
+    close $pipe;
 
     $self->log("\n");
     if ($?) {
+	my $status = $? >> 8;
         my $why = "unknown reason";
 	$self->set('Lintian Reason', 'fail') if ($status == 1);
         $why = "runtime error" if ($status == 2);
