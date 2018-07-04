@@ -74,7 +74,6 @@ sub begin_session {
 	if (defined($ENV{'XDG_CACHE_HOME'})) {
 	    $xdg_cache_home = $ENV{'XDG_CACHE_HOME'} . '/sbuild';
 	}
-	system('pwd');
 
 	if (opendir my $dh, $xdg_cache_home) {
 	    while (defined(my $file = readdir $dh)) {
