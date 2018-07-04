@@ -2044,6 +2044,13 @@ sub build {
 		   "same name already exists.\n");
 	return 0;
     }
+    my $dsccontent = $session->read_file("$build_dir/$dscfile");
+    if (!$dsccontent) {
+	$self->log_error("Cannot read $build_dir/$dscfile\n");
+    } else {
+	$self->log($dsccontent);
+	$self->log("\n");
+    }
     if (!$session->test_directory($dscdir)) {
 	$self->set('Sub Task', "dpkg-source");
 	$session->run_command({
