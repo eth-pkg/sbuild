@@ -1335,8 +1335,8 @@ Run dpkg-buildpackage
 \f[CB]\-\-build\-failed\-commands\fP	yes	inside	no	no	yes
 \f[CB]\-\-finished\-build\-commands\fP	yes	inside	no	no	yes
 Run lintian (if configured)
-Cleanup build files and dependencies
 \f[CB]\-\-chroot\-cleanup\-commands\fP	yes	inside	yes	no	yes
+Cleanup build files and dependencies
 Run piuparts (if configured)
 Run autopkgtest (if configured)
 Close schroot session
