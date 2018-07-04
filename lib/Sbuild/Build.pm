@@ -885,6 +885,16 @@ sub run_fetch_install_packages {
 	    $self->set_status('failed');
 	}
 
+	if ($self->get('Pkg Status') eq "successful") {
+	    # Run lintian.
+	    $self->check_abort();
+	    my $ret = $self->run_lintian();
+	    if (!$ret && $self->get_conf('LINTIAN_REQUIRE_SUCCESS')) {
+		$self->set('Pkg Fail Stage', "post-build");
+		$self->set_status("failed");
+	    }
+	}
+
 	# Run specified chroot cleanup commands
 	$self->check_abort();
 	if (!$self->run_external_commands("chroot-cleanup-commands")) {
@@ -894,14 +904,6 @@ sub run_fetch_install_packages {
 
 	if ($self->get('Pkg Status') eq "successful") {
 	    $self->log_subsection("Post Build");
-
-	    # Run lintian.
-	    $self->check_abort();
-	    my $ret = $self->run_lintian();
-	    if (!$ret && $self->get_conf('LINTIAN_REQUIRE_SUCCESS')) {
-		$self->set('Pkg Fail Stage', "post-build");
-		$self->set_status("failed");
-	    }
 
 	    # Run piuparts.
 	    $self->check_abort();
