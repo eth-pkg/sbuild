@@ -793,7 +793,7 @@ sub dump_build_environment {
     my $arch = $self->get('Arch');
     my ($sysname, $nodename, $release, $version, $machine) = POSIX::uname();
     $self->log_subsection("Build environment");
-    $self->log("Kernel: $sysname $release $arch ($machine)\n");
+    $self->log("Kernel: $sysname $release $version $arch ($machine)\n");
 
     $self->log("Toolchain package versions:");
     foreach my $name (sort keys %{$status}) {
