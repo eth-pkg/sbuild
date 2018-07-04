@@ -902,6 +902,9 @@ sub run_fetch_install_packages {
 		failstage => "run-chroot-cleanup-commands");
 	}
 
+	# piuparts and autopkgtest must be run while the chroot is still open
+	# because they might need files that are not available on the host,
+	# for example the .dsc which might have been downloaded
 	if ($self->get('Pkg Status') eq "successful") {
 	    $self->log_subsection("Post Build");
 

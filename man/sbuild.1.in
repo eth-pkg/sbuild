@@ -1337,9 +1337,9 @@ Run dpkg-buildpackage
 Run lintian (if configured)
 Cleanup build files and dependencies
 \f[CB]\-\-chroot\-cleanup\-commands\fP	yes	inside	yes	no	yes
-Close schroot session
 Run piuparts (if configured)
 Run autopkgtest (if configured)
+Close schroot session
 \f[CB]\-\-post\-build\-commands\fP	no	outside	yes	yes	yes
 .TE
 .if t \{\
