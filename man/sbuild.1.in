@@ -789,10 +789,10 @@ for more information.
 .BR \-\-pre\-build\-commands=\fIstring\fP
 This is the earliest external command which is run right after the chroot
 session has been initialized and before anything else is done (like installing
-the build dependencies). The command is run as root outside of the chroot. This
-option can be used multiple times to add multiple commands. Certain percent
-escapes are supported. To write a literal percent sign, escape it with another
-percent sign. See the section
+the build dependencies). The command is run outside of the chroot. This option
+can be used multiple times to add multiple commands. Certain percent escapes
+are supported. To write a literal percent sign, escape it with another percent
+sign. See the section
 .BR "EXTERNAL COMMANDS"
 for more information.
 This command line option appends to the \fBEXTERNAL_COMMANDS\fP configuration variable. See
@@ -892,8 +892,8 @@ This command line option appends to the \fBEXTERNAL_COMMANDS\fP configuration va
 for more information.
 .TP
 .BR \-\-post\-build\-commands=\fIstring\fP
-Run this command after a successful build. The command is run as root outside
-of the chroot. This option can be used multiple times to add multiple commands.
+Run this command after a successful build. The command is run outside of the
+chroot. This option can be used multiple times to add multiple commands.
 Certain percent escapes are supported. To write a literal percent sign, escape
 it with another percent sign. See the section
 .BR "EXTERNAL COMMANDS"
