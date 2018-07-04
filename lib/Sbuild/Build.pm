@@ -1921,61 +1921,113 @@ sub explain_bd_uninstallable {
 	    return 0;
 	}
 
-	# We execute the desired commands as part of a pipe from within a bash
-	# script running inside the chroot. Rationale:
-	#
-	# - Constructing bidirectional communication between processes
-	#   requires IPC::Open2 and expressing this in perl is very verbose
-	#   compared to a pipe in shell.
-	# - Bash is chosen over sh because it offers -o pipefail. Without it,
-	#   the bash process will only fail if the last command in the pipe
-	#   fails. But we also want to fail if any of the earlier commands
-	#   fail.
-	# - Using perl over shell would require perl being installed inside
-	#   the chroot. We want to minimize the requirements we have on the
-	#   chroot.
-	# - bash is Essential:yes so it has to be installed inside the chroot.
-	# - Using multiple pipe_command() calls by sbuild instead of a bash
-	#   script running inside the chroot would require the data to be
-	#   copied from one process to the other with a while/read/write loop.
-	#   This is expensive if the chroot lives on a foreign host and thus
-	#   the data would have to be copied *twice* (forth and back) over the
-	#   network. Thus, we start all the processes under a common process on
-	#   inside the chroot to be able to connect them with normal pipes.
-	# - The dose-debcheck command is in curly braces because the |
-	#   operator takes precedence over the || operator and we only want to
-	#   check the exit code of dose-debcheck and not the exit code of the
-	#   whole pipe.
-	# - We expect an exit code of less than 64 of dose-debcheck. Any other
-	#   exit code indicates abnormal program termination.
+	my $session = $self->get('Session');
+	my $pipe_apt = $session->pipe_command({
+		COMMAND => [ 'apt-get', 'indextargets', '--format', '$(FILENAME)', 'Created-By: Packages' ],
+		USER => $self->get_conf('BUILD_USER'),
+	    });
+	if (!$pipe_apt) {
+	    $self->log_error("cannot open reading pipe from apt-get indextargets\n");
+	    return 0;
+	}
+
+	my $host = $self->get_conf('HOST_ARCH');
+	my @debforeignarg = ();
+	if ($self->get_conf('BUILD_ARCH') ne $self->get_conf('HOST_ARCH')) {
+	    @debforeignarg = ('--deb-foreign-archs', $self->get_conf('HOST_ARCH'));
+	}
+
 	# - We run dose-debcheck instead of dose-builddebcheck because we want
 	#   to check the dummy binary package created by sbuild instead of the
 	#   original source package Build-Depends.
 	# - We use dose-debcheck instead of dose-distcheck because we cannot
 	#   use the deb:// prefix on data from standard input.
-	my $native = $self->get_conf('BUILD_ARCH');
-	my $host = $self->get_conf('HOST_ARCH');
-	my $debforeignarg = '';
-	if ($self->get_conf('BUILD_ARCH') ne $self->get_conf('HOST_ARCH')) {
-	    $debforeignarg = '--deb-foreign-archs=' . $self->get_conf('HOST_ARCH');
-	}
-	my $command = << "EOF";
-apt-get indextargets --format '\$(FILENAME)' "Created-By: Packages" \\
-    | xargs --delimiter=\\\\n /usr/lib/apt/apt-helper cat-file \\
-    | { dose-debcheck --checkonly=$dummy_pkg_name:$host \\
-	--verbose --failures --successes --explain --deb-native-arch=$native \\
-	$debforeignarg || [ \$? -lt 64 ]; }
-EOF
-
-	my $session = $self->get('Session');
-	$session->run_command({
-		COMMAND => ['bash', '-o', 'pipefail', '-c', $command],
+	my $pipe_dose = $session->pipe_command({
+		COMMAND => ['dose-debcheck',
+		    '--checkonly', "$dummy_pkg_name:$host", '--verbose',
+		    '--failures', '--successes', '--explain',
+		    '--deb-native-arch', $self->get_conf('BUILD_ARCH'), @debforeignarg ],
 		PRIORITY => 0,
 		USER => $self->get_conf('BUILD_USER'),
+		PIPE => 'out'
 	    });
-	if ($? != 0) {
+	if (!$pipe_dose) {
+	    $self->log_error("cannot open writing pipe to dose-debcheck\n");
 	    return 0;
 	}
+
+	# We parse file by file instead of concatenating all files because if
+	# there are many files, we might exceed the maximum command length and
+	# it avoids having to have the data from all Packages files in memory
+	# all at once. Working with a smaller Dpkg::Index structure should
+	# also result in faster store and retrieval times.
+	while (my $fname = <$pipe_apt>) {
+	    chomp $fname;
+	    my $pipe_cat = $session->pipe_command({
+		    COMMAND => [ '/usr/lib/apt/apt-helper', 'cat-file', $fname ],
+		    USER => $self->get_conf('BUILD_USER'),
+		});
+	    if (!$pipe_cat) {
+		$self->log_error("cannot open reading pipe from apt-helper\n");
+		return 0;
+	    }
+
+	    # For native compilation we just pipe the output of apt-helper to
+	    # dose3. For cross compilation we need to filter foreign
+	    # architecture packages that are Essential:yes or
+	    # Multi-Arch:foreign or otherwise dose3 might present a solution
+	    # that installs foreign architecture Essential:yes or
+	    # Multi-Arch:foreign packages.
+	    if ($self->get_conf('BUILD_ARCH') eq $self->get_conf('HOST_ARCH')) {
+		File::Copy::copy $pipe_cat, $pipe_dose;
+	    } else {
+		my $key_func = sub {
+		    return $_[0]->{Package} . ' ' . $_[0]->{Version} . ' ' . $_[0]->{Architecture};
+		};
+
+		my $index = Dpkg::Index->new(get_key_func=>$key_func);
+
+		if (!$index->parse($pipe_cat, 'apt-helper cat-file')) {
+		    $self->log_error("Cannot parse output of apt-helper cat-file: $!\n");
+		    return 0;
+		}
+
+		foreach my $key ($index->get_keys()) {
+		    my $cdata = $index->get_by_key($key);
+		    my $arch = $cdata->{'Architecture'} // '';
+		    my $ess = $cdata->{'Essential'} // '';
+		    my $ma = $cdata->{'Multi-Arch'} // '';
+		    if ($arch ne 'all' && $arch ne $host
+			&& ($ess eq 'yes' || $ma eq 'foreign')) {
+			next;
+		    }
+		    $cdata->output($pipe_dose);
+		    print $pipe_dose "\n";
+		}
+	    }
+
+	    close($pipe_cat);
+	    if (($? >> 8) != 0) {
+		$self->log_error("apt-helper failed\n");
+		return 0;
+	    }
+	}
+
+	close $pipe_dose;
+	# - We expect an exit code of less than 64 of dose-debcheck. Any other
+	#   exit code indicates abnormal program termination.
+	if (($? >> 8) >= 64) {
+	    $self->log_error("dose-debcheck failed\n");
+	    return 0;
+	}
+
+	close $pipe_apt;
+	if (($? >> 8) != 0) {
+	    $self->log_error("apt-get indextargets failed\n");
+	    return 0;
+	}
+
+
     }
 
     return 1;
