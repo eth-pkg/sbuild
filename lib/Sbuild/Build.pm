@@ -785,12 +785,6 @@ sub run_fetch_install_packages {
 	    $self->log_warning($msg);
 	}
 
-	if ($self->get('Host Arch') ne $self->get('Build Arch')) {
-	    $self->log_subsection("Install crossbuild-essential");
-	} else {
-	    $self->log_subsection("Install build-essential");
-	}
-
 	$self->check_abort();
 	$self->set('Install Start Time', time);
 	$self->set('Install End Time', $self->get('Install Start Time'));
@@ -803,65 +797,28 @@ sub run_fetch_install_packages {
 		push(@coredeps, 'crossbuild-essential-' . $self->get('Host Arch') . ':native');
             }
 	}
-	$resolver->add_dependencies('CORE', join(", ", @coredeps) , "", "", "", "", "");
 
-	if (!$resolver->install_core_deps('core', 'CORE')) {
-	    Sbuild::Exception::Build->throw(error => "Core build dependencies not satisfied; skipping",
-					    failstage => "install-deps");
-	}
+	my @snapshot = ();
+	@snapshot = ("gcc-snapshot") if ($self->get_conf('GCC_SNAPSHOT'));
 
-	# the architecture check has to be done *after* build-essential is
-	# installed because as part of the architecture check a perl script is
-	# run inside the chroot which requires the Dpkg::Arch module which is
-	# in libdpkg-perl which might not exist in the chroot but will get
-	# installed by the build-essential package
-	if(!$self->check_architectures()) {
-	    Sbuild::Exception::Build->throw(error => "Architecture check failed",
-					    failstage => "check-architecture");
-	}
-
-	my $snapshot = "";
-	$snapshot = "gcc-snapshot" if ($self->get_conf('GCC_SNAPSHOT'));
-	$resolver->add_dependencies('GCC_SNAPSHOT', $snapshot , "", "", "", "", "");
-
-	# Add additional build dependencies specified on the command-line.
-	# TODO: Split dependencies into an array from the start to save
-	# lots of joining.
-	$resolver->add_dependencies('MANUAL',
-				    join(", ", @{$self->get_conf('MANUAL_DEPENDS')}),
-				    join(", ", @{$self->get_conf('MANUAL_DEPENDS_ARCH')}),
-				    join(", ", @{$self->get_conf('MANUAL_DEPENDS_INDEP')}),
-				    join(", ", @{$self->get_conf('MANUAL_CONFLICTS')}),
-				    join(", ", @{$self->get_conf('MANUAL_CONFLICTS_ARCH')}),
-				    join(", ", @{$self->get_conf('MANUAL_CONFLICTS_INDEP')}));
-
-	$resolver->add_dependencies($self->get('Package'),
-				    $self->get('Build Depends'),
-				    $self->get('Build Depends Arch'),
-				    $self->get('Build Depends Indep'),
-				    $self->get('Build Conflicts'),
-				    $self->get('Build Conflicts Arch'),
-				    $self->get('Build Conflicts Indep'));
-
-	my @build_deps;
-	if ($self->get('Host Arch') eq $self->get('Build Arch')) {
-	    @build_deps = ('GCC_SNAPSHOT', 'MANUAL',
-			   $self->get('Package'));
-	} else {
-	    $self->check_abort();
-	    if (!$resolver->install_core_deps('essential',
-					      'GCC_SNAPSHOT')) {
-		Sbuild::Exception::Build->throw(error => "Essential dependencies not satisfied; skipping",
-						failstage => "install-essential");
-	    }
-	    @build_deps = ('MANUAL', $self->get('Package'));
-	}
+	$resolver->add_dependencies('MAIN',
+	    join(", ", $self->get('Build Depends') // (),
+		       @{$self->get_conf('MANUAL_DEPENDS')}, @snapshot, @coredeps),
+	    join(", ", $self->get('Build Depends Arch') // (),
+		       @{$self->get_conf('MANUAL_DEPENDS_ARCH')}),
+	    join(", ", $self->get('Build Depends Indep') // (),
+		       @{$self->get_conf('MANUAL_DEPENDS_INDEP')}),
+	    join(", ", $self->get('Build Conflicts') // (),
+		       @{$self->get_conf('MANUAL_CONFLICTS')}),
+	    join(", ", $self->get('Build Conflicts Arch') // (),
+		       @{$self->get_conf('MANUAL_CONFLICTS_ARCH')}),
+	    join(", ", $self->get('Build Conflicts Indep') // (),
+		       @{$self->get_conf('MANUAL_CONFLICTS_INDEP')}));
 
 	$self->log_subsection("Install package build dependencies");
 
 	$self->check_abort();
-	if (!$resolver->install_main_deps($self->get('Package'),
-					  @build_deps)) {
+	if (!$resolver->install_deps('main', 'MAIN')) {
 	    Sbuild::Exception::Build->throw(error => "Package build dependencies not satisfied; skipping",
 					    failstage => "install-deps");
 	}
@@ -874,6 +831,16 @@ sub run_fetch_install_packages {
 	}
 	$self->set('Install End Time', time);
 
+	# the architecture check has to be done *after* build-essential is
+	# installed because as part of the architecture check a perl script is
+	# run inside the chroot which requires the Dpkg::Arch module which is
+	# in libdpkg-perl which might not exist in the chroot but will get
+	# installed by the build-essential package
+	if(!$self->check_architectures()) {
+	    Sbuild::Exception::Build->throw(error => "Architecture check failed",
+					    failstage => "check-architecture");
+	}
+
 	$self->check_abort();
 	$resolver->dump_build_environment();
 
@@ -885,6 +852,8 @@ sub run_fetch_install_packages {
 	    $self->set_status('failed');
 	}
 
+	# We run it here and not inside build() because otherwise, we cannot
+	# set the overall status to failed due to lintian errors
 	if ($self->get('Pkg Status') eq "successful") {
 	    # Run lintian.
 	    $self->check_abort();
@@ -1696,7 +1665,7 @@ sub run_lintian {
     }
 
     $resolver->add_dependencies('LINTIAN', 'lintian:native', "", "", "", "", "");
-    return 1 unless $resolver->install_core_deps('lintian', 'LINTIAN');
+    return 1 unless $resolver->install_deps('lintian', 'LINTIAN');
 
     # we are not using read_command() because we also need the output for
     # non-zero exit codes
@@ -1920,8 +1889,7 @@ sub explain_bd_uninstallable {
 
     my $resolver = $self->get('Dependency Resolver');
 
-    my $pkgname = $self->get('Package');
-    my $dummy_pkg_name = $resolver->get_sbuild_dummy_pkg_name($pkgname);
+    my $dummy_pkg_name = $resolver->get_sbuild_dummy_pkg_name('main');
 
     if (!defined $self->get_conf('BD_UNINSTALLABLE_EXPLAINER')) {
 	return 0;
@@ -1949,7 +1917,7 @@ sub explain_bd_uninstallable {
 	# apt cannot find a solution, this check is supposed to allow the user
 	# to know that choosing a different resolver might fix the problem.
 	$resolver->add_dependencies('DOSE3', 'dose-distcheck:native', "", "", "", "", "");
-	if (!$resolver->install_core_deps('dose3', 'DOSE3')) {
+	if (!$resolver->install_deps('dose3', 'DOSE3')) {
 	    return 0;
 	}
 
