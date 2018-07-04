@@ -934,9 +934,9 @@ for more information.
 .TP
 .BR "\-\-build\-dep\-resolver=\fIresolver\fP"
 Use the specified resolver to handle selecting the build dependencies.
-Supported resolvers are \fIapt\fP (the default), \fIaptitude\fP, \fIaspcud\fP
-and \fIxapt\fP.  The apt resolver is the most appropriate resolver for most
-users, for building for unstable, stable and other distributions.  If
+Supported resolvers are \fIapt\fP (the default), \fIaptitude\fP, \fIaspcud\fP,
+\fIxapt\fP, and \fInull\fP.  The apt resolver is the most appropriate resolver
+for most users, for building for unstable, stable and other distributions.  If
 alternative build dependencies are used (excluding architecture restrictions),
 only the first alternative will be used; the others will be ignored.  The
 aptitude resolver is very similar, but smarter and slower, and it will consider
@@ -950,11 +950,12 @@ This resolver uses apt-cudf to ask aspcud, a real solver (in the math sense),
 to find a solution to the installation problem. Since aspcud uses a real solver
 (an ASP solver) it will always find a solution if one exists. The solution
 found by the aspcud resolver can be refined by changing the default
-optimization criteria through the --aspcud-criteria option.
-The xapt
-resolver is intended only for cross-building, and is a temporary transitional
-feature which will be removed following the complete introduction of multi-arch
-support.
+optimization criteria through the --aspcud-criteria option.  The xapt resolver
+is intended only for cross-building, and is a temporary transitional feature
+which will be removed following the complete introduction of multi-arch
+support. Finally, the null resolver is a dummy solver which does not install,
+upgrade or remove any packages. This allows one to completely control package
+installation via hooks.
 This command line option sets the \fBBUILD_DEP_RESOLVER\fP configuration variable. See
 .BR sbuild.conf (5)
 for more information.

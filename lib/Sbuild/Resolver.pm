@@ -24,6 +24,7 @@ use Sbuild::AptResolver;
 use Sbuild::XaptResolver;
 use Sbuild::AptitudeResolver;
 use Sbuild::AspcudResolver;
+use Sbuild::NullResolver;
 
 use strict;
 use warnings;
@@ -53,6 +54,8 @@ sub get_resolver ($$$) {
 	$resolver = Sbuild::AptitudeResolver->new($conf, $session, $host);
     } elsif ($conf->get('BUILD_DEP_RESOLVER') eq "aspcud") {
 	$resolver = Sbuild::AspcudResolver->new($conf, $session, $host);
+    } elsif ($conf->get('BUILD_DEP_RESOLVER') eq "null") {
+	$resolver = Sbuild::NullResolver->new($conf, $session, $host);
     } else {
 	$resolver = Sbuild::AptResolver->new($conf, $session, $host);
     }

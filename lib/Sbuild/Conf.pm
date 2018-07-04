@@ -1037,11 +1037,11 @@ $crossbuild_core_depends = {
 
 		die '$key: Invalid build-dependency resolver \'' .
 		    $conf->get($key) .
-		    "'\nValid algorithms are 'apt', 'aptitude', 'aspcud' and 'xapt'\n"
+		    "'\nValid algorithms are 'apt', 'aptitude', 'aspcud', 'xapt', and 'null'\n"
 		    if !isin($conf->get($key),
-			     qw(apt aptitude aspcud xapt));
+			     qw(apt aptitude aspcud xapt null));
 	    },
-	    HELP => 'Build dependency resolver.  The \'apt\' resolver is currently the default, and recommended for most users.  This resolver uses apt-get to resolve dependencies.  Alternative resolvers are \'apt\', \'aptitude\' and \'aspcud\'. The \'apt\' resolver uses a built-in resolver module while the \'aptitude\' resolver uses aptitude to resolve build dependencies.  The aptitude resolver is similar to apt, but is useful in more complex situations, such as where multiple distributions are required, for example when building from experimental, where packages are needed from both unstable and experimental, but defaulting to unstable. If the dependency situation is too complex for either apt or aptitude to solve it, you can use the \'aspcud\' resolver which (in contrast to apt and aptitude) is a real solver (in the math sense) and will thus always find a solution if a solution exists.',
+	    HELP => 'Build dependency resolver.  The \'apt\' resolver is currently the default, and recommended for most users.  This resolver uses apt-get to resolve dependencies.  Alternative resolvers are \'apt\', \'aptitude\' and \'aspcud\'. The \'apt\' resolver uses a built-in resolver module while the \'aptitude\' resolver uses aptitude to resolve build dependencies.  The aptitude resolver is similar to apt, but is useful in more complex situations, such as where multiple distributions are required, for example when building from experimental, where packages are needed from both unstable and experimental, but defaulting to unstable. If the dependency situation is too complex for either apt or aptitude to solve it, you can use the \'aspcud\' resolver which (in contrast to apt and aptitude) is a real solver (in the math sense) and will thus always find a solution if a solution exists. Additionally, the \'null\' solver is provided. It is a dummy resolver which does not install, upgrade or remove any packages. This allows one to completely control package installation via hooks.',
 	    CLI_OPTIONS => ['--build-dep-resolver']
 	},
 	'ASPCUD_CRITERIA'			=> {
