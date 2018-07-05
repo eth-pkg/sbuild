@@ -3150,18 +3150,20 @@ sub open_build_log {
 	    }
 
 	    if ($nolog || $verbose) {
+		my $colour = 'reset';
 		if (-t $saved_stdout && $log_colour) {
-		    my $colour = 'reset';
 		    foreach my $pattern (@colour) {
 			if (m/$$pattern[0]/) {
 			    $colour = $$pattern[1];
 			}
 		    }
-		    print $saved_stdout color $colour;
+		    if ($colour ne 'reset') {
+			print $saved_stdout color $colour;
+		    }
 		}
 
 		print $saved_stdout $_;
-		if (-t $saved_stdout && $log_colour) {
+		if (-t $saved_stdout && $log_colour && $colour ne 'reset') {
 		    print $saved_stdout color 'reset';
 		}
 	    }
