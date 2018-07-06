@@ -45,6 +45,7 @@ MODULES =			\
 	AptResolver.pm		\
 	AspcudResolver.pm	\
 	XaptResolver.pm		\
+	NullResolver.pm		\
 	Resolver.pm		\
 	Conf.pm			\
 	ConfBase.pm		\
