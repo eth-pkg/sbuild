@@ -416,8 +416,11 @@ sub setup {
 
     }
 
+    # We have to do this early so that we can setup log filtering for the RESOLVERDIR
+    # We only set it up, if 'Build Dir' was set. It is not when the resolver
+    # is used by sbuild-createchroot, for example.
     #Prepare a path to build a dummy package containing our deps:
-    if (! defined $self->get('Dummy package path')) {
+    if (! defined $self->get('Dummy package path') && defined $self->get('Build Dir')) {
 	my $tmpdir = $session->mktemp({ TEMPLATE => $self->get('Build Dir') . '/resolver-XXXXXX', DIRECTORY => 1});
 	if (!$tmpdir) {
 	    $self->log_error("mktemp -d " . $self->get('Build Dir') . '/resolver-XXXXXX failed\n');
