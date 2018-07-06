@@ -1,4 +1,5 @@
 *~
+.*.swp
 debian/sbuild.substvars
 *.1
 *.5
