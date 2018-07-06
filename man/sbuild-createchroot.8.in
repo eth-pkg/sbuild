@@ -270,7 +270,7 @@ temporary directory as the target:
 .br
     \-\-make\-sbuild\-tarball=/srv/chroot/unstable-amd64.tar.gz \fP\fP\\
 .br
-    sid `mktemp \-d` \fP\fP\\
+    unstable `mktemp \-d` \fP\fP\\
 .br
 \f[CB]    http://deb.debian.org/debian\fP\[CR]
 .PP
@@ -279,9 +279,9 @@ To create a plain type sid (unstable) schroot chroot in
 mirror redirector service and with aliases for \fIunstable\fP and
 \fIUNRELEASED\fP:
 .PP
-\f[CR]% \f[CB]sudo sbuild\-createchroot sid /srv/chroot/unstable-amd64 \fP\fP\\
+\f[CR]% \f[CB]sudo sbuild\-createchroot unstable /srv/chroot/unstable-amd64 \fP\fP\\
 .br
-    \-\-alias=unstable \-\-alias=UNRELEASED \fP\fP\\
+    \-\-alias=sid \-\-alias=UNRELEASED \fP\fP\\
 .br
 \f[CB]    http://deb.debian.org/debian\fP\[CR]
 .PP
@@ -317,7 +317,7 @@ the unshare backend:
 .br
     --make-sbuild-tarball ~/.cache/sbuild/unstable-amd64.tar.gz \\
 .br
-    sid `mktemp -d` http://deb.debian.org/debian/ \\
+    unstable `mktemp -d` http://deb.debian.org/debian/ \\
 .PP
 .SH HISTORY
 sbuild\-createchroot was previously known as \fBbuildd.chroot\fP.
