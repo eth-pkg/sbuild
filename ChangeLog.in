@@ -7,6 +7,64 @@ Full installation instructions are provided in the INSTALL file.  The
 README file also contains more specific notes regarding building and
 configuration.
 
+ * Major changes in 0.77.0:
+
+   1) core: New chroot mode "unshare" which allows unprivileged package builds
+      by using Linux user namespaces. Only requires lightweight newuidmap and
+      newgidmap suid binaries. Chroots can be created and updated without
+      needing sudo and are stored in ~/.cache/sbuild or an arbitrary absolute
+      path given via the --chroot option.
+
+   9) core: Add null resolver which does not install, upgrade or remove any
+      packages. This allows one to take full control over the package
+      installation process by using hooks.
+
+   7) core: Remove support for signing the dummy archive because Squeeze LTS
+      support ended in February 2016: remove the --keygen option from
+      sbuild-update, remove the SBUILD_BUILD_DEPENDS_SECRET_KEY and
+      SBUILD_BUILD_DEPENDS_PUBLIC_KEY configuration variables.
+
+   8) core: disable network during dpkg-buildpackage for backends that support
+      it (currently only the unshare backend)
+
+   9) core: Install (cross-)build-essential, manual depends and build depends
+      with a single dummy package instead of using a multi-step process to
+      avoid having later steps change what was installed in earlier steps.
+
+   9) core: Filter out foreign essential and multiarch foreign packages before
+      passing them to dose3 when cross building to prevent solutions that use
+      essential and multiarch foreign packages from the non-native
+      architecture.
+
+   9) sbuild: Command line option --make-binNMU now implies --no-arch-all
+
+   9) sbuild: only run autopkgtest if debian/tests/control exists
+
+   9) sbuild: Add new build log filtering for /build/pkg-minimal-XXX/resolver-YYY:
+      <<RESOLVERDIR>>
+
+   9) sbuild: Additional Lintian reasons in build log: info and warn.
+
+   9) sbuild: Dump content of the input .dsc before extracting it.
+
+   9) sbuild: Also print kernel version in build log
+
+   3) sbuild-createchroot: do not attempt several setup options when the user
+      specified --setup-only tog ether with --make-sbuild-tarball because then
+      the unpacked directory does not exist
+
+   4) sbuild-createchroot: make the mirror argument optional as well (just as
+      it is in debootstrap)
+
+   5) sbuild-createchroot: add --chroot-mode=unshare which allows running
+      debootstrap and creating a chroot tarball without needing sudo
+
+   9) sbuild-createchroot: refuse to operate if output tarball or directory
+      already exist
+
+   9) sbuild-update: add --chroot-mode option and support for unshare
+      backend
+
  * Major changes in 0.76.0:
 
    1) sbuild-update-all: exit 0 when no chroots are set up.
