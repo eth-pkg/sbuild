@@ -271,17 +271,18 @@ if (-e $target) {
     if (!-d $target) {
 	die "$target exists and is not a directory";
     }
-    # attempt to remove target. If the directory was not empty, then this
-    # operation will fail and we can die. If the directory was empty, then we
-    # will recreate it anyways
-    if (!rmdir($target)) {
-	die "$target is not empty";
-    }
+    opendir(my $dh, $target) or die "Can't opendir($target): $!\n";
+    # Attempt reading the directory thrice. If the third time succeeds, then it
+    # has more entries than just "." and ".." and must thus not be empty.
+    readdir $dh;
+    readdir $dh;
+    die "$target is not empty" if (readdir $dh);
+} else {
+    # Create the target directory in advance so abs_path (which is buggy)
+    # won't fail.  Remove if abs_path is replaced by something better.
+    makedir($target, 0755);
 }
-# Create the target directory in advance so abs_path (which is buggy)
-# won't fail.  Remove if abs_path is replaced by something better.
-makedir($ARGV[1], 0755);
-$target = abs_path($ARGV[1]);
+$target = abs_path($target);
 my $script = undef;
 my $mirror = "http://deb.debian.org/debian";
 
