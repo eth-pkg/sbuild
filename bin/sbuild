@@ -237,6 +237,16 @@ sub create_source_package ($) {
     chdir($dir) or Sbuild::Exception::Build->throw(
 	error => "Failed to change directory",
 	failstage => "pack-source");
+    my @dpkg_source_before = ($conf->get('DPKG_SOURCE'), '--before-build');
+    push @dpkg_source_before, @{$conf->get('DPKG_SOURCE_OPTIONS')}
+	if ($conf->get('DPKG_SOURCE_OPTIONS'));
+    push @dpkg_source_before, '.';
+    system(@dpkg_source_before);
+    if ($?) {
+	Sbuild::Exception::Build->throw(
+	    error => "Failed to run dpkg-source --before-build " . getcwd(),
+	    failstage => "pack-source");
+    }
     if ($conf->get('CLEAN_SOURCE')) {
 	system($conf->get('FAKEROOT'), 'debian/rules', 'clean');
 	if ($?) {
@@ -253,6 +263,16 @@ sub create_source_package ($) {
     if ($?) {
 	Sbuild::Exception::Build->throw(
 	    error => "Failed to package source directory " . getcwd(),
+	    failstage => "pack-source");
+    }
+    my @dpkg_source_after = ($conf->get('DPKG_SOURCE'), '--after-build');
+    push @dpkg_source_after, @{$conf->get('DPKG_SOURCE_OPTIONS')}
+	if ($conf->get('DPKG_SOURCE_OPTIONS'));
+    push @dpkg_source_after, '.';
+    system(@dpkg_source_after);
+    if ($?) {
+	Sbuild::Exception::Build->throw(
+	    error => "Failed to run dpkg-source --after-build " . getcwd(),
 	    failstage => "pack-source");
     }
     chdir($origdir) or Sbuild::Exception::Build->throw(

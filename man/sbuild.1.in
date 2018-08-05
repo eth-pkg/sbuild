@@ -415,7 +415,8 @@ This command line option appends to the \fBDPKG_SOURCE_OPTIONS\fP configuration 
 .BR sbuild.conf (5)
 for more information.
 .br
-\fBNOTE:\fR The '\fI-b\fP' option will always be passed to dpkg-source.
+\fBNOTE:\fR The '\fI-b\fP', '\fI--before-build\fP' and '\fI--after-build\fP'
+options will always be passed to dpkg-source, respectively.
 .TP
 .BR \-\-dpkg\-source\-opts=\fIoptions\fP
 Pass the specified options directly to dpkg\-source in addition to the options
@@ -430,6 +431,9 @@ command line.
 This command line option appends to the \fBDPKG_SOURCE_OPTIONS\fP configuration variable. See
 .BR sbuild.conf (5)
 for more information.
+.br
+\fBNOTE:\fR The '\fI-b\fP', '\fI--before-build\fP' and '\fI--after-build\fP'
+options will always be passed to dpkg-source, respectively.
 .TP
 .BR "\-\-mail\-log\-to=\fIemail-address\fP"
 Send the build log to the specified email address.
