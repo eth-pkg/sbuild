@@ -1997,7 +1997,7 @@ sub explain_bd_uninstallable {
 		    my $arch = $cdata->{'Architecture'} // '';
 		    my $ess = $cdata->{'Essential'} // '';
 		    my $ma = $cdata->{'Multi-Arch'} // '';
-		    if ($arch ne 'all' && $arch ne $host
+		    if ($arch ne 'all' && $arch ne $build
 			&& ($ess eq 'yes' || $ma eq 'foreign')) {
 			next;
 		    }
