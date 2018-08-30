@@ -1342,6 +1342,10 @@ $external_commands = {
         [\'foo\', \'arg1\', \'arg2\'],
         [\'bar\', \'arg1\', \'arg2\', \'arg3\'],
     ],
+    "post-build-failed-commands" => [
+        [\'foo\', \'arg1\', \'arg2\'],
+        [\'bar\', \'arg1\', \'arg2\', \'arg3\'],
+    ],
 };
 # the equivalent of specifying --anything-failed-commands=%SBUILD_SHELL on the
 # command line
@@ -1350,7 +1354,7 @@ $external_commands = {
     "build-deps-failed-commands" => [ [ \'%SBUILD_SHELL\' ] ],
     "build-failed-commands" => [ [ \'%SBUILD_SHELL\' ] ],
 };',
-	    CLI_OPTIONS => ['--setup-hook', '--pre-build-commands', '--chroot-setup-commands', '--chroot-update-failed-commands', '--build-deps-failed-commands', '--build-failed-commands', '--anything-failed-commands', '--starting-build-commands', '--finished-build-commands', '--chroot-cleanup-commands', '--post-build-commands']
+	    CLI_OPTIONS => ['--setup-hook', '--pre-build-commands', '--chroot-setup-commands', '--chroot-update-failed-commands', '--build-deps-failed-commands', '--build-failed-commands', '--anything-failed-commands', '--starting-build-commands', '--finished-build-commands', '--chroot-cleanup-commands', '--post-build-commands', '--post-build-failed-commands']
 	},
 	'LOG_EXTERNAL_COMMAND_OUTPUT'		=> {
 	    TYPE => 'BOOL',

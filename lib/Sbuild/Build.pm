@@ -903,6 +903,11 @@ sub run_fetch_install_packages {
 		    failstage => "run-post-build-commands");
 	    }
 
+	} else {
+	    if(!$self->run_external_commands("post-build-failed-commands")) {
+		Sbuild::Exception::Build->throw(error => "Failed to execute post-build-commands",
+		    failstage => "run-post-build-failed-commands");
+	    }
 	}
     };
 
@@ -1542,6 +1547,8 @@ sub run_external_commands {
 	$chroot = 1;
     } elsif ($stage eq "post-build-commands") {
 	$self->log_subsection("Post Build Commands");
+    } elsif ($stage eq "post-build-failed-commands") {
+	$self->log_subsection("Post Build Failed Commands");
     }
 
     # Run each command, substituting the various percent escapes (like

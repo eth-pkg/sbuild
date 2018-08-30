@@ -569,6 +569,10 @@ sub set_options {
 			   push(@{${$self->get_conf('EXTERNAL_COMMANDS')}{"post-build-commands"}},
 				$_[1]);
 		       },
+			"post-build-failed-commands=s" => sub {
+			   push(@{${$self->get_conf('EXTERNAL_COMMANDS')}{"post-build-failed-commands"}},
+				$_[1]);
+		       },
 			"log-external-command-output" => sub {
 			    $self->set_conf('LOG_EXTERNAL_COMMAND_OUTPUT', 1);
 		       },
