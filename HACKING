@@ -11,6 +11,11 @@ Coding
 The style should be apparent from the source.  It is the default Emacs
 perl-mode style.
 
+Sbuild can be executed directly from source by running the following from the
+top level directory.
+
+    $ PERL5LIB=lib bin/sbuild
+
 
 Documentation
 ─────────────
