@@ -1932,9 +1932,10 @@ sub explain_bd_uninstallable {
 	}
 
 	my $host = $self->get_conf('HOST_ARCH');
+	my $build = $self->get_conf('BUILD_ARCH');
 	my @debforeignarg = ();
-	if ($self->get_conf('BUILD_ARCH') ne $self->get_conf('HOST_ARCH')) {
-	    @debforeignarg = ('--deb-foreign-archs', $self->get_conf('HOST_ARCH'));
+	if ($build ne $host) {
+	    @debforeignarg = ('--deb-foreign-archs', $host);
 	}
 
 	# - We run dose-debcheck instead of dose-builddebcheck because we want
@@ -1978,7 +1979,7 @@ sub explain_bd_uninstallable {
 	    # Multi-Arch:foreign or otherwise dose3 might present a solution
 	    # that installs foreign architecture Essential:yes or
 	    # Multi-Arch:foreign packages.
-	    if ($self->get_conf('BUILD_ARCH') eq $self->get_conf('HOST_ARCH')) {
+	    if ($build eq $host) {
 		File::Copy::copy $pipe_cat, $pipe_dose;
 	    } else {
 		my $key_func = sub {
