@@ -50,7 +50,7 @@ configuration.
    9) sbuild: Also print kernel version in build log
 
    3) sbuild-createchroot: do not attempt several setup options when the user
-      specified --setup-only tog ether with --make-sbuild-tarball because then
+      specified --setup-only together with --make-sbuild-tarball because then
       the unpacked directory does not exist
 
    4) sbuild-createchroot: make the mirror argument optional as well (just as
