@@ -795,6 +795,9 @@ sub run_fetch_install_packages {
 	        push(@coredeps, @{$crosscoredeps->{$self->get('Host Arch')}});
 	    } else {
 		push(@coredeps, 'crossbuild-essential-' . $self->get('Host Arch') . ':native');
+		# Also add the following to work around bug #815172
+		push(@coredeps, 'libc-dev:' . $self->get('Host Arch'),
+		    'libstdc++-dev:' . $self->get('Host Arch'));
             }
 	}
 
