@@ -138,7 +138,25 @@ sub setup ($) {
 	    TYPE => 'BOOL',
 	    VARNAME => 'build_arch_all',
 	    GROUP => 'Build options',
-	    DEFAULT => 1,
+	    DEFAULT => undef,
+	    GET => sub {
+		my $conf = shift;
+		my $entry = shift;
+
+		my $retval = $conf->_get($entry->{'NAME'});
+
+		if (!defined($retval)) {
+		    if ($conf->get('BUILD_ARCH') ne $conf->get('HOST_ARCH')) {
+			# default for cross
+			$retval = 0;
+		    } else {
+			# default for native
+			$retval = 1;
+		    }
+		}
+
+		return $retval;
+	    },
 	    HELP => 'Build architecture: all packages by default.',
 	    CLI_OPTIONS => ['--arch-all', '--no-arch-all']
 	},
