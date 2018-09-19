@@ -2397,6 +2397,7 @@ sub build {
     }
 
     $self->log_subsubsection("dpkg-buildpackage");
+    $self->log("Command: " . join(' ', $buildcmd) . "\n");
 
     my $command = {
 	COMMAND => $buildcmd,
