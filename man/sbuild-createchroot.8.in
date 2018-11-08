@@ -27,6 +27,7 @@ sbuild\-createchroot \- create sbuild chroot
 .RB [ \-\-chroot-mode=\fIschroot|sudo|unshare\fP ]
 .RB [ \-\-foreign ]
 .RB [ \-\-resolve-deps " \[or] " \-\-no-resolve-deps ]
+.RB [ \-\-merged-usr " \[or] " \-\-no-merged-usr " \[or] " \-\-auto-merged-usr ]
 .RB [ \-\-keep-debootstrap-dir ]
 .RB [ \-\-debootstrap=\fIdebootstrap\fP ]
 .RB [ "\-\-include=\fIpackage1[,package2,[packagen]]\fP" ]
@@ -160,6 +161,21 @@ Comma separated list of archive components to use (e.g. \[oq]main\[cq],
 Download signatures for retrieved \fIRelease\fP files and check them against
 \fIkeyring-file\fP.  By default \fI/etc/apt/trusted.gpg\fP is used.  Set to an
 empty string to disable signature checking.
+.TP
+.BR \-\-merged-usr
+Create a chroot in which \fI/bin\fP, \fI/sbin\fP and \fI/lib*\fP are
+symbolic links to their counterparts in \fI/usr\fP.
+.TP
+.BR \-\-no-merged-usr
+Create a chroot in which \fI/bin\fP, \fI/sbin\fP and \fI/lib*\fP are
+ordinary directories distinct from their counterparts in \fI/usr\fP.
+This is the default.
+.TP
+.BR \-\-auto-merged-usr
+Do not specify whether \fI/bin\fP, \fI/sbin\fP and \fI/lib*\fP are
+symbolic links to their counterparts in \fI/usr\fP. In this case
+debootstrap will use its default behaviour (which is suite-specific).
+This might become the default in a future version of sbuild-createchroot.
 .TP
 .B SUITE
 The distribution to bootstrap (e.g. \[oq]stretch[cq], \[oq]buster\[cq],

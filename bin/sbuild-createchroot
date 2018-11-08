@@ -92,6 +92,9 @@ sub setup {
 	'CHROOT_MODE'				=> {
 	    DEFAULT => 'schroot'
 	},
+	'MERGED_USR'				=> {
+	    DEFAULT => 0
+	},
     );
 
     $conf->set_allowed_keys(\%createchroot_keys);
@@ -174,6 +177,15 @@ sub set_options {
 	},
         "command-prefix=s" => sub {
 	    $self->set_conf('COMMAND_PREFIX', $_[1]);
+	},
+	"merged-usr" => sub {
+	    $self->set_conf('MERGED_USR', 1)
+	},
+	"auto-merged-usr" => sub {
+	    $self->set_conf('MERGED_USR', 'auto')
+	},
+	"no-merged-usr" => sub {
+	    $self->set_conf('MERGED_USR', 0)
 	});
 }
 
@@ -309,6 +321,10 @@ push @args, "--keyring=" . $conf->get('KEYRING') if $conf->get('KEYRING');
 push @args, "--no-check-gpg" if defined $conf->get('KEYRING') && $conf->get('KEYRING') eq "";
 push @args, $conf->get('RESOLVE_DEPS') ?
     "--resolve-deps" : "--no-resolve-deps";
+if ($conf->get('MERGED_USR') ne 'auto') {
+	push @args, $conf->get('MERGED_USR') ?
+	    "--merged-usr" : "--no-merged-usr";
+}
 push @args, "$suite", "$target", "$mirror";
 push @args, "$script" if $script;
 
