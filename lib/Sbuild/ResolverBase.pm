@@ -1340,6 +1340,9 @@ sub run_apt_ftparchive {
     my $session = $self->get('Session');
 
     # We create the Packages, Sources and Release file inside the chroot.
+    # We cannot use IO::Compress::Gzip, Digest::MD5, or Digest::SHA because
+    # they are not available inside a chroot with only Essential:yes and apt
+    # installed.
     # We cannot use apt-ftparchive as this is not available inside the chroot.
     # Apt-ftparchive outside the chroot might not have access to the files
     # inside the chroot (for example when using qemu or ssh backends).
@@ -1355,9 +1358,6 @@ sub run_apt_ftparchive {
 use strict;
 use warnings;
 
-use IO::Compress::Gzip qw(gzip $GzipError);
-use Digest::MD5;
-use Digest::SHA;
 use POSIX qw(strftime);
 use POSIX qw(locale_h);
 
@@ -1366,50 +1366,101 @@ use POSIX qw(locale_h);
 # Using "print $fh `my_command`" has the disadvantage that "my_command" might
 # be executed through /bin/sh (depending on the characters used) or that the
 # output of "my_command" is very long.
-sub system_redir_stdout
-{
-	my ($filename, @args) = @_;
-
-	open(my $saved_stdout, ">&STDOUT") or die "cannot save stdout: $!";
-	open(my $packages, '>', $filename) or die "cannot open Packages for writing: $!";
-	open(STDOUT, '>&', $packages) or die "cannot redirect stdout: $!";
-
-	system(@args) == 0 or die "system @args failed: $?";
-
-	open(STDOUT, '>&', $saved_stdout) or die "cannot restore stdout: $!";
-	close $saved_stdout;
-	close $packages;
-}
 
 sub hash_file($$)
 {
-	my ($filename, $hashobj) = @_;
-	open (my $handle, '<', $filename) or die "cannot open $filename for reading: $!";
-	my $hash = $hashobj->addfile($handle)->hexdigest;
-	close $handle;
+	my ($filename, $util) = @_;
+	my $output = `$util $filename`;
+	my ($hash, undef) = split /\s+/, $output;
 	return $hash;
 }
 
-system_redir_stdout('Packages', 'dpkg-scanpackages', '-m', '.', '/dev/null');
-system_redir_stdout('Sources', 'dpkg-scansources', '.', '/dev/null');
+{
+    opendir(my $dh, '.') or die "Can't opendir('.'): $!";
+    open my $out, '>', 'Packages';
+    while (my $entry = readdir $dh) {
+	next if $entry !~ /\.deb$/;
+	open my $in, '-|', 'dpkg-deb', '-I', $entry, 'control' or die "cannot fork dpkg-deb";
+	while (my $line = <$in>) {
+	    print $out $line;
+	}
+	close $in;
+	my $size = -s $entry;
+	my $md5 = hash_file($entry, 'md5sum');
+	my $sha1 = hash_file($entry, 'sha1sum');
+	my $sha256 = hash_file($entry, 'sha256sum');
+	print $out "Size: $size\n";
+	print $out "MD5sum: $md5\n";
+	print $out "SHA1: $sha1\n";
+	print $out "SHA256: $sha256\n";
+	print $out "Filename: ./$entry\n";
+	print $out "\n";
+    }
+    close $out;
+    closedir($dh);
+}
+{
+    opendir(my $dh, '.') or die "Can't opendir('.'): $!";
+    open my $out, '>', 'Sources';
+    while (my $entry = readdir $dh) {
+	next if $entry !~ /\.dsc$/;
+	my $size = -s $entry;
+	my $md5 = hash_file($entry, 'md5sum');
+	my $sha1 = hash_file($entry, 'sha1sum');
+	my $sha256 = hash_file($entry, 'sha256sum');
+	my ($sha1_printed, $sha256_printed, $files_printed) = (0, 0, 0);
+	open my $in, '<', $entry or die "cannot open $entry";
+	while (my $line = <$in>) {
+	    next if $line eq "\n";
+	    print $out $line;
+	    if ($line eq "Checksums-Sha1:\n") {
+		print $out " $sha1 $size $entry\n";
+		$sha1_printed = 1;
+	    } elsif ($line eq "Checksums-Sha256:\n") {
+		print $out " $sha256 $size $entry\n";
+		$sha256_printed = 1;
+	    } elsif ($line eq "Files:\n") {
+		print $out " $md5 $size $entry\n";
+		$files_printed = 1;
+	    }
+	}
+	close $in;
+	if ($sha1_printed == 0) {
+	    print $out "Checksums-Sha1:\n";
+	    print $out " $sha1 $size $entry\n";
+	}
+	if ($sha256_printed == 0) {
+	    print $out "Checksums-Sha256:\n";
+	    print $out " $sha256 $size $entry\n";
+	}
+	if ($files_printed == 0) {
+	    print $out "Files:\n";
+	    print $out " $md5 $size $entry\n";
+	}
+	print $out "Directory: .";
+	print $out "\n";
+    }
+    close $out;
+    closedir($dh);
+}
 
-gzip 'Packages' => 'Packages.gz' or die "gzip failed: $GzipError\n";
-gzip 'Sources' => 'Sources.gz' or die "gzip failed: $GzipError\n";
+system('gzip', '--keep', '--force', 'Packages') == 0 or die "gzip failed: $?\n";
+system('gzip', '--keep', '--force', 'Sources') == 0 or die "gzip failed: $?\n";
 
-my $packages_md5 = hash_file('Packages', Digest::MD5->new);
-my $sources_md5 = hash_file('Sources', Digest::MD5->new);
-my $packagesgz_md5 = hash_file('Packages.gz', Digest::MD5->new);
-my $sourcesgz_md5 = hash_file('Sources.gz', Digest::MD5->new);
+my $packages_md5 = hash_file('Packages', 'md5sum');
+my $sources_md5 = hash_file('Sources', 'md5sum');
+my $packagesgz_md5 = hash_file('Packages.gz', 'md5sum');
+my $sourcesgz_md5 = hash_file('Sources.gz', 'md5sum');
 
-my $packages_sha1 = hash_file('Packages', Digest::SHA->new(1));
-my $sources_sha1 = hash_file('Sources', Digest::SHA->new(1));
-my $packagesgz_sha1 = hash_file('Packages.gz', Digest::SHA->new(1));
-my $sourcesgz_sha1 = hash_file('Sources.gz', Digest::SHA->new(1));
+my $packages_sha1 = hash_file('Packages', 'sha1sum');
+my $sources_sha1 = hash_file('Sources', 'sha1sum');
+my $packagesgz_sha1 = hash_file('Packages.gz', 'sha1sum');
+my $sourcesgz_sha1 = hash_file('Sources.gz', 'sha1sum');
 
-my $packages_sha256 = hash_file('Packages', Digest::SHA->new(256));
-my $sources_sha256 = hash_file('Sources', Digest::SHA->new(256));
-my $packagesgz_sha256 = hash_file('Packages.gz', Digest::SHA->new(256));
-my $sourcesgz_sha256 = hash_file('Sources.gz', Digest::SHA->new(256));
+my $packages_sha256 = hash_file('Packages', 'sha256sum');
+my $sources_sha256 = hash_file('Sources', 'sha256sum');
+my $packagesgz_sha256 = hash_file('Packages.gz', 'sha256sum');
+my $sourcesgz_sha256 = hash_file('Sources.gz', 'sha256sum');
 
 my $packages_size = -s 'Packages';
 my $sources_size = -s 'Sources';
