@@ -23,7 +23,7 @@ package main;
 use Sbuild qw($devnull);
 use Sbuild::Sysconfig;
 
-$ENV{'LC_ALL'} = "POSIX";
+$ENV{'LC_ALL'} = "C.UTF-8";
 $ENV{'SHELL'} = '/bin/sh';
 
 # avoid intermixing of stdout and stderr

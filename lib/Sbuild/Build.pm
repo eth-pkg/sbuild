@@ -102,7 +102,7 @@ sub new {
     $host_defaults->{'USER'} = $self->get_conf('USERNAME');
     $host_defaults->{'DIR'} = $self->get_conf('HOME');
     $host_defaults->{'STREAMIN'} = $devnull;
-    $host_defaults->{'ENV'}->{'LC_ALL'} = 'POSIX';
+    $host_defaults->{'ENV'}->{'LC_ALL'} = 'C.UTF-8';
     $host_defaults->{'ENV'}->{'SHELL'} = '/bin/sh';
     $host_defaults->{'ENV_FILTER'} = $self->get_conf('ENVIRONMENT_FILTER');
     # Note, this should never fail.  But, we should handle failure anyway.
@@ -567,7 +567,7 @@ END
 	$chroot_defaults->{'STREAMIN'} = $devnull;
 	$chroot_defaults->{'STREAMOUT'} = $self->get('Log Stream');
 	$chroot_defaults->{'STREAMERR'} = $self->get('Log Stream');
-	$chroot_defaults->{'ENV'}->{'LC_ALL'} = 'POSIX';
+	$chroot_defaults->{'ENV'}->{'LC_ALL'} = 'C.UTF-8';
 	$chroot_defaults->{'ENV'}->{'SHELL'} = '/bin/sh';
 	$chroot_defaults->{'ENV'}->{'HOME'} = '/sbuild-nonexistent';
 	$chroot_defaults->{'ENV_FILTER'} = $self->get_conf('ENVIRONMENT_FILTER');
