@@ -1509,9 +1509,22 @@ close $releasefh;
 
 SCRIPTEND
 
-    $session->run_command(
-	{ COMMAND => ['perl', '-e', $packagessourcescmd],
-	    USER => "root", DIR => $dummy_archive_dir});
+    # Instead of using $(perl -e) and passing $packagessourcescmd as a command
+    # line argument, feed perl from standard input because otherwise the
+    # command line will be too long for certain backends (like the autopkgtest
+    # qemu backend).
+    my $pipe = $session->pipe_command(
+	{ COMMAND => ['perl'],
+	    USER => "root",
+	    DIR => $dummy_archive_dir,
+	    PIPE => 'out',
+	});
+    if (!$pipe) {
+	$self->log_error("cannot open pipe\n");
+	return 0;
+    }
+    print $pipe $packagessourcescmd;
+    close $pipe;
     if ($? ne 0) {
 	$self->log_error("cannot create dummy archive\n");
 	return 0;
