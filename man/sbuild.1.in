@@ -567,8 +567,9 @@ This command line option sets the \fBBIN_NMU\fP configuration variable and sets 
 for more information.
 .TP
 .BR "\-\-binNMU=\fINMU-version\fP"
-The version number of the binary NMU.  This should be used in conjunction with
-\-\-make\-binNMU.  \fIversion\fP is a single number for the (+b\fIn\fR) format
+The version number of the binary NMU.  This option only has an effect if
+combined with \-\-make\-binNMU and/or with \-\-append\-to\-version.
+\fIversion\fP is a single number for the (+b\fIn\fR) format
 used for binary NMUs.
 If the argument is the empty string or zero, then the +b\fIn\fR suffix will not
 be appended.
