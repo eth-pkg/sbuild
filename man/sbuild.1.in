@@ -458,7 +458,8 @@ for more information.
 .BR \-\-profiles=\fIprofile[,...]\fP"
 Specify the profile(s) we build, as a comma-separated list. Defaults to the
 space separated list of profiles in the \fBDEB_BUILD_PROFILES\fP environment
-variable.
+variable when building natively or the \fBcross\fP and \fBnocheck\fP profiles
+when cross-building.
 This command line option sets the \fBBUILD_PROFILES\fP configuration variable. See
 .BR sbuild.conf (5)
 for more information.

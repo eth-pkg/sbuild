@@ -168,6 +168,32 @@ sub setup ($) {
 	    HELP => 'Build architecture: any packages by default.',
 	    CLI_OPTIONS => ['--arch-any', '--no-arch-any']
 	},
+	'BUILD_PROFILES'        => {
+	    TYPE => 'STRING',
+	    VARNAME => 'build_profiles',
+	    GROUP => 'Build options',
+	    DEFAULT => undef,
+	    GET => sub {
+		my $conf = shift;
+		my $entry = shift;
+
+		my $retval = $conf->_get($entry->{'NAME'});
+
+		if (!defined($retval)) {
+		    if ($conf->get('BUILD_ARCH') ne $conf->get('HOST_ARCH')) {
+			# default for cross
+			$retval = $ENV{'DEB_BUILD_PROFILES'} || 'cross nocheck';
+		    } else {
+			# default for native
+			$retval = $ENV{'DEB_BUILD_PROFILES'} || '';
+		    }
+		}
+
+		return $retval;
+	    },
+	    HELP => 'Build profiles. Separated by spaces. Defaults to the value of the DEB_BUILD_PROFILES environment variable when building natively and to the cross and nocheck profiles when cross-building.',
+	    CLI_OPTIONS => ['--profiles']
+	},
 	'NOLOG'					=> {
 	    TYPE => 'BOOL',
 	    VARNAME => 'nolog',

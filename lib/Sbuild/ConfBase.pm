@@ -192,14 +192,6 @@ sub init_allowed_keys {
 	    HELP => 'Build architecture (Arch we are building on).',
 	    CLI_OPTIONS => ['--arch', '--build']
 	},
-	'BUILD_PROFILES'        => {
-	    TYPE => 'STRING',
-	    VARNAME => 'build_profiles',
-	    GROUP => 'Build options',
-	    DEFAULT => $ENV{'DEB_BUILD_PROFILES'} || '',
-	    HELP => 'Build profiles. Separated by spaces.',
-	    CLI_OPTIONS => ['--profiles']
-	},
 	'HOSTNAME'				=> {
 	    TYPE => 'STRING',
 	    GROUP => '__INTERNAL',
