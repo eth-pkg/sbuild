@@ -594,6 +594,9 @@ sub set_options {
 			"source-only-changes" => sub {
 			   $self->set_conf('SOURCE_ONLY_CHANGES', 1);
 			},
+			"no-source-only-changes" => sub {
+			   $self->set_conf('SOURCE_ONLY_CHANGES', 0);
+			},
 			"purge-extra-packages" => sub {
 			    $self->set_conf('PURGE_EXTRA_PACKAGES', 1);
 			},
