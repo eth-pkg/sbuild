@@ -69,6 +69,33 @@ sub basesetup ($$) {
 	}
     }
 
+    # Add users
+    foreach my $user ('sbuild', $session->get_conf('BUILD_USER')) {
+	$session->run_command(
+	    { COMMAND => ['getent', 'passwd', $user],
+		USER => 'root',
+		STREAMIN => $devnull,
+		STREAMOUT => $devnull,
+		DIR => '/' });
+	if ($?) {
+	    # This will require root privileges.  However, this should
+	    # only get run at initial chroot setup time.
+	    $session->run_command(
+		{ COMMAND => ['adduser', '--system', '--quiet',
+			'--home', '/var/lib/sbuild', '--no-create-home',
+			'--shell', '/bin/bash', '--ingroup', 'sbuild',
+			'--gecos', 'Debian source builder', $user],
+		    USER => 'root',
+		    STREAMIN => $devnull,
+		    STREAMOUT => $devnull,
+		    DIR => '/' });
+	    if ($?) {
+		print STDERR "E: Failed to create user $user\n";
+		return $?
+	    }
+	}
+    }
+
     my $build_path = '/build';
     if (defined($session->get_conf('BUILD_PATH')) && $session->get_conf('BUILD_PATH')) {
 	$build_path = $session->get_conf('BUILD_PATH');
