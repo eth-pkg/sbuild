@@ -744,21 +744,6 @@ sub exec_command {
     my $self = shift;
     my $options = shift;
 
-    $self->get_command_internal($options);
-
-    if (!defined($options->{'EXPCOMMAND'}) || $options->{'EXPCOMMAND'} eq ''
-	|| !defined($options->{'COMMAND'}) || scalar(@{$options->{'COMMAND'}}) == 0
-	|| !defined($options->{'INTCOMMAND'}) || scalar(@{$options->{'INTCOMMAND'}}) == 0) {
-	die "get_command_internal failed during exec_command\n";
-    }
-
-    $self->log_command($options);
-
-    my $command = $options->{'EXPCOMMAND'};
-
-    my $program = $command->[0];
-    $program = $options->{'PROGRAM'} if defined($options->{'PROGRAM'});
-
     my @filter;
     my $chrootfilter = $self->get('Defaults')->{'ENV_FILTER'};
     push(@filter, @{$chrootfilter});
@@ -791,6 +776,26 @@ sub exec_command {
     foreach (keys %$commandenv) {
 	$ENV{$_} = $commandenv->{$_};
     }
+
+    # get_command_internal has to be called *after* $ENV was set because
+    # depending on the backend, environment variables have to be handled
+    # differently. For example the autopkgtest backend has to insert an
+    # explicit call to env into the command so that the environment variables
+    # survive.
+    $self->get_command_internal($options);
+
+    if (!defined($options->{'EXPCOMMAND'}) || $options->{'EXPCOMMAND'} eq ''
+	|| !defined($options->{'COMMAND'}) || scalar(@{$options->{'COMMAND'}}) == 0
+	|| !defined($options->{'INTCOMMAND'}) || scalar(@{$options->{'INTCOMMAND'}}) == 0) {
+	die "get_command_internal failed during exec_command\n";
+    }
+
+    $self->log_command($options);
+
+    my $command = $options->{'EXPCOMMAND'};
+
+    my $program = $command->[0];
+    $program = $options->{'PROGRAM'} if defined($options->{'PROGRAM'});
 
     debug2("PROGRAM: $program\n");
     debug2("COMMAND: ", join(" ", @{$options->{'COMMAND'}}), "\n");

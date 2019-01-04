@@ -264,6 +264,11 @@ sub get_command_internal {
 
     @cmdline = @{$self->get('Autopkgtest Exec Command')};
 
+    push @cmdline, 'env';
+    foreach my $var (keys %ENV) {
+	push @cmdline, "$var=$ENV{$var}";
+    }
+
     if ($user ne "root") {
 	push @cmdline, "/sbin/runuser", '-u', $user, '--';
     }
