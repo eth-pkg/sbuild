@@ -733,8 +733,7 @@ sub pipe_command {
 }
 
 sub get_internal_exec_string {
-    my $self = shift;
-    return $self->get_internal_exec_string();
+    return;
 }
 
 # This function must not print anything to standard output or standard error
