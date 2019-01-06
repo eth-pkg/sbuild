@@ -204,7 +204,7 @@ sub begin_session {
 
     # if a source type chroot was requested, then we need to memorize the
     # tarball location for when the session is ended
-    if ($namespace eq "source") {
+    if (defined($namespace) && $namespace eq "source") {
 	$self->set('Tarball', $tarball);
     }
 
