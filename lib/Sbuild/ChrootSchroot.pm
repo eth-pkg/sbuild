@@ -103,20 +103,27 @@ sub end_session {
     return 1;
 }
 
+sub _get_exec_argv {
+    my $self = shift;
+    my $dir = shift;
+    my $user = shift;
+
+    return ($self->get_conf('SCHROOT'),
+	'-d', $dir,
+	'-c', $self->get('Session ID'),
+	'--run-session',
+	@{$self->get_conf('SCHROOT_OPTIONS')},
+	'-u', "$user", '-p', '--');
+}
+
 sub get_internal_exec_string {
     my $self = shift;
 
     return if $self->get('Session ID') eq "";
 
-    my $dir = '/';
-    my $user = 'root';
-    my @cmdline = ($self->get_conf('SCHROOT'),
-		   '-d', $dir,
-		   '-c', $self->get('Session ID'),
-		   '--run-session',
-		   @{$self->get_conf('SCHROOT_OPTIONS')},
-		   '-u', "$user", '-p', '--');
-    return join " ", (map { shellescape $_ } @cmdline);
+    return join " ", (map
+	{ shellescape $_ }
+	$self->_get_exec_argv('/', 'root'));
 }
 
 sub get_command_internal {
@@ -144,17 +151,12 @@ sub get_command_internal {
 	$user = $self->get_conf('USERNAME');
     }
 
-    my @cmdline = ();
-
     if (!defined($dir)) {
 	$dir = '/';
     }
-    @cmdline = ($self->get_conf('SCHROOT'),
-		'-d', $dir,
-		'-c', $self->get('Session ID'),
-		'--run-session',
-		@{$self->get_conf('SCHROOT_OPTIONS')},
-		'-u', "$user", '-p', '--');
+
+    my @cmdline = $self->_get_exec_argv($dir, $user);
+
     if (ref $command) {
         push @cmdline, @$command;
     } else {
