@@ -28,6 +28,7 @@ use Sbuild::Utility;
 use File::Temp qw(mkdtemp tempfile);
 use File::Copy;
 use Cwd qw(abs_path);
+use Sbuild qw(shellescape);
 
 BEGIN {
     use Exporter ();
@@ -264,39 +265,20 @@ sub end_session {
     return 1;
 }
 
-sub get_command_internal {
+sub _get_exec_argv {
     my $self = shift;
-    my $options = shift;
-
-    # Command to run. If I have a string, use it. Otherwise use the list-ref
-    my $command = $options->{'INTCOMMAND_STR'} // $options->{'INTCOMMAND'};
-
-    my $user = $options->{'USER'};          # User to run command under
-    my $dir;                                # Directory to use (optional)
-    $dir = $self->get('Defaults')->{'DIR'} if
-    (defined($self->get('Defaults')) &&
-	defined($self->get('Defaults')->{'DIR'}));
-    $dir = $options->{'DIR'} if
-    defined($options->{'DIR'}) && $options->{'DIR'};
-
-    if (!defined $user || $user eq "") {
-	$user = $self->get_conf('USERNAME');
-    }
-
-    my @cmdline = ();
-
-    if (!defined($dir)) {
-	$dir = '/';
-    }
+    my $dir = shift;
+    my $user = shift;
+    my $disable_network = shift // 0;
 
     my $network_setup = 'cat /etc/resolv.conf > "$rootdir/etc/resolv.conf";';
     my $unshare = CLONE_NEWNS | CLONE_NEWPID | CLONE_NEWUTS | CLONE_NEWIPC;
-    if (defined($options->{'DISABLE_NETWORK'}) && $options->{'DISABLE_NETWORK'}) {
+    if ($disable_network) {
 	$unshare |= CLONE_NEWNET;
 	$network_setup = 'ip link set lo up;> "$rootdir/etc/resolv.conf";';
     }
 
-    @cmdline = (
+    return (
 	'env', 'PATH=/usr/sbin:/usr/bin:/sbin:/bin',
 	get_unshare_cmd({UNSHARE_FLAGS => $unshare, FORK => 1, IDMAP => $self->get('Uid Gid Map')}), 'sh', '-c', "
 	rootdir=\"\$1\"; shift;
@@ -318,6 +300,45 @@ sub get_command_internal {
 	exec /usr/sbin/chroot \"\$rootdir\" /sbin/runuser -u \"\$user\" -- sh -c \"cd \\\"\\\$1\\\" && shift && \\\"\\\$@\\\"\" -- \"\$dir\" \"\$@\";
 	", '--', $self->get('Session ID'), $user, $dir
     );
+}
+
+sub get_internal_exec_string {
+    my $self = shift;
+
+    return join " ", (map
+	{ shellescape $_ }
+	$self->_get_exec_argv('/', 'root'));
+}
+
+sub get_command_internal {
+    my $self = shift;
+    my $options = shift;
+
+    # Command to run. If I have a string, use it. Otherwise use the list-ref
+    my $command = $options->{'INTCOMMAND_STR'} // $options->{'INTCOMMAND'};
+
+    my $user = $options->{'USER'};          # User to run command under
+    my $dir;                                # Directory to use (optional)
+    $dir = $self->get('Defaults')->{'DIR'} if
+    (defined($self->get('Defaults')) &&
+	defined($self->get('Defaults')->{'DIR'}));
+    $dir = $options->{'DIR'} if
+    defined($options->{'DIR'}) && $options->{'DIR'};
+
+    if (!defined $user || $user eq "") {
+	$user = $self->get_conf('USERNAME');
+    }
+
+    if (!defined($dir)) {
+	$dir = '/';
+    }
+
+    my $disable_network = 0;
+    if (defined($options->{'DISABLE_NETWORK'}) && $options->{'DISABLE_NETWORK'}) {
+	$disable_network = 1;
+    }
+
+    my @cmdline = $self->_get_exec_argv($dir, $user, $disable_network);
     if (ref $command) {
 	push @cmdline, @$command;
     } else {
