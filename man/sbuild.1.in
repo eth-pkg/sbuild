@@ -41,6 +41,7 @@ sbuild \- build debian packages from source
 .RB [ \-\-append\-to\-version=\fIstring\fP ]
 .RB [ \-\-binNMU\-timestamp=\fItimestamp\fP ]
 .RB [ \-\-binNMU\-changelog=\fIchangelog\fP ]
+.RB [ \-\-build\-dir=\fIdirectory\fP ]
 .RB [ \-\-add-depends=\fIdependency\fP ]
 .RB [ \-\-add-conflicts=\fIdependency\fP ]
 .RB [ \-\-add-depends\-arch=\fIdependency\fP ]
@@ -258,7 +259,7 @@ schroot name or alias that matches \fI$distribution\-$arch\-sbuild\fP,
 \fI$distribution\-sbuild\fP, \fI$distribution\-$arch\fP or \fI$distribution\fP
 that exists.  With the \fBsudo\fP chroot mode, this option specifies the chroot
 directory to use.  The directory is either expected in /etc/sbuild/chroot (in
-buildd sbuild mode) or in the current directory, prefixed with "chroot-" (in
+buildd sbuild mode) or in the build directory (see \-\-build\-dir), prefixed with "chroot-" (in
 user sbuild mode, the default). If not specified, the default is to search for
 a directory in the respective locations named in the same way as for the
 schroot mode.  With the \fBunshare\fP chroot mode, if this option is a path,
@@ -612,6 +613,15 @@ Sbuild will not interpret any backslash escapes.
 This option is incompatible with \-\-make\-binNMU, \-\-binNMU,
 \-\-append\-to\-version and \-\-binNMU\-timestamp.
 This command line option sets the \fBBIN_NMU_CHANGELOG\fP configuration
+variable. See
+.BR sbuild.conf (5)
+for more information.
+.TP
+.BR "\-\-build\-dir=\fIdirectory\fP"
+Set the output directory for the build artifacts created by dpkg-buildpackage
+and the log file. By default, the current directory is used or, when sbuild is
+executed from within an unpacked source directory, the parent directory.
+This command line option sets the \fBBUILD_DIR\fP configuration
 variable. See
 .BR sbuild.conf (5)
 for more information.

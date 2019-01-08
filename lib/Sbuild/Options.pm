@@ -190,6 +190,9 @@ sub set_options {
 			   $self->set_conf('BIN_NMU_CHANGELOG', $_[1]);
 			   $opt_binnmu_changelog = 1;
 		       },
+		       "build-dir=s" => sub {
+			   $self->set_conf('BUILD_DIR', $_[1]);
+		       },
 		       "c|chroot=s" => sub {
 			   $self->set_conf('CHROOT', $_[1]);
 		       },
