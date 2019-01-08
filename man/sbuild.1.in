@@ -906,7 +906,7 @@ chroot. This option can be used multiple times to add multiple commands.
 Certain percent escapes are supported. To write a literal percent sign, escape
 it with another percent sign. See the section
 .TP
-.BR \-\-post\-build\-commands=\fIstring\fP
+.BR \-\-post\-build\-failed\-commands=\fIstring\fP
 Exactly like the above, but when a build fails.
 .BR "EXTERNAL COMMANDS"
 for more information.
