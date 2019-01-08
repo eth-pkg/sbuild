@@ -52,6 +52,7 @@ sbuild \- build debian packages from source
 .RB [ \-e \[or] \-\-uploader=\fIuploader\fP ]
 .RB [ \-k \[or] \-\-keyid=\fIkey-id\fP ]
 .RB [ \-\-source\-only\-changes ]
+.RB [ \-\-no\-source\-only\-changes ]
 .RB [ \-j \[or] \-\-jobs=\fIn\fP ]
 .RB [ \-\-debbuildopt=\fIoption\fP ]
 .RB [ \-\-debbuildopts=\fIoptions\fP ]
