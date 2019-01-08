@@ -603,6 +603,13 @@ END
 
     debug("Error run_chroot_session(): $@") if $@;
 
+    if ($self->get('Pkg Status') ne "successful") {
+	if(!$self->run_external_commands("post-build-failed-commands")) {
+	    Sbuild::Exception::Build->throw(error => "Failed to execute post-build-commands",
+		failstage => "run-post-build-failed-commands");
+	}
+    }
+
     # End chroot session
     my $session = $self->get('Session');
     if (defined $session) {
@@ -903,11 +910,6 @@ sub run_fetch_install_packages {
 		    failstage => "run-post-build-commands");
 	    }
 
-	} else {
-	    if(!$self->run_external_commands("post-build-failed-commands")) {
-		Sbuild::Exception::Build->throw(error => "Failed to execute post-build-commands",
-		    failstage => "run-post-build-failed-commands");
-	    }
 	}
     };
 
