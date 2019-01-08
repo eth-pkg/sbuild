@@ -145,7 +145,6 @@ sub get_info_all {
     my $self = shift;
 
     my $chroots = {};
-    my $build_dir = $self->get_conf('BUILD_DIR');
 
     local %ENV;
 
