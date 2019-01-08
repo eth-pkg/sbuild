@@ -219,13 +219,12 @@ sub create_source_package ($) {
     my $dir = getcwd();
     my $origdir=$dir;
     my $origdsc=$dsc;
-    my $dscdir=$dir;
     # Note: need to support cases when invoked from a subdirectory
     # of the build directory, i.e. $dsc/foo -> $dsc/.. in addition
     # to $dsc -> $dsc/.. as below.
     # We won't attempt to build the source package from the source
     # directory so the source package files will go to the parent dir.
-    $dscdir = abs_path("$dsc/..");
+    my $dscdir = abs_path("$dsc/..");
     if (index($dir, $dsc, 0) == 0) {
 	$conf->set('BUILD_DIR', $dscdir);
     }
