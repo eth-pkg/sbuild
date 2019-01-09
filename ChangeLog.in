@@ -7,6 +7,32 @@ Full installation instructions are provided in the INSTALL file.  The
 README file also contains more specific notes regarding building and
 configuration.
 
+ * Major changes in 0.78.0:
+
+   1) core: Add libc-dev and libstdc++-dev to Build-Depends when cross
+      compiling
+
+   2) core: default to --no-arch-all when cross compiling
+
+   3) core: Set build profiles cross and nocheck by default when cross
+      compiling
+
+   4) core: Switch to C.UTF-8 for $LC_ALL
+
+   5) core: allow chroots with nothing more but Essenital:yes packages, apt
+      and their hard dependencies and create missing users and groups as
+      needed
+
+   6) sbuild: add --build-dir option
+
+   7) sbuild: add --no-source-only-changes option
+
+   8) sbuild: add --post-build-failed-commands hook
+
+   9) sbuild: let --append-to-version imply --no-arch-all
+
+   10) sbuild-createchroot: Don't usrmerge even if it is the debootstrap default
+
  * Major changes in 0.77.1:
 
    1) sbuild: run dpkg-source --before-build and --after-build
