@@ -28,7 +28,7 @@ builddsysconfdir = $(BUILDD_SYSCONF_DIR)
 builddsysconf_DATA = buildd.conf
 
 exampleconfdir = $(docdir)/examples
-exampleconf_DATA = example.sbuildrc sbuild-update-all
+exampleconf_DATA = example.sbuildrc sbuild-debian-developer-setup-update-all
 
 COMPAT_SETUP = 99builddsourceslist
 SETUP =
