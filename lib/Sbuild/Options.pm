@@ -94,7 +94,7 @@ sub set_options {
 			   if ($opt_make_binnmu) {
 			       die "--arch-all cannot be used together with --make-binNMU";
 			   }
-			   if ($opt_append_to_version)
+			   if ($opt_append_to_version) {
 			       die "--arch-all cannot be used together with --append-to-version";
 			   }
 			   $self->set_conf('BUILD_ARCH_ALL', 1);
