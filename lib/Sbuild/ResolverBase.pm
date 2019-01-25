@@ -1412,6 +1412,7 @@ sub hash_file($$)
 	open my $in, '<', $entry or die "cannot open $entry";
 	while (my $line = <$in>) {
 	    next if $line eq "\n";
+	    $line =~ s/^Source:/Package:/;
 	    print $out $line;
 	    if ($line eq "Checksums-Sha1:\n") {
 		print $out " $sha1 $size $entry\n";
@@ -1437,7 +1438,7 @@ sub hash_file($$)
 	    print $out "Files:\n";
 	    print $out " $md5 $size $entry\n";
 	}
-	print $out "Directory: .";
+	print $out "Directory: .\n";
 	print $out "\n";
     }
     close $out;
