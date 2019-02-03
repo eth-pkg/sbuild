@@ -2371,10 +2371,11 @@ sub build {
 	# Add cross environment config
 	if ($host_arch ne $build_arch) {
 		$buildenv{'CONFIG_SITE'} = "/etc/dpkg-cross/cross-config." . $host_arch;
-		if (defined($buildenv{'DEB_BUILD_OPTIONS'})) {
-			$buildenv{'DEB_BUILD_OPTIONS'} .= " nocheck";
-		} else {
-			$buildenv{'DEB_BUILD_OPTIONS'} = "nocheck";
+		# when cross-building, only set "nocheck" if DEB_BUILD_OPTIONS
+		# was not already set. This allows overwriting the default by
+		# setting the DEB_BUILD_OPTIONS environment variable
+		if (!defined($ENV{'DEB_BUILD_OPTIONS'})) {
+			$ENV{'DEB_BUILD_OPTIONS'} = "nocheck";
 		}
 	}
 
