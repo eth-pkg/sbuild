@@ -1030,6 +1030,7 @@ chroot, so it can refer to any path on the host system.
 If a directory is passed instead of a regular file, then all regular files
 inside that directory with a filename that ends in \fI.deb\fP will be added in
 the same fashion as it is done for individual packages.
+This option can be specified multiple times.
 This command line option appends to the \fBEXTRA_PACKAGES\fP configuration variable. See
 .BR sbuild.conf (5)
 for more information.
