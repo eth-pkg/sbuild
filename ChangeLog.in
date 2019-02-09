@@ -7,6 +7,10 @@ Full installation instructions are provided in the INSTALL file.  The
 README file also contains more specific notes regarding building and
 configuration.
 
+ * Major changes in 0.78.1:
+
+   None (bugfix release)
+
  * Major changes in 0.78.0:
 
    1) core: Add libc-dev and libstdc++-dev to Build-Depends when cross
