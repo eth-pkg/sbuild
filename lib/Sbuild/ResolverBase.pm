@@ -1445,8 +1445,8 @@ sub hash_file($$)
     closedir($dh);
 }
 
-system('gzip', '--keep', '--force', 'Packages') == 0 or die "gzip failed: $?\n";
-system('gzip', '--keep', '--force', 'Sources') == 0 or die "gzip failed: $?\n";
+system('gzip -c --force Packages > Packages.gz') == 0 or die "gzip failed: $?\n";
+system('gzip -c --force Sources  > Sources.gz' ) == 0 or die "gzip failed: $?\n";
 
 my $packages_md5 = hash_file('Packages', 'md5sum');
 my $sources_md5 = hash_file('Sources', 'md5sum');
