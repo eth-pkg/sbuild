@@ -2776,16 +2776,14 @@ sub check_space {
     my $sum = 0;
 
     my $dscdir = $self->get('DSC Dir');
+    return -1 unless (defined $dscdir);
+
     my $build_dir = $self->get('Build Dir');
     my $pkgbuilddir = "$build_dir/$dscdir";
 
     # if the source package was not yet unpacked, we will not attempt to compute
     # the required space.
-    unless( defined $dscdir && -d $dscdir)
-    {
-	return -1;
-    }
-
+    return -1 unless ($self->get('Session')->test_directory($pkgbuilddir));
 
     my ($space, $spacenum);
 
