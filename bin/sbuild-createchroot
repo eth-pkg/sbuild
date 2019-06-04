@@ -215,6 +215,8 @@ my %personalities = (
     'armel:arm64' => 'linux32',
     'armhf:arm64' => 'linux32',
     'i386:amd64' => 'linux32',
+    'mipsel:mips64el' => 'linux32',
+    'powerpc:ppc64' => 'linux32',
 );
 
 my $conf = Sbuild::Conf::new();
