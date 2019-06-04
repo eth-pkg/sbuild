@@ -211,6 +211,12 @@ use File::Spec;
 sub add_items ($@);
 sub makedir ($$);
 
+my %personalities = (
+    'armel:arm64' => 'linux32',
+    'armhf:arm64' => 'linux32',
+    'i386:amd64' => 'linux32',
+);
+
 my $conf = Sbuild::Conf::new();
 Conf::setup($conf);
 exit 1 if !defined($conf);
@@ -607,11 +613,12 @@ EOF
 	# Detect whether personality might be needed.
 	if ($conf->get('ARCH') ne $conf->get('BUILD_ARCH')) {
 	    # Take care of the known case(s).
-	    if ($conf->get('BUILD_ARCH') eq 'i386' &&
-		$conf->get('ARCH') eq 'amd64') {
-		$personality='linux32';
+	    my $key = $conf->get('BUILD_ARCH') . ':' . $conf->get('ARCH');
+	    if (exists $personalities{$key}) {
+		$personality = $personalities{$key};
 		$personality_message =
-		"I: Added personality=$personality automatically (i386 on amd64).\n";
+		"I: Added personality=$personality automatically " .
+		"(" . $conf->get('BUILD_ARCH') . " on " . $conf->get('ARCH') . ").\n";
 	    } else {
 		$personality_message =
 		"W: The selected architecture and the current architecture do not match\n" .
