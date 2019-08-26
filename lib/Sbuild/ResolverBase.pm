@@ -816,6 +816,7 @@ sub dump_build_environment {
     }
     $self->log("\n");
 
+    return $status->{'dpkg-dev'}->{'Version'};
 }
 
 sub run_apt {

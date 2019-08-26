@@ -309,6 +309,9 @@ sub set_options {
 			   push(@{$self->get_conf('DPKG_BUILDPACKAGE_USER_OPTIONS')},
 				$_[1]);
 		       },
+		       "dpkg-file-suffix=s" => sub {
+			   $self->set_conf('DPKG_FILE_SUFFIX', $_[1]);
+		       },
 		       "j|jobs=i" => sub {
 			   push(@{$self->get_conf('DPKG_BUILDPACKAGE_USER_OPTIONS')},
 				'-j'.$_[1])

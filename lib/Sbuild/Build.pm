@@ -114,6 +114,7 @@ sub new {
     $self->set('Log Stream', undef);
     $self->set('Summary Stats', {});
     $self->set('dpkg-buildpackage pid', undef);
+    $self->set('Dpkg Version', undef);
 
     # DSC, package and version information:
     $self->set_dsc($dsc);
@@ -852,7 +853,8 @@ sub run_fetch_install_packages {
 	}
 
 	$self->check_abort();
-	$resolver->dump_build_environment();
+	my $dpkg_version = $resolver->dump_build_environment();
+	$self->set('Dpkg Version',Dpkg::Version->new($dpkg_version));
 
 	$self->check_abort();
 	if ($self->build()) {
@@ -2357,6 +2359,19 @@ sub build {
     push (@{$buildcmd}, "-sa") if ($self->get_conf('BUILD_SOURCE') && $self->get_conf('FORCE_ORIG_SOURCE'));
     push (@{$buildcmd}, "-r" . $self->get_conf('FAKEROOT'));
 
+    if ($self->get_conf('DPKG_FILE_SUFFIX')) {
+	my $dpkg_version_ok = Dpkg::Version->new("1.18.11");
+	if ($self->get('Dpkg Version') >= $dpkg_version_ok) {
+	    my $changes = $self->get_changes();
+	    push (@{$buildcmd}, "--changes-option=-O../$changes");
+	    my $buildinfo = $self->get_buildinfo();
+	    push (@{$buildcmd}, "--buildinfo-option=-O../$buildinfo");
+	} else {
+	    $self->log("Ignoring dpkg file suffix: dpkg version too old\n");
+	    $self->set_conf('DPKG_FILE_SUFFIX',undef);
+	}
+    }
+
     if (defined($self->get_conf('DPKG_BUILDPACKAGE_USER_OPTIONS')) &&
 	$self->get_conf('DPKG_BUILDPACKAGE_USER_OPTIONS')) {
 	push (@{$buildcmd}, @{$self->get_conf('DPKG_BUILDPACKAGE_USER_OPTIONS')});
@@ -2755,19 +2770,35 @@ sub get_env ($$) {
     return $envlist;
 }
 
-sub get_changes {
+sub get_build_filename {
     my $self=shift;
-    my $changes;
+    my $filetype=shift;
+    my $changes = $self->get('Package_SVersion');
 
     if ($self->get_conf('BUILD_ARCH_ANY')) {
-	$changes = $self->get('Package_SVersion') . '_' . $self->get('Host Arch') . '.changes';
+	$changes .= '_' . $self->get('Host Arch');
     } elsif ($self->get_conf('BUILD_ARCH_ALL')) {
-	$changes = $self->get('Package_SVersion') . "_all.changes";
+	$changes .= "_all";
     } elsif ($self->get_conf('BUILD_SOURCE')) {
-	$changes = $self->get('Package_SVersion') . "_source.changes";
+	$changes .= "_source";
     }
 
+    my $suffix = $self->get_conf('DPKG_FILE_SUFFIX');
+    $changes .= $suffix if ($suffix);
+
+    $changes .= '.' . $filetype;
+
     return $changes;
+}
+
+sub get_changes {
+    my $self=shift;
+    return $self->get_build_filename("changes");
+}
+
+sub get_buildinfo {
+    my $self=shift;
+    return $self->get_build_filename("buildinfo");
 }
 
 sub check_space {
