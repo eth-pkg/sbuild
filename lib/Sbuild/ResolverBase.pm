@@ -115,8 +115,13 @@ sub setup {
     print $F qq(APT::AutoRemove::SuggestsImportant "false";\n);
     print $F qq(APT::AutoRemove::RecommendsImportant "false";\n);
     print $F qq(Acquire::Languages "none";\n); # do not download translations
-    # remove packages from /var/cache/apt/archive/*.deb after installation
-    print $F qq(APT::Keep-Downloaded-Packages "false";\n);
+
+    if ($self->get_conf('APT_KEEP_DOWNLOADED_PACKAGES')) {
+	print $F qq(APT::Keep-Downloaded-Packages "true";\n);
+    } else {
+	# remove packages from /var/cache/apt/archive/*.deb after installation
+	print $F qq(APT::Keep-Downloaded-Packages "false";\n);
+    }
 
     if ($self->get('Split')) {
 	print $F "Dir \"$chroot_dir\";\n";

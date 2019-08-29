@@ -879,6 +879,13 @@ $environment_filter = [map /^FOOBAR$/ ? () : $_, Dpkg::Build::Info::get_build_en
 	    HELP => 'APT clean.  1 to enable running "apt-get clean" at the start of each build, or 0 to disable.',
 	    CLI_OPTIONS => ['--apt-clean', '--no-apt-clean']
 	},
+	'APT_KEEP_DOWNLOADED_PACKAGES'          => {
+	    TYPE => 'BOOL',
+	    VARNAME => 'apt_keep_downloaded_packages',
+	    GROUP => 'Chroot options',
+	    DEFAULT => 0,
+	    HELP => 'Keep downloaded packages in cache by APT. Controls APT::Keep-Downloaded-Packages option used when downloading dependencies. 1 to keep downloaded packages in cache, or 0 to delete them after installation.'
+	},
 	'APT_UPDATE'				=> {
 	    TYPE => 'BOOL',
 	    VARNAME => 'apt_update',
