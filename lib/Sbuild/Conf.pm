@@ -884,7 +884,7 @@ $environment_filter = [map /^FOOBAR$/ ? () : $_, Dpkg::Build::Info::get_build_en
 	    VARNAME => 'apt_keep_downloaded_packages',
 	    GROUP => 'Chroot options',
 	    DEFAULT => 0,
-	    HELP => 'Keep downloaded packages in cache by APT. Controls APT::Keep-Downloaded-Packages option used when downloading dependencies. 1 to keep downloaded packages in cache, or 0 to delete them after installation.'
+	    HELP => 'Keep downloaded packages in cache by APT. Controls APT::Keep-Downloaded-Packages option used when downloading dependencies. This option only makes sense if /var/cache/apt/archive inside the chroot is made persistent between multiple sbuild invocations. 1 to keep downloaded packages in cache, or 0 to delete them after installation.'
 	},
 	'APT_UPDATE'				=> {
 	    TYPE => 'BOOL',
