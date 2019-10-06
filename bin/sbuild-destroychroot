@@ -163,6 +163,12 @@ if ($chroot_type eq "directory") {
     print "\n";
     print "    rm --recursive --one-file-system $chroot_path\n";
     print "\n";
+    if (-e "$Sbuild::Sysconfig::paths{'SBUILD_SYSCONF_DIR'}/chroot/$chroot") {
+        print "Delete the chroot link, for example by running:\n";
+        print "\n";
+        print "    rm $Sbuild::Sysconfig::paths{'SBUILD_SYSCONF_DIR'}/chroot/$chroot\n";
+        print "\n";
+    }
 } else {
     print "Delete the tarball, for example by running:\n";
     print "\n";
