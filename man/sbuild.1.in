@@ -1589,7 +1589,7 @@ Or on a .dsc:
 \f[CR]% \f[CB]sbuild \-d unstable bash.dsc\fP\fP
 .PP
 Or from within an unpacked source package (the -d parameter is not necessary
-here because the distribution is inferred from debian/copyright):
+here because the distribution is inferred from debian/changelog):
 .PP
 \f[CR]% \f[CB]sbuild\fP\fP
 .SH ENVIRONMENT VARIABLES
