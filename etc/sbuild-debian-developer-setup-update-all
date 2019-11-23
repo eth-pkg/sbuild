@@ -30,26 +30,26 @@
 #
 # 1. Update all sbuild chroots four times a day (at 00:15/06:15/12:15/18:15):
 #
-#     15 */6 * * * root /usr/share/doc/sbuild/examples/sbuild-update-all
+#     15 */6 * * * root /usr/share/doc/sbuild/examples/sbuild-debian-developer-setup-update-all
 #
 # 2. Update all sid sbuild chroots daily, and all jessie sbuild chroots weekly,
 #    and log the latter to a separate file:
 #
 #     PATTERN = sid-*-sbuild
-#     @daily    root /usr/share/doc/sbuild/examples/sbuild-update-all
+#     @daily    root /usr/share/doc/sbuild/examples/sbuild-debian-developer-setup-update-all
 #
 #     PATTERN = jessie-*-sbuild
 #     LOGFILE = /var/log/wheezy-chroot-update.log
-#     @weekly   root /usr/share/doc/sbuild/examples/sbuild-update-all
+#     @weekly   root /usr/share/doc/sbuild/examples/sbuild-debian-developer-setup-update-all
 #
 # The following will NOT work. Both of these jobs are executed at 00:15, so
 # the second one will refuse to run:
 #
 #     PATTERN = foo-*
-#     15 0  * * * root /usr/share/doc/sbuild/examples/sbuild-update-all
+#     15 0  * * * root /usr/share/doc/sbuild/examples/sbuild-debian-developer-setup-update-all
 #
 #     PATTERN = bar-*
-#     15 0  * * * root /usr/share/doc/sbuild/examples/sbuild-update-all
+#     15 0  * * * root /usr/share/doc/sbuild/examples/sbuild-debian-developer-setup-update-all
 
 
 # Output of sbuild-update invocations will be written to this file
