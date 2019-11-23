@@ -2616,8 +2616,9 @@ sub build {
 	    }
 
 	    my $sys_build_dir = $self->get_conf('BUILD_DIR');
-	    if (!open( F2, ">$sys_build_dir/$changes.new" )) {
-		$self->log("Cannot create $sys_build_dir/$changes.new: $!\n");
+	    my $F2 = $session->get_write_file_handle("$build_dir/$changes.new");
+	    if (!$F2) {
+		$self->log("Cannot create $build_dir/$changes.new\n");
 		$self->log("Distribution field may be wrong!!!\n");
 		if ($build_dir) {
 		    if(!$session->copy_from_chroot("$build_dir/$changes", ".")) {
@@ -2626,14 +2627,21 @@ sub build {
 		}
 	    } else {
 		$pchanges->output(\*STDOUT);
-		$pchanges->output(\*F2);
+		$pchanges->output(\*$F2);
 
-		close( F2 );
-		rename("$sys_build_dir/$changes.new", "$sys_build_dir/$changes")
-		    or $self->log("$sys_build_dir/$changes.new could not be " .
-		    "renamed to $sys_build_dir/$changes: $!\n");
-		unlink("$build_dir/$changes")
-		    if $build_dir;
+		close( $F2 );
+
+		$session->rename("$build_dir/$changes.new", "$build_dir/$changes");
+		if ($? == 0) {
+		    $self->log("$build_dir/$changes.new could not be " .
+			    "renamed to $build_dir/$changes: $!\n");
+		    $self->log("Distribution field may be wrong!!!");
+		}
+		if ($build_dir) {
+		    if (!$session->copy_from_chroot("$build_dir/$changes", "$sys_build_dir")) {
+			$self->log("Could not copy $build_dir/$changes to $sys_build_dir");
+		    }
+		}
 	    }
 
 	    return $pchanges;
