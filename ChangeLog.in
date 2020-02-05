@@ -7,6 +7,21 @@ Full installation instructions are provided in the INSTALL file.  The
 README file also contains more specific notes regarding building and
 configuration.
 
+ * Major changes in 0.79.0:
+
+   1) sbuild-createchroot: handle building armel/armhf on arm64, mipsel on
+      mips64el and powerpc on ppc64
+
+   2) avoid using gzip --keep option, gzip in wheezy doesn't have it
+
+   3) sbuild: add --dpkg-file-suffix option
+
+   4) sbuild: pass the right .changes file to lintian
+
+   5) sbuild-createchroot: use umask 0022
+
+   6) sbuild: add APT_KEEP_DOWNLOADED_PACKAGES config variable
+
  * Major changes in 0.78.1:
 
    None (bugfix release)
