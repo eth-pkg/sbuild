@@ -1263,7 +1263,7 @@ also doesn't require sudo (schroot is suid root) but setting up and updating
 chroots requires superuser permissions. The unshare backend only makes use of
 two small suid binaries (newuidmap and newgidmap) and only requires root once
 for enabling unprivileged userns clones (Debian carries a patch against the
-Linux kernel that disables this feature by detault). So after setting
+Linux kernel that disables this feature by default). So after setting
 kernel.unprivileged_userns_clone=1 /etc/sysctl.d/, this backend allows
 arbitrary tarballs containing chroot environments to be used for package
 building. The default tarball location is in ~/.cache/sbuild/. The expected
