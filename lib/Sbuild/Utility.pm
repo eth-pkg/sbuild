@@ -302,7 +302,7 @@ sub download {
 
     # Print out amount of content received before returning the path of the
     # file.
-    print "Download of $url sucessful.\n";
+    print "Download of $url successful.\n";
     print "Size of content downloaded: ";
     if ($bytes_received >= 1024 * 1024) {
 	print sprintf("%.4g MB",
