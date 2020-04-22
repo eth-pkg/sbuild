@@ -7,6 +7,10 @@ Full installation instructions are provided in the INSTALL file.  The
 README file also contains more specific notes regarding building and
 configuration.
 
+ * Major changes in 0.79.1:
+
+   1) buildd: add --dpkg-file-suffix option
+
  * Major changes in 0.79.0:
 
    1) sbuild-createchroot: handle building armel/armhf on arm64, mipsel on
