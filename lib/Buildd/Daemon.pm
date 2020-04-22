@@ -520,6 +520,7 @@ sub do_build {
     push @sbuild_args, "--sbuild-mode=buildd";
     push @sbuild_args, "--mailfrom=".$dist_config->get('MAILFROM') if $dist_config->get('MAILFROM');
     push @sbuild_args, "--maintainer=".$dist_config->get('MAINTAINER_NAME') if $dist_config->get('MAINTAINER_NAME');
+    push @sbuild_args, "--dpkg-file-suffix=".$self->get_conf('DPKG_FILE_SUFFIX') if $self->get_conf('DPKG_FILE_SUFFIX');
 
     if ($dist_config->get('SIGN_WITH')) {
 	push @sbuild_args, '--keyid=' . $dist_config->get('SIGN_WITH');
@@ -682,6 +683,7 @@ sub move_to_upload {
 
     my $arch = $dist_config->get('BUILT_ARCHITECTURE');
     my $upload_dir = $dist_config->get('DUPLOAD_LOCAL_QUEUE_DIR');
+    my $file_suffix = $self->get_conf('DPKG_FILE_SUFFIX');
 
     if ($binNMUver) {
         $pv .= '+b' . $binNMUver;
@@ -690,7 +692,7 @@ sub move_to_upload {
     my $pkg_noepoch = $pv;
     $pkg_noepoch =~ s/_\d*:/_/;
 
-    my $changes_name = $pkg_noepoch . '_' . $arch . '.changes';
+    my $changes_name = $pkg_noepoch . '_' . $arch . $file_suffix . '.changes';
     my $upload_path = $self->get_conf('HOME') . '/' . $dist_config->get('DUPLOAD_LOCAL_QUEUE_DIR') . '/' . $pkg_noepoch . '_' . $arch . '.upload';
 
     $self->log("$pv is autosigned, moving to '$upload_dir'\n");

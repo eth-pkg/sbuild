@@ -111,6 +111,13 @@ sub setup ($) {
 	    DEFAULT => 'apt-get',
 	    HELP => 'Path to apt-get binary'
 	},
+	'DPKG_FILE_SUFFIX'	=> {
+	    TYPE => 'STRING',
+	    VARNAME => 'dpkg_file_suffix',
+	    GROUP => 'Programs',
+	    DEFAULT => '',
+	    HELP => 'Value for the sbuild dpkg-file-suffix option, to be passed on to sbuild',
+	},
 	'BUILD_LOG_KEEP'			=> {
 	    TYPE => 'NUMERIC',
 	    VARNAME => 'build_log_keep',
