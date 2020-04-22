@@ -1,0 +1,97 @@
+Working on sbuild                                                   -*- text -*-
+═════════════════
+
+This document is a short guide to the conventions used in the
+buildd-tools sbuild project.
+
+
+Coding
+──────
+
+The style should be apparent from the source.  It is the default Emacs
+perl-mode style.
+
+Sbuild can be executed directly from source by running the following from the
+top level directory.
+
+    $ PERL5LIB=lib bin/sbuild
+
+
+Documentation
+─────────────
+
+All the documentation is in UNIX manual page format.  GNU roff
+extensions are permitted, as is use of tbl.  Make sure the printed
+output is as good as terminal display.  Run "make ps" or "make pdf" to
+build the printed documentation.
+
+
+The following styles are used:
+
+  Style                  Formatting                Syntax
+  --------------------------------------------------------------------
+  New term               Bold                      .B or \fB
+  Option definition      Bold, args in italic      .BR and \fI
+  Option reference       Italic                    .I or \fI
+  File definition        Bold italic               \f[BI]
+  File reference         Italic                    .I or \fI
+  Config key definition  Courier bold italic       \f[CBI]
+  Config key reference   Courier italic            \f[CI]
+  Values                 Single quotes             \[oq] and \[cq]
+  Example text           Double quotes             \[lq] and \[rq]
+  Cross references       Italics in double quotes  \[lq]\fI...\fP\[rq]
+  Verbatim examples      Courier                   \f[CR]
+  Verbatim user input    Courier bold              \f[CB]
+
+
+Releasing
+─────────
+
+New upstream releases:
+
+• The code must pass the testsuite (run 'sudo make check' after
+  ./configure --enable-chroot-checks). This requires a local schroot
+  called 'unstable' setup. These checks can take some time to
+  run. Plain "autoreconf -fi && ./configure && make check" runs only the
+  checks that can be done without schroot, which are very quick.
+
+• Add an entry for the new version into ChangeLog.in. Do not add entries to
+  ChangeLog.in together with the implementation of the feature because that
+  makes it harder to rebase these commits.
+
+• Adjust the VERSION file with the new sbuild version and the release date.
+
+• git commit -m "Bump version to XXX" ChangeLog.in VERSION
+
+• Run scripts/git-tag-release which will tag the git repository and
+  prompt for a GPG passphrase to sign the tag with your GPG public
+  key.
+
+• Run scripts/git-archive to generate the release tarball.
+
+New Debian releases:
+
+• Switch the branch to debian/unstable
+
+• Create a commit "import upstream version XXX" by doing:
+    - rm -rf *
+    - tar --strip-components=1 -xf ../sbuild-XXX.tar.xz
+    - git checkout -- debian
+    - git add .
+    - git commit -m "import upstream version XXX"
+
+• Create a commit "release XXX-1 to unstable" by doing:
+    - dch --newversion XXX-1
+    - go through $(git log master) to add any entries that
+      closed bugs
+    - check $(bts select source:sbuild tag:pending) for any
+      other bugs that need to be closed by this release
+    - add entries from ChangeLog.in to debian/changelog
+
+• Rename ../sbuild-XXX.tar.xz to ../sbuild_XXX.orig.tar.xz and
+  use it to build and test the package.
+
+• Run $(dch -r && git add debian/changelog && git commit -m 'release XXX to unstable')
+
+• Run debian/git-tag-debian in the git source to tag the debian
+  release.
