@@ -1681,6 +1681,8 @@ sub run_lintian {
     $resolver->add_dependencies('LINTIAN', 'lintian:native', "", "", "", "", "");
     return 1 unless $resolver->install_deps('lintian', 'LINTIAN');
 
+    $self->log("Running lintian...\n");
+
     # we are not using read_command() because we also need the output for
     # non-zero exit codes
     my $pipe = $session->pipe_command(
