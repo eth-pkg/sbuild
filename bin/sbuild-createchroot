@@ -293,6 +293,7 @@ if (-e $target) {
     if (!-d $target) {
 	die "$target exists and is not a directory";
     }
+    chmod 0755, $target or die "cannot chmod $target";
     # only check if the directory is empty if the --setup-only option is not
     # given because that option needs an already populated directory
     if (!$conf->get('SETUP_ONLY')) {
@@ -431,6 +432,7 @@ if (!$conf->get('SETUP_ONLY')) {
 	);
 	!system(@cmd) or die "E: Error running @cmd";
     } else {
+	chown(0, 0, $target) or die "cannot chown $target";
 	!system($debootstrap, @args) or die "E: Error running $debootstrap_bin";
     }
 }
