@@ -432,7 +432,9 @@ if (!$conf->get('SETUP_ONLY')) {
 	);
 	!system(@cmd) or die "E: Error running @cmd";
     } else {
-	chown(0, 0, $target) or die "cannot chown $target";
+	if ($REAL_USER_ID == 0) {
+	    chown(0, 0, $target) or die "cannot chown $target";
+	}
 	!system($debootstrap, @args) or die "E: Error running $debootstrap_bin";
     }
 }
