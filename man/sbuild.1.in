@@ -873,8 +873,8 @@ for more information.
 .TP
 .BR \-\-starting\-build\-commands=\fIstring\fP
 Run these commands after dependencies are installed, just before the package
-build with dpkg-buildpackage starts. The command is run as the (non-root) user
-running sbuild inside the chroot. This option can be used multiple times to add
+build with dpkg-buildpackage starts. The command is run as the root user
+inside the chroot. This option can be used multiple times to add
 multiple commands. Certain percent escapes are supported. To write a literal
 percent sign, escape it with another percent sign. See the section
 .BR "EXTERNAL COMMANDS"
@@ -885,7 +885,7 @@ for more information.
 .TP
 .BR \-\-finished\-build\-commands=\fIstring\fP
 Run these commands immediately after the timed package build finishes.  The
-command is run as the (non-root) user running sbuild inside the chroot.  This
+command is run as the root user inside the chroot.  This
 option can be used multiple times to add multiple commands. Certain percent
 escapes are supported. To write a literal percent sign, escape it with another
 percent sign. See the section
@@ -898,8 +898,8 @@ for more information.
 .BR \-\-build\-failed\-commands=\fIstring\fP
 These commands are run if dpkg-buildpackage has failed directly after the
 failed attempt. The environment is intact, and the failure can be investigated.
-Especially %SBUILD_SHELL is useful here. The command is run as the (non-root)
-user running %sbuild inside the chroot. This option can be used multiple times
+Especially %SBUILD_SHELL is useful here. The command is run as the root
+user inside the chroot. This option can be used multiple times
 to add multiple commands. Certain percent escapes are supported. To write a
 literal percent sign, escape it with another percent sign. See the section
 .BR "EXTERNAL COMMANDS"
