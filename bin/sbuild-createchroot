@@ -755,7 +755,7 @@ if ($conf->get('MAKE_SBUILD_TARBALL') && !$conf->get('SETUP_ONLY')) {
 	    # lxc-usernsexec, we only have permission to delete the files that were
 	    # created with the fake root user
 	    system(get_unshare_cmd({IDMAP => \@idmap}), 'rm', '-rf', $target);
-	    rmdir($target) or die "Unable to remove $target";
+	    die "Unable to remove $target" if -e $target;
 	} else {
 	    rmtree("$target");
 	}
