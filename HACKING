@@ -62,36 +62,3 @@ New upstream releases:
 • Adjust the VERSION file with the new sbuild version and the release date.
 
 • git commit -m "Bump version to XXX" ChangeLog.in VERSION
-
-• Run scripts/git-tag-release which will tag the git repository and
-  prompt for a GPG passphrase to sign the tag with your GPG public
-  key.
-
-• Run scripts/git-archive to generate the release tarball.
-
-New Debian releases:
-
-• Switch the branch to debian/unstable
-
-• Create a commit "import upstream version XXX" by doing:
-    - rm -rf *
-    - tar --strip-components=1 -xf ../sbuild-XXX.tar.xz
-    - git checkout -- debian
-    - git add .
-    - git commit -m "import upstream version XXX"
-
-• Create a commit "release XXX-1 to unstable" by doing:
-    - dch --newversion XXX-1
-    - go through $(git log master) to add any entries that
-      closed bugs
-    - check $(bts select source:sbuild tag:pending) for any
-      other bugs that need to be closed by this release
-    - add entries from ChangeLog.in to debian/changelog
-
-• Rename ../sbuild-XXX.tar.xz to ../sbuild_XXX.orig.tar.xz and
-  use it to build and test the package.
-
-• Run $(dch -r && git add debian/changelog && git commit -m 'release XXX to unstable')
-
-• Run debian/git-tag-debian in the git source to tag the debian
-  release.

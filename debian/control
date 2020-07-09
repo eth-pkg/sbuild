@@ -1,0 +1,119 @@
+Source: sbuild
+Section: devel
+Priority: optional
+Maintainer: sbuild maintainers <sbuild@packages.debian.org>
+Uploaders: Johannes 'josch' Schauer <josch@debian.org>,
+           Michael Banck <mbanck@debian.org>,
+           Francesco Paolo Lovergine <frankie@debian.org>,
+           Wookey <wookey@debian.org>,
+           Michael Stapelberg <stapelberg@debian.org>
+Build-Depends: debhelper-compat (= 12)
+Build-Depends-Indep: groff-base,
+                     libdpkg-perl (>= 1.18.14),
+                     libexception-class-perl,
+                     libfilesys-df-perl,
+                     libmime-lite-perl,
+                     libyaml-tiny-perl
+Standards-Version: 4.3.0
+Vcs-Browser: https://salsa.debian.org/debian/sbuild/tree/debian/unstable
+Vcs-Git: https://salsa.debian.org/debian/sbuild.git -b debian/unstable
+
+Package: libsbuild-perl
+Architecture: all
+Section: perl
+Depends: apt,
+         dpkg-dev,
+         gnupg (>= 2.1),
+         libdpkg-perl (>= 1.18.14),
+         libexception-class-perl,
+         libfilesys-df-perl,
+         libmime-lite-perl,
+         ${misc:Depends},
+         ${perl:Depends}
+Recommends: autopkgtest (>= 4.0.4), schroot (>= 1.6.0)
+Suggests: default-mta | mail-transport-agent, libwww-perl
+Replaces: sbuild (<= 0.58.4-1)
+Description: Library for building Debian binary packages from Debian sources
+ The sbuild suite of programs (wanna-build, buildd and sbuild) are
+ used to build binary packages from source packages.  The wanna-build
+ database tracks packages which require building; buildd schedules
+ work from information it gets from the wanna-build database; sbuild
+ does the actual package building.
+ .
+ This package contains the core library modules used by these
+ programs.
+
+Package: sbuild
+Architecture: all
+Depends: adduser,
+         libsbuild-perl (= ${source:Version}),
+         ${misc:Depends},
+         ${perl:Depends},
+         ${shlibs:Depends}
+Recommends: autopkgtest (>= 4.0.4), debootstrap, schroot (>= 1.6.0)
+Suggests: deborphan, e2fsprogs, kmod, wget
+Description: Tool for building Debian binary packages from Debian sources
+ The sbuild suite of programs (buildd and sbuild) are used to build
+ binary packages from source packages.  sbuild does the actual package
+ building.
+ .
+ sbuild uses chroots to build packages, which act as virtual, minimal
+ operating system installations dedicated to package building.  This
+ means that a number of environments may be used for building
+ simultaneously on the same machines, for example stable, testing,
+ unstable and experimental.  When coupled with schroot to create
+ snapshots of chroots, sbuild may be used to build many packages in
+ parallel.  A chroot environment allows packages to be built in a
+ controlled, clean environment.  sbuild installs only essential and
+ build-essential packages, plus those in the package build
+ dependencies.
+
+Package: sbuild-debian-developer-setup
+Architecture: all
+Depends: apt-cacher-ng | apt-cacher,
+         cron | cron-daemon,
+         sbuild (>= 0.77.0-5),
+         schroot,
+         ${misc:Depends},
+         ${perl:Depends},
+         ${shlibs:Depends}
+Replaces: sbuild (<< 0.77.0-5)
+Breaks: sbuild (<< 0.77.0-5)
+Description: Convenience script to set up an sbuild environment for Debian Developers
+ Run "sudo sbuild-debian-developer-setup" to add the current user to the sbuild
+ group, create an schroot for building packages for Debian unstable, and create
+ a cronjob which updates said schroot daily.
+ .
+ This script assumes you are on an un-metered internet connection (daily schroot
+ updates might be costly otherwise).
+
+Package: buildd
+Architecture: all
+Depends: adduser,
+         cron,
+         default-mta | mail-transport-agent,
+         dupload,
+         libsbuild-perl,
+         libyaml-tiny-perl,
+         lsb-base (>= 3.0-6),
+         sbuild (<< ${source:Version}.1~),
+         sbuild (>= ${source:Version}),
+         schroot,
+         devscripts,
+         ${misc:Depends},
+         ${perl:Depends}
+Recommends: sudo
+Suggests: wanna-build
+Replaces: sbuild, ubuntu-dev-tools (<= 0.83)
+Breaks: ubuntu-dev-tools (<= 0.83)
+Description: Daemon for automatically building Debian binary packages from Debian sources
+ The sbuild suite of programs (buildd and sbuild) are
+ used to build binary packages from source packages.  The wanna-build
+ database tracks packages which require building; buildd schedules
+ work from information it gets from the wanna-build database; sbuild
+ does the actual package building.
+ .
+ buildd is a daemon which will build Debian packages automatically
+ using the wanna-build database to identify which packages need to be
+ built.  Note that the wanna-build database is not packaged, and
+ requires installing separately.

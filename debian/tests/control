@@ -1,0 +1,3 @@
+Tests: build-procenv
+Depends: @, debootstrap, distro-info, lsb-release, apt (>= 1.1~exp2), apt-utils
+Restrictions: needs-root
