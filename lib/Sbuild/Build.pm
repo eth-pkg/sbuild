@@ -3263,8 +3263,10 @@ sub open_build_log {
     $self->log_section($head);
 
     $self->log("Package: " . $self->get('Package') . "\n");
-    if ($self->get('Version') && $self->get('OVersion')) {
+    if (defined $self->get('Version')) {
 	$self->log("Version: " . $self->get('Version') . "\n");
+    }
+    if (defined $self->get('OVersion')) {
 	$self->log("Source Version: " . $self->get('OVersion') . "\n");
     }
     $self->log("Distribution: " . $self->get_conf('DISTRIBUTION') . "\n");
