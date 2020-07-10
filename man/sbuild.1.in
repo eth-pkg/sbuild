@@ -1105,14 +1105,8 @@ The autopkgtest virtualization server. Can be specified with or without the auto
 prefix.  For instance, the following set of command line options will use the
 autopkgtest-virt-schroot chroot mode for a package build:
 .nh
-.B \-\-chroot-mode=autopkgtest \-\-autopkgtest\-virt\-server=schroot \-\-chroot unstable-amd64-sbuild
+.B \-\-chroot-mode=autopkgtest \-\-autopkgtest\-virt\-server=schroot \-\-autopkgtest-virt-server-opt=unstable-amd64-sbuild
 .hy
-The value of the \f[CB]--chroot\fP option will be passed as the last positional
-argument to the autopkgtest-virt-* invocation. Thus, the value of the \f[CB]--chroot\fP
-option becomes the image name of the virtual machine in case of autopkgtest-virt-qemu,
-the lxc-container name in case of autopkgtest-virt-lxc, the path to the chroot in case
-of autopkgtest-virt-chroot, the name of the schroot in case of autopkgtest-virt-schroot and so
-on.
 This command line option sets the \fBAUTOPKGTEST_VIRT_SERVER\fP configuration variable. See
 .BR sbuild.conf (5)
 for more information.
