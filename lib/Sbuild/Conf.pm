@@ -777,12 +777,8 @@ sub setup ($) {
 	    DEFAULT => {},
 	    HELP => 'Some packages may exceed the general timeout (e.g. redirecting output to a file) and need a different timeout.  This has is a mapping between source package name and timeout.  Note that for backward compatibility, this is also settable using the hash %individual_stalled_pkg_timeout (deprecated) , rather than a hash reference.',
 	    EXAMPLE =>
-'%individual_stalled_pkg_timeout = (smalleiffel => 300,
-				   jade => 300,
-				   atlas => 300,
-				   glibc => 1000,
-				   \'gcc-3.3\' => 300,
-				   kwave => 600);'
+'$individual_stalled_pkg_timeout->{\'llvm-toolchain-3.8\'} = 300;
+$individual_stalled_pkg_timeout->{\'kicad-packages3d\'} = 90;'
 	},
 	'ENVIRONMENT_FILTER'			=> {
 	    TYPE => 'ARRAY:STRING',
