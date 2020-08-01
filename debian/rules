@@ -1,6 +1,9 @@
 #!/usr/bin/make -f
 
 %:
+	head debian/changelog
+	dpkg-parsechangelog --show-field Date
+	date --utc --date="$(shell dpkg-parsechangelog --show-field Date)" "+%d %B %Y"
 	dh $@
 
 override_dh_installinit:
