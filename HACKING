@@ -47,18 +47,8 @@ The following styles are used:
 Releasing
 ─────────
 
-New upstream releases:
-
 • The code must pass the testsuite (run 'sudo make check' after
   ./configure --enable-chroot-checks). This requires a local schroot
   called 'unstable' setup. These checks can take some time to
   run. Plain "autoreconf -fi && ./configure && make check" runs only the
   checks that can be done without schroot, which are very quick.
-
-• Add an entry for the new version into ChangeLog.in. Do not add entries to
-  ChangeLog.in together with the implementation of the feature because that
-  makes it harder to rebase these commits.
-
-• Adjust the VERSION file with the new sbuild version and the release date.
-
-• git commit -m "Bump version to XXX" ChangeLog.in VERSION

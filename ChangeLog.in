@@ -7,6 +7,11 @@ Full installation instructions are provided in the INSTALL file.  The
 README file also contains more specific notes regarding building and
 configuration.
 
+ * Major changes in 0.80.0:
+
+   1) sbuild became a Debian native package -- consult debian/changelog or
+      /usr/share/doc/sbuild/changelog.Debian.gz instead
+
  * Major changes in 0.79.1:
 
    1) buildd: add --dpkg-file-suffix option

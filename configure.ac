@@ -29,8 +29,8 @@ m4_define([sbuild_m4_esyscmd_s],
 [sbuild_m4_chomp(m4_esyscmd([$1]))])
 AC_PREREQ(2.59)
 dnl Quoting the first argument results in a bizarrely corrupted package tarname
-AC_INIT(sbuild_m4_esyscmd_s([sed -ne '/^Package:/{s/Package:[[:space:]][[:space:]]*//p;q}' VERSION]),
-        sbuild_m4_esyscmd_s([sed -ne '/^Version:/{s/Version:[[:space:]][[:space:]]*//p;q}' VERSION]),
+AC_INIT(sbuild_m4_esyscmd_s([dpkg-parsechangelog --show-field Source]),
+        sbuild_m4_esyscmd_s([dpkg-parsechangelog --show-field Version]),
         [buildd-tools-devel@lists.alioth.debian.org])
 dnl For safety, check we are in the right directory by
 dnl checking for a known unique file.
@@ -62,8 +62,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 dnl Initialise automake stuff.
 AM_INIT_AUTOMAKE([1.10 gnu check-news tar-pax foreign])
 m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
-RELEASE_DATE='sbuild_m4_esyscmd_s([sed -ne '/^Release-Date:/{s/Release-Date:[[:space:]][[:space:]]*//p;q}' VERSION])'
-RELEASE_DATE_S='sbuild_m4_esyscmd_s(date --date='sbuild_m4_esyscmd_s([sed -ne '/^Release-Date:/{s/Release-Date:[[:space:]][[:space:]]*//p;q}' VERSION])' '+%s')'
+RELEASE_DATE='sbuild_m4_esyscmd_s(date --date='sbuild_m4_esyscmd_s([dpkg-parsechangelog --show-field Date])' '+%d %B %Y')'
+RELEASE_DATE_S='sbuild_m4_esyscmd_s(date --date='sbuild_m4_esyscmd_s([dpkg-parsechangelog --show-field Date])' '+%s')'
 AC_DEFINE_UNQUOTED([RELEASE_DATE], ["$RELEASE_DATE_S"], [Package release date.])
 AC_SUBST([RELEASE_DATE])
 

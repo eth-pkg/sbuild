@@ -1,3 +1,9 @@
+sbuild (0.80.1) UNRELEASED; urgency=medium
+
+  * Fix build system to rely on debian/changelog instead of VERSION file
+
+ -- Johannes 'josch' Schauer <josch@debian.org>  Sat, 01 Aug 2020 14:27:36 +0200
+
 sbuild (0.80.0) unstable; urgency=medium
 
   [ Johannes 'josch' Schauer ]

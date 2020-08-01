@@ -38,8 +38,7 @@ EXTRA_DIST =				\
 	Makefile-buildd			\
 	NEWS-buildd			\
 	README.buildd-admin		\
-	README.chroot-building		\
-	VERSION
+	README.chroot-building
 
 ps:
 	$(MAKE) -C doc sbuild.ps
