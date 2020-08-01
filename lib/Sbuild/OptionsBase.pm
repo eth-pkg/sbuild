@@ -68,6 +68,7 @@ sub new {
 	usage_error($program, "Error parsing command-line options");
 	return undef;
     }
+    $self->extrapolate_options();
     return $self;
 }
 
@@ -85,6 +86,10 @@ sub add_options () {
 }
 
 sub set_options () {
+    my $self = shift;
+}
+
+sub extrapolate_options () {
     my $self = shift;
 }
 

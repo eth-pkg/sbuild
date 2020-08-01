@@ -616,4 +616,15 @@ sub set_options {
 	);
 }
 
+=pod
+This function allows to extrapolate from the parsed and set options some
+expected behaviours.
+=cut
+sub extrapolate_options {
+    my $self = shift;
+
+    # This allows to pass -sa to all commands instead of passing it just to dpkg-buildpackage
+    push (@{$self->get_conf('DPKG_BUILDPACKAGE_USER_OPTIONS')}, "-sa") if ($self->get_conf('BUILD_SOURCE') && $self->get_conf('FORCE_ORIG_SOURCE'));
+}
+
 1;
