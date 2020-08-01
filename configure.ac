@@ -62,8 +62,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 dnl Initialise automake stuff.
 AM_INIT_AUTOMAKE([1.10 gnu check-news tar-pax foreign])
 m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
-RELEASE_DATE='sbuild_m4_esyscmd_s(date --date='sbuild_m4_esyscmd_s([dpkg-parsechangelog --show-field Date])' '+%d %B %Y')'
-RELEASE_DATE_S='sbuild_m4_esyscmd_s(date --date='sbuild_m4_esyscmd_s([dpkg-parsechangelog --show-field Date])' '+%s')'
+RELEASE_DATE='sbuild_m4_esyscmd_s(date --utc --date='sbuild_m4_esyscmd_s([dpkg-parsechangelog --show-field Date])' '+%d %B %Y')'
+RELEASE_DATE_S='sbuild_m4_esyscmd_s(date --utc --date='sbuild_m4_esyscmd_s([dpkg-parsechangelog --show-field Date])' '+%s')'
 AC_DEFINE_UNQUOTED([RELEASE_DATE], ["$RELEASE_DATE_S"], [Package release date.])
 AC_SUBST([RELEASE_DATE])
 
