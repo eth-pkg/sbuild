@@ -1,10 +1,29 @@
-sbuild (0.80.0) UNRELEASED; urgency=medium
+sbuild (0.80.0) unstable; urgency=medium
 
+  [ Johannes 'josch' Schauer ]
   * New release
   * Convert packaging to a native package to make maintenance easier by
     avoiding the complicated upstream release and debian packaging procedure
+  * lib/Sbuild/Conf.pm: fix example for individual_stalled_pkg_timeout
+    (closes: #924500)
+  * man/sbuild.1.in: remove from docs of --autopkgtest-virt-server-opts
+    (closes: #948799)
+  * lib/Sbuild/Build.pm: check for defined-ness and even print a '0' Version
+    (closes: #950939)
+  * debian/control: due to using Dpkg::Build::Info::get_build_env_allowed, we
+    now require libdpkg-perl (>= 1.20)
+  * man/sbuild.1.in: starting/finished/failed-build-commands are run as root
+    (closes: #961623)
+  * bin/sbuild-createchroot: chown root dir 0755 (closes: #950684)
+  * use Dpkg::Build::Info::get_build_env_allowed instead of deprecated
+    Dpkg::Build::Info::get_build_env_whitelist for dpkg >= 1.20.0
+    (closes: #963845, #966428)
 
- -- Johannes 'josch' Schauer <josch@debian.org>  Thu, 09 Jul 2020 23:44:49 +0200
+  [ Pierre-Elliott Bécue ]
+  * Workaround to pass on dpkg-genchanges specific options until dpkg bug
+    #902856 is fixed (closes: #884428, #891247, #917849, #947755)
+
+ -- Johannes 'josch' Schauer <josch@debian.org>  Sat, 01 Aug 2020 14:07:53 +0200
 
 sbuild (0.79.1-1) unstable; urgency=medium
 
