@@ -103,7 +103,7 @@ sub basesetup ($$) {
 
     $session->run_command(
 	{ COMMAND => ['/bin/sh', '-c',
-		      'set -e; if [ ! -d ' . (shellescape $build_path) . ' ] ; then mkdir -m 0775 ' . (shellescape $build_path) . '; fi'],
+		      'set -e; if [ ! -d ' . (shellescape $build_path) . ' ] ; then mkdir -p -m 0775 ' . (shellescape $build_path) . '; fi'],
 	  USER => 'root',
 	  DIR => '/' });
     if ($?) {
