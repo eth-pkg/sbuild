@@ -38,6 +38,9 @@ man_MANS =				\
 	sbuild-debian-developer-setup.1 \
 	sbuild-destroychroot.8		\
 	sbuild-hold.1			\
+	sbuild-qemu.1			\
+	sbuild-qemu-create.1		\
+	sbuild-qemu-update.1		\
 	sbuild-setup.7			\
 	sbuild-shell.1			\
 	sbuild-update.1
