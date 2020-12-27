@@ -34,6 +34,10 @@ bin_SCRIPTS = 				\
 	sbuild-upgrade			\
 	sbuild-distupgrade		\
 	sbuild-clean			\
+	sbuild-qemu			\
+	sbuild-qemu-create		\
+	sbuild-qemu-create-modscript	\
+	sbuild-qemu-update		\
 	sbuild-shell			\
 	sbuild-hold			\
 	sbuild-unhold			\
