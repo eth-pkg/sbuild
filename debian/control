@@ -8,12 +8,14 @@ Uploaders: Johannes 'josch' Schauer <josch@debian.org>,
            Wookey <wookey@debian.org>,
            Michael Stapelberg <stapelberg@debian.org>
 Build-Depends: debhelper-compat (= 12)
-Build-Depends-Indep: groff-base,
+Build-Depends-Indep: dh-python,
+                     groff-base,
                      libdpkg-perl (>= 1.20),
                      libexception-class-perl,
                      libfilesys-df-perl,
                      libmime-lite-perl,
-                     libyaml-tiny-perl
+                     libyaml-tiny-perl,
+                     python3-all,
 Standards-Version: 4.3.0
 Vcs-Browser: https://salsa.debian.org/debian/sbuild/tree/debian/unstable
 Vcs-Git: https://salsa.debian.org/debian/sbuild.git -b debian/unstable
@@ -117,3 +119,24 @@ Description: Daemon for automatically building Debian binary packages from Debia
  using the wanna-build database to identify which packages need to be
  built.  Note that the wanna-build database is not packaged, and
  requires installing separately.
+
+Package: sbuild-qemu
+Architecture: amd64
+Depends: autopkgtest,
+         python3-pexpect,
+         python3-psutil,
+         qemu-system-x86,
+         qemu-utils,
+         sbuild,
+         ${misc:Depends},
+         ${python3:Depends},
+Description: Utilities for using sbuild with QEMU images
+ These utilities facilitate the use of sbuild together with QEMU images using
+ sbuild's  --chroot-mode=autopkgtest. Currently, amd64 and i386 guest
+ architectures are supported, with more in the works.
+ .
+ The following utilities are provided:
+ .
+   * sbuild-qemu-create  Create an image suitable for building packages
+   * sbuild-qemu-update  Run apt-get update within the image
+   * sbuild-qemu         Use sbuild with the image to build a package
