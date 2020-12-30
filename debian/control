@@ -130,6 +130,8 @@ Depends: autopkgtest,
          sbuild,
          ${misc:Depends},
          ${python3:Depends},
+Breaks: qemu-sbuild-utils (<< 0.2.1~)
+Replaces: qemu-sbuild-utils (<< 0.2.1~)
 Description: Utilities for using sbuild with QEMU images
  These utilities facilitate the use of sbuild together with QEMU images using
  sbuild's  --chroot-mode=autopkgtest. Currently, amd64 and i386 guest
