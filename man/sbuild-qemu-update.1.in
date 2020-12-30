@@ -49,9 +49,9 @@ would be executed, and then exit.
 .PP
 This will update the image \fBunstable\-autopkgtest\-amd64.img\fR.
 .SH ENVIRONMENT
-The \fBimage\fR argument will first be treated as a path. If a file exists at
-that path, it is used. Otherwise, \fBimage\fR will be looked for in
-\fB$IMAGEDIR\fR, or \fB/var/cache/sbuild\-qemu \fR if \fB$IMAGEDIR\fR is unset.
+If no suitable image can be found at location \fBimage\fR \fB$IMAGEDIR\fR, then
+\fB$IMAGEDIR\,\<image>\fR is tried. \fB$IMAGEDIR\fR defaults to the current
+working directory.
 .SH COPYRIGHT
 .nf
 Copyright \[co] 2020 Christian Kastner <ckk@kvr.at>

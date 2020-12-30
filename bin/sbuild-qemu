@@ -43,7 +43,7 @@ except KeyError as e:
 MEM = 2048
 CPUS = psutil.cpu_count(logical=False)
 DIST = 'unstable'
-IMAGEDIR = os.environ.get('IMAGEDIR', '/var/cache/sbuild-qemu')
+IMAGEDIR = os.environ.get('IMAGEDIR', os.getcwd())
 
 
 def main():
@@ -73,8 +73,9 @@ def main():
         '--image',
         action='store',
         help="VM image to use for building. If not specified, will look in "
-             "$IMAGEDIR for an image with the name DIST-autopkgtest-ARCH.img. "
-             "A suitable image can be created with qemu-sbuild-create(1).",
+             "$IMAGEDIR (default: cwd) for an image with the name "
+             "DIST-autopkgtest-ARCH.img. A suitable image can be created with "
+             "qemu-sbuild-create(1).",
     )
     parser.add_argument(
         '--autopkgtest-debug',

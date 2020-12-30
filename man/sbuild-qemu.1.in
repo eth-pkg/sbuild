@@ -108,7 +108,7 @@ are therefore will be passed on through to sbuild for it to use.
 When using default image detection (meaning the \fB\-\-image\fR option was not
 used, and therefore the image name is generated using the distribution and
 architecture names), \fBsbuild-qemu\fR looks for images in \fB$IMAGEDIR\fR, or
-\fB/var/cache/sbuild-qemu\fR if \fB$IMAGEDIR\fR is unset.
+the current working directory if \fB$IMAGEDIR\fR is unset.
 .SH COPYRIGHT
 Copyright \[co] 2020 Christian Kastner <ckk@debian.org>
 .SH "SEE ALSO"

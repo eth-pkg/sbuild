@@ -33,7 +33,8 @@ SUPPORTED_ARCHS = {
     'i386': 'qemu-system-i386'
 }
 
-IMAGEDIR = os.environ.get('IMAGEDIR', '/var/cache/sbuild-qemu')
+
+IMAGEDIR = os.environ.get('IMAGEDIR', os.getcwd())
 
 
 def make_snapshot(image):
@@ -81,8 +82,8 @@ def main():
     parser.add_argument(
         'image',
         action='store',
-        help="Image path. Will be tried first as-is, and if no image exists "
-             "at that location, then $IMAGEDIR/<image> is tried.",
+        help="Image. Will first be interpreted as a path. If no suitable "
+        "image exists at that location, then $IMAGEDIR\<image> is tried.",
     )
 
     parsed_args = parser.parse_args()
