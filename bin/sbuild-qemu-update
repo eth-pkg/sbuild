@@ -119,7 +119,6 @@ def main():
             )
             sys.exit(1)
 
-    os.environ['DEBIAN_FRONTEND'] = 'noninteractive'
     args = [
             qemu,
             '-enable-kvm',
@@ -140,13 +139,13 @@ def main():
         child.sendline('root')
         child.logfile = sys.stdout
         child.expect('root@host:~# ')
-        child.sendline('apt-get --quiet update')
+        child.sendline('DEBIAN_FRONTEND=noninteractive apt-get --quiet update')
         child.expect('root@host:~# ')
-        child.sendline('apt-get --quiet --assume-yes dist-upgrade')
+        child.sendline('DEBIAN_FRONTEND=noninteractive apt-get --quiet --assume-yes dist-upgrade')
         child.expect('root@host:~# ')
-        child.sendline('apt-get --quiet --assume-yes clean')
+        child.sendline('DEBIAN_FRONTEND=noninteractive apt-get --quiet --assume-yes clean')
         child.expect('root@host:~# ')
-        child.sendline('apt-get --quiet --assume-yes autoremove')
+        child.sendline('DEBIAN_FRONTEND=noninteractive apt-get --quiet --assume-yes autoremove')
         child.expect('root@host:~# ')
         child.sendline('sync')
         child.expect('root@host:~# ')
