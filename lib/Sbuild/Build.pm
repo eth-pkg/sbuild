@@ -955,7 +955,8 @@ sub run_fetch_install_packages {
             my $could_not_explain = undef;
 
 	    if (defined $self->get_conf('BD_UNINSTALLABLE_EXPLAINER')
-		&& $self->get_conf('BD_UNINSTALLABLE_EXPLAINER') ne '') {
+		&& $self->get_conf('BD_UNINSTALLABLE_EXPLAINER') ne ''
+		&& $self->get_conf('BD_UNINSTALLABLE_EXPLAINER') ne 'none') {
 		if (!$self->explain_bd_uninstallable()) {
                     $could_not_explain = 1;
 		}

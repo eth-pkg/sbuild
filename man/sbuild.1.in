@@ -107,7 +107,7 @@ sbuild \- build debian packages from source
 .RB [ \-\-autopkgtest\-virt\-server\-opt=\fIstring\fP ]
 .RB [ \-\-autopkgtest\-virt\-server\-opts=\fIoptions\fP ]
 .RB [ \-\-purge\-extra\-packages\fP ]
-.RB [ \-\-bd\-uninstallable\-explainer=\fIdose3|apt\fP ]
+.RB [ \-\-bd\-uninstallable\-explainer=\fIdose3|apt|none\fP ]
 .RB [ PACKAGE [ .dsc ]]
 .SH DESCRIPTION
 \fBsbuild\fR rebuilds Debian binary packages from the corresponding Debian
@@ -1180,11 +1180,11 @@ the \fBPURGE_EXTRA_PACKAGES\fP configuration variable. See
 .BR sbuild.conf (5)
 for more information.
 .TP
-.BR \-\-bd\-uninstallable\-explainer=\fIdose3|apt\fP
+.BR \-\-bd\-uninstallable\-explainer=\fIdose3|apt|none\fP
 If the build dependencies cannot be satisfied by the chosen resolver, sbuild
 will run the selected method to give a better explanation why the build
 dependencies cannot be installed. Possible arguments for this option are dose3
-(the default) and apt. To disable this feature, pass the empty string.
+(the default), apt and none. To disable this feature, pass none or the empty string.
 Depending on the resolver, the dose3 explainer might report a dependency
 situation as satisfiable even if the chosen resolver found it to be
 unsatisfiable. This is especially likely to happen if the apt resolver (the

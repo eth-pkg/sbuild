@@ -1477,10 +1477,10 @@ $external_commands = {
 		die "Bad bd-uninstallable explainer \'" . $conf->get('BD_UNINSTALLABLE_EXPLAINER') . "\'"
 		    if defined $conf->get('BD_UNINSTALLABLE_EXPLAINER')
 		    && !isin($conf->get('BD_UNINSTALLABLE_EXPLAINER'),
-			     ('apt', 'dose3', ''));
+			     ('apt', 'dose3', '', 'none'));
 	    },
 	    DEFAULT => 'dose3',
-	    HELP => 'Method to use for explaining build dependency installation failures. Possible value are "dose3" (default) and "apt". Set to the empty string or undef to disable running any explainer.',
+	    HELP => 'Method to use for explaining build dependency installation failures. Possible value are "dose3" (default), "apt" and "none". Set to "none", the empty string "" or Perl undef to disable running any explainer.',
 	    CLI_OPTIONS => ['--bd-uninstallable-explainer']
 	},
 	'PURGE_EXTRA_PACKAGES'				=> {
