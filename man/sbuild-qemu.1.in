@@ -13,11 +13,12 @@
 .\" You should have received a copy of the GNU General Public License
 .\" along with this program.  If not, see
 .\" <http://www.gnu.org/licenses/>.
+.so defs.man
 .TH SBUILD\-QEMU "1" "\*[RELEASE_DATE]" "Version \*[VERSION]" "Debian sbuild"
 .SH NAME
-qemu-sbuild \- sbuild using QEMU images
+sbuild\-qemu \- sbuild using QEMU images
 .SH SYNOPSIS
-.B sbuild-qemu
+.B sbuild\-qemu
 .RB [ \-h ]
 .RB [ \-\-arch=ARCH ]
 .RB [ \-d=DIST ]
@@ -73,11 +74,11 @@ created on a \fItmpfs\fR would be ideal, and can speed up I/O by an order of
 magnitude, compared to a slow HDD. If \fI\,/tmp\fR or \fI$TMPDIR\fR are mountpoints
 for a tmpfs, then all should be fine by default.
 .PP
-However, tmpfs filesytems are backed by memory and swap on the host, so a build
+However, tmpfs filesystems are backed by memory and swap on the host, so a build
 needing substantial disk space in the VM may fail. If this happens, the
 \-\-overlay\-dir option should be used to point to a host directory with more
 available disk space. Note that the base image itself must have been created
-with a suitable size, see the \fB\-\-size\fR option to sbuild-qemu\-create(1).
+with a suitable size, see the \fB\-\-size\fR option to sbuild\-qemu\-create(1).
 .SH LIMITATIONS
 Due to the nature of sbuild's \fB\-\-chroot\-mode=autopkgtest\fR, not all
 sbuild options are supported yet. In particular, getting an interactive
@@ -89,11 +90,11 @@ the hood, so you will find an SSH shell on port 10022 (or the first free port
 after that) if, and only if, the openssh\-server package is installed in the
 VM.
 .PP
-As a futher consequence of this chroot mode, what is stated in
+As a further consequence of this chroot mode, what is stated in
 autopkgtest\-virt\-qemu(1) generally also holds here.
 .PP
 .SH EXAMPLES
-\fB$ sbuild-qemu \-d unstable \-s \-\-arch\-all FOO.dsc\fR
+\fB$ sbuild\-qemu \-d unstable \-s \-\-arch\-all FOO.dsc\fR
 .PP
 This will build the package \fBFOO.dsc\fR using \fBunstable\fR as the
 Distribution in the generated .changes file.
@@ -107,11 +108,11 @@ are therefore will be passed on through to sbuild for it to use.
 .SH ENVIRONMENT
 When using default image detection (meaning the \fB\-\-image\fR option was not
 used, and therefore the image name is generated using the distribution and
-architecture names), \fBsbuild-qemu\fR looks for images in \fB$IMAGEDIR\fR, or
+architecture names), \fBsbuild\-qemu\fR looks for images in \fB$IMAGEDIR\fR, or
 the current working directory if \fB$IMAGEDIR\fR is unset.
 .SH COPYRIGHT
 Copyright \[co] 2020 Christian Kastner <ckk@debian.org>
 .SH "SEE ALSO"
 .BR sbuild (1),
-.BR sbuild-qemu\-create (1),
-.BR sbuild-qemu\-update (1).
+.BR sbuild\-qemu\-create (1),
+.BR sbuild\-qemu\-update (1).
