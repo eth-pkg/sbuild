@@ -6,7 +6,8 @@ Uploaders: Johannes 'josch' Schauer <josch@debian.org>,
            Michael Banck <mbanck@debian.org>,
            Francesco Paolo Lovergine <frankie@debian.org>,
            Wookey <wookey@debian.org>,
-           Michael Stapelberg <stapelberg@debian.org>
+           Michael Stapelberg <stapelberg@debian.org>,
+           Christian Kastner <ckk@debian.org>,
 Build-Depends: debhelper-compat (= 12)
 Build-Depends-Indep: dh-python,
                      groff-base,
