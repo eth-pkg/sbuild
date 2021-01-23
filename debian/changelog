@@ -1,3 +1,22 @@
+sbuild (0.81.0) UNRELEASED; urgency=medium
+
+  [ Johannes 'josch' Schauer ]
+  * make 'none' explicitly disable the bd-uninstallable-explainer.
+    Thanks helmut & vagrantc
+
+  [ Jochen Sprickerhof ]
+  * Cleanup link in /etc/sbuild if it exists
+
+  [ Christian Kastner ]
+  * Add package sbuild-qemu, replaces qemu-sbuild-utils
+    - The utilities have been renamed from qemu-sbuild-* to sbuild-qemu-* to
+      for consistency
+  * Add myself to Uploaders
+  * Set Rules-Requires-Root: no
+  * Bump Standards-Version to 4.5.1
+
+ -- Christian Kastner <ckk@debian.org>  Sat, 23 Jan 2021 22:05:36 +0100
+
 sbuild (0.80.1) unstable; urgency=medium
 
   * Fix build system to rely on debian/changelog instead of VERSION file
