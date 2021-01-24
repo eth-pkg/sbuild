@@ -48,9 +48,11 @@ architectures are: amd64, i386.
 Distribution (for the .changes file). Default is \fBunstable\fR.
 .TP
 \fB\-\-image\fR=IMAGE
-VM image to use for building. If not specified, will look in $IMAGEDIR for an
-image with the name DIST\-autopkgtest\-ARCH.img. A suitable image can be
-created with sbuild\-qemu\-create(1).
+VM image to use for building. If not specified, will look for an image with the 
+name \fBDIST\-autopkgtest\-ARCH.img\fR. Will first look in the current
+directory, and if no such file exists there, then the directory
+\fB$IMAGEDIR\fR is tried. A suitable image can be created with
+sbuild\-qemu\-create(1).
 .TP
 \fB\-\-autopkgtest\-debug\fR
 Enable debug output for the autopkgtest\-virt\-qemu(1) driver.
@@ -99,17 +101,14 @@ autopkgtest\-virt\-qemu(1) generally also holds here.
 This will build the package \fBFOO.dsc\fR using \fBunstable\fR as the
 Distribution in the generated .changes file.
 .PP
-Because the \fB\-\-image\fR option was not specified, the image
-\fB$IMAGEDIR/unstable\-autopkgtest\-amd64.img\fR will be used to build the
-image (assuming that the host architecture is amd64).
+Because the \fB\-\-image\fR option was not specified, an image with the name
+\fBunstable\-autopkgtest\-amd64.img\fR will be looked for first in the current
+directory, and then in \fB$IMAGEDIR\fI.
 .PP
 The \fB\-s\fR and \fB\-\-arch\-all\fR aren't known to sbuild-qemu, and
 are therefore will be passed on through to sbuild for it to use.
 .SH ENVIRONMENT
-When using default image detection (meaning the \fB\-\-image\fR option was not
-used, and therefore the image name is generated using the distribution and
-architecture names), \fBsbuild\-qemu\fR looks for images in \fB$IMAGEDIR\fR, or
-the current working directory if \fB$IMAGEDIR\fR is unset.
+\fB$IMAGEDIR\fR defaults to \fI~/.cache/sbuild\fR.
 .SH COPYRIGHT
 Copyright \[co] 2020 Christian Kastner <ckk@debian.org>
 .SH "SEE ALSO"

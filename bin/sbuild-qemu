@@ -43,7 +43,8 @@ except KeyError as e:
 MEM = 2048
 CPUS = psutil.cpu_count(logical=False)
 DIST = 'unstable'
-IMAGEDIR = os.environ.get('IMAGEDIR', os.getcwd())
+_DEFAULT_IMAGEDIR = os.path.join(os.path.expanduser('~'), '.cache', 'sbuild')
+IMAGEDIR = os.environ.get('IMAGEDIR', _DEFAULT_IMAGEDIR)
 
 
 def main():
@@ -72,10 +73,11 @@ def main():
     parser.add_argument(
         '--image',
         action='store',
-        help="VM image to use for building. If not specified, will look in "
-             "$IMAGEDIR (default: cwd) for an image with the name "
-             "DIST-autopkgtest-ARCH.img. A suitable image can be created with "
-             "qemu-sbuild-create(1).",
+        help="VM image to use for building. If not specified, will look for "
+             "an image with the name DIST-autopkgtest-ARCH.img. Will first "
+             "look in the current directory, and if no such file exists "
+             "there, then the directory $IMAGEDIR is tried. A suitable image "
+             "can be created with qemu-sbuild-create(1).",
     )
     parser.add_argument(
         '--autopkgtest-debug',
@@ -111,12 +113,19 @@ def main():
     parsed_args, unparsed_args = parser.parse_known_args()
 
     if parsed_args.image:
-        image = parsed_args.image
+        if os.path.exists(os.path.abspath(parsed_args.image)):
+            image = parsed_args.image
+        else:
+            image = os.path.join(IMAGEDIR, parsed_args.image)
     else:
-        image = os.path.join(
-            IMAGEDIR,
-            f'{parsed_args.dist}-autopkgtest-{ARCH}.img'
-        )
+        guessed_name = f'{parsed_args.dist}-autopkgtest-{ARCH}.img'
+        if os.path.exists(os.path.abspath(guessed_name)):
+            images = os.path.abspath(guessed_name)
+        else:
+            image = os.path.join(
+                IMAGEDIR,
+                f'{parsed_args.dist}-autopkgtest-{ARCH}.img',
+            )
     qemu = f'qemu-system-{MACHINE}'
 
     args = [

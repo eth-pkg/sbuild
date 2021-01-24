@@ -34,7 +34,8 @@ SUPPORTED_ARCHS = {
 }
 
 
-IMAGEDIR = os.environ.get('IMAGEDIR', os.getcwd())
+_DEFAULT_IMAGEDIR = os.path.join(os.path.expanduser('~'), '.cache', 'sbuild')
+IMAGEDIR = os.environ.get('IMAGEDIR', _DEFAULT_IMAGEDIR)
 
 
 def make_snapshot(image):
@@ -109,9 +110,9 @@ def main():
         # This assumes that images are named foo-bar-ARCH.img
         components = os.path.basename(parsed_args.image)[:-4].split('-')
         if 'amd64' in components:
-            qemu = 'qemu-system-x86_64'
+            qemu = SUPPORTED_ARCHS['amd64']
         elif 'i386' in components:
-            qemu = 'qemu-system-i386'
+            qemu = SUPPORTED_ARCHS['i386']
         else:
             print(
                 f"Could not guess architecture, please use --arch",

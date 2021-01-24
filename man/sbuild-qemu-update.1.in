@@ -25,7 +25,7 @@ sbuild\-qemu\-update \- sbuild\-update analog for QEMU images
 .RB [ \-\-noexec ]
 .RB image
 .SH DESCRIPTION
-\fBsbuild\-qemu\-update\fR boots a QEMU VM using \fBimage\fR and then runs
+\fBsbuild\-qemu\-update\fR boots a QEMU VM using \fIimage\fR and then runs
 \fBapt-get\fR in it, performing \fBupdate\fR, \fBdist-upgrade\fR, \fBclean\fR
 and \fBautoremove\fR. It can optionally create a snapshot before updating.
 .SH OPTIONS
@@ -47,14 +47,14 @@ would be executed, and then exit.
 .SH EXAMPLES
 \fB$ sbuild\-qemu\-update unstable\-autopkgtest\-amd64.img\fR
 .PP
-This will update the image \fBunstable\-autopkgtest\-amd64.img\fR.
+This will update the image \fBunstable\-autopkgtest\-amd64.img\fR in
+the current directory. If no such file exists there, then 
+\fB$IMAGEDIR/unstable\-autopkgtest\-amd64.img\fR is tried.
 .SH ENVIRONMENT
-If no suitable image can be found at location \fBimage\fR \fB$IMAGEDIR\fR, then
-\fB$IMAGEDIR\,\<image>\fR is tried. \fB$IMAGEDIR\fR defaults to the current
-working directory.
+If \fB$IMAGEDIR\fR is unset, then \fI~/.cache/sbuild\fR is used.
 .SH COPYRIGHT
 .nf
-Copyright \[co] 2020 Christian Kastner <ckk@kvr.at>
+Copyright \[co] 2020 Christian Kastner <ckk@debian.org>
 .fi
 .SH "SEE ALSO"
 .BR sbuild (1),
