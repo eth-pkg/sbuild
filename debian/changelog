@@ -16,9 +16,9 @@ sbuild (0.81.0) UNRELEASED; urgency=medium
   * Bump Standards-Version to 4.5.1
 
   [ Bruno Kleinert ]
-  * Removed obsolete script /usr/bin/create-chroot to fix 'bullseye: /updates
-    -> -security'. Neither sbuild itself, nor any reverse dependency appear to
-    depend on that script, so removed it. (Closes: #972747)
+  * Removed obsolete script /usr/share/sbuild/create-chroot to fix 'bullseye:
+    /updates -> -security'. Neither sbuild itself, nor any reverse dependency
+    appear to depend on that script, so removed it. (Closes: #972747)
 
  -- Christian Kastner <ckk@debian.org>  Sat, 23 Jan 2021 22:05:36 +0100
 
