@@ -1,4 +1,4 @@
-sbuild (0.81.0) UNRELEASED; urgency=medium
+sbuild (0.81.0) unstable; urgency=medium
 
   [ Johannes 'josch' Schauer ]
   * make 'none' explicitly disable the bd-uninstallable-explainer.
@@ -20,7 +20,7 @@ sbuild (0.81.0) UNRELEASED; urgency=medium
     /updates -> -security'. Neither sbuild itself, nor any reverse dependency
     appear to depend on that script, so removed it. (Closes: #972747)
 
- -- Christian Kastner <ckk@debian.org>  Sat, 23 Jan 2021 22:05:36 +0100
+ -- Johannes 'josch' Schauer <josch@debian.org>  Sun, 24 Jan 2021 23:13:34 +0100
 
 sbuild (0.80.1) unstable; urgency=medium
 
