@@ -27,15 +27,19 @@ import psutil
 import sys
 
 
-SUPPORTED_ARCHS = {
+MACHINE_TO_DEB_ARCH = {
     'x86_64': 'amd64',
     'i386': 'i386'
+}
+DEB_ARCH_TO_QEMU = {
+    'amd64': 'qemu-system-x86_64',
+    'i386': 'qemu-system-i386',
 }
 
 
 MACHINE = platform.machine()
 try:
-    ARCH = SUPPORTED_ARCHS[MACHINE]
+    ARCH = MACHINE_TO_DEB_ARCH[MACHINE]
 except KeyError as e:
     print(f"Unsupported machine type {MACHINE}", file=sys.stderr)
     sys.exit(1)
@@ -62,7 +66,7 @@ def main():
         default=ARCH,
         help="Architecture to use. Default is the host architecture. "
              "Currently supported architectures are: "
-            f"{', '.join(SUPPORTED_ARCHS.values())}.",
+            f"{', '.join(DEB_ARCH_TO_QEMU.keys())}.",
     )
     parser.add_argument(
         '-d', '--dist',
@@ -126,7 +130,7 @@ def main():
                 IMAGEDIR,
                 f'{parsed_args.dist}-autopkgtest-{ARCH}.img',
             )
-    qemu = f'qemu-system-{MACHINE}'
+    qemu = DEB_ARCH_TO_QEMU[ARCH]
 
     args = [
             'sbuild',
