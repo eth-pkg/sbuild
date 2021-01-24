@@ -53,7 +53,6 @@ sbin_SCRIPTS = 			\
 	sbuild-destroychroot
 
 sbuilddata_SCRIPTS =		\
-	create-chroot		\
 	dobuildlog
 
 doc_DATA = 		\
