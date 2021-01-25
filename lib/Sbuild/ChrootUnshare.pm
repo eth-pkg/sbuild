@@ -163,6 +163,7 @@ sub begin_session {
 	'--exclude=./dev/random',
 	'--exclude=./dev/full',
 	'--exclude=./dev/null',
+	'--exclude=./dev/console',
 	'--exclude=./dev/zero',
 	'--exclude=./dev/tty',
 	'--exclude=./dev/ptmx',
