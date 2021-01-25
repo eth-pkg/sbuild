@@ -3328,6 +3328,15 @@ sub close_build_log {
 		system('debsign', '--re-sign', "-k$key_id", '--', "$build_dir/$changes");
 	    }
 	    if ($self->get_conf('SOURCE_ONLY_CHANGES')) {
+		# We would like to run debsign with --no-re-sign so that a file
+		# referenced by the normal changes file and was already signed
+		# there does not get changed here by re-signing. Otherwise, the
+		# checksum from the normal changes file might not match
+		# anymore. https://bugs.debian.org/977674
+		#
+		# The problem is, that with --no-re-sign, debsign will see a
+		# signed buildinfo file and skip signing the dsc.
+		# https://bugs.debian.org/981021
 		my $so_changes = $build_dir . '/' . $self->get('Package_SVersion') . "_source.changes";
 		if (-r $so_changes) {
 		    system('debsign', '--re-sign', "-k$key_id", '--', "$so_changes");
