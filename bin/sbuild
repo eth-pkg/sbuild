@@ -60,7 +60,9 @@ if (!$conf->get('MAINTAINER_NAME') &&
 	die "A maintainer name, uploader name or key ID must be specified in .sbuildrc,\nor use -m, -e or -k, when performing a binNMU or appending a version suffix\n";
 }
 
-umask(002);
+# default umask for Debian
+# see dpkg source: scripts/Dpkg/Vendor/Debian.pm
+umask(0022);
 
 # Job state
 my $job = undef;
