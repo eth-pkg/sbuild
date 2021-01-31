@@ -1,3 +1,10 @@
+sbuild (0.81.2) unstable; urgency=medium
+
+  * Package sbuild-qemu should be arch:all, not arch:amd64.
+    Resolves a FTBFS.
+
+ -- Christian Kastner <ckk@debian.org>  Sun, 31 Jan 2021 15:34:54 +0100
+
 sbuild (0.81.1) unstable; urgency=medium
 
   * lib/Sbuild/ChrootUnshare.pm: also ignore /dev/console when unpacking
