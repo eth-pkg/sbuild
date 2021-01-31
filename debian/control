@@ -123,7 +123,7 @@ Description: Daemon for automatically building Debian binary packages from Debia
  requires installing separately.
 
 Package: sbuild-qemu
-Architecture: amd64
+Architecture: all
 Depends: autopkgtest,
          python3-pexpect,
          python3-psutil,
