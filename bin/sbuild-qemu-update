@@ -1,0 +1,161 @@
+#!/usr/bin/python3
+# SPDX-License-Identifier: GPL-2.0-or-later
+#
+# Copyright © 2020      Christian Kastner <ckk@debian.org>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see
+# <http://www.gnu.org/licenses/>.
+#
+#######################################################################
+
+
+import argparse
+import datetime
+import os
+import subprocess
+import sys
+
+import pexpect
+
+
+DEB_ARCH_TO_QEMU = {
+    'amd64': 'qemu-system-x86_64',
+    'i386': 'qemu-system-i386',
+}
+
+
+_DEFAULT_IMAGEDIR = os.path.join(os.path.expanduser('~'), '.cache', 'sbuild')
+IMAGEDIR = os.environ.get('IMAGEDIR', _DEFAULT_IMAGEDIR)
+
+
+def make_snapshot(image):
+    iso_stamp = datetime.datetime.now().strftime('%Y-%m-%d_%H%M%S')
+    run = subprocess.run(
+        ['qemu-img', 'snapshot', '-l', image],
+        capture_output=True
+    )
+    tags = [t.split()[1].decode('utf-8') for t in run.stdout.splitlines()[2:]]
+
+    if iso_stamp in tags:
+        print(
+            f"Error: snapshot for {iso_stamp} already exists.",
+            file=sys.stderr
+        )
+        return False
+
+    run = subprocess.run(['qemu-img', 'snapshot', '-c', iso_stamp, image])
+    return True if run.returncode == 0 else False
+
+
+def main():
+    # init options
+    parser = argparse.ArgumentParser(
+        description="sbuild-update analog for QEMU images.",
+    )
+    parser.add_argument(
+        '--snapshot',
+        action='store_true',
+        help="Create a snapshot of the image before updating it. Useful for "
+             "reproducibility purposes.",
+    )
+    parser.add_argument(
+        '--arch',
+        action='store',
+        help="Architecture to use (instead of attempting to auto-guess based "
+             "on the image name).",
+    )
+    parser.add_argument(
+        '--noexec',
+        action='store_true',
+        help="Don't actually do anything. Just print the command string that "
+             "would be executed, and then exit.",
+    )
+    parser.add_argument(
+        'image',
+        action='store',
+        help="Image. Will first be interpreted as a path. If no suitable "
+        "image exists at that location, then $IMAGEDIR\<image> is tried.",
+    )
+
+    parsed_args = parser.parse_args()
+
+    if os.path.exists(parsed_args.image):
+        image = parsed_args.image
+    elif os.path.exists(os.path.join(IMAGEDIR, parsed_args.image)):
+        image = os.path.join(IMAGEDIR, parsed_args.image)
+    else:
+        print("Image does not exist", file=sys.stderr)
+        sys.exit(1)
+
+    if parsed_args.arch:
+        try:
+            qemu = DEB_ARCH_TO_QEMU[parsed_args.arch]
+        except KeyError as e:
+            print(
+                f"Unsupported architecture {parsed_args.arch}",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+    else:
+        # This assumes that images are named foo-bar-ARCH.img
+        components = os.path.basename(parsed_args.image)[:-4].split('-')
+        if 'amd64' in components:
+            qemu = DEB_ARCH_TO_QEMU['amd64']
+        elif 'i386' in components:
+            qemu = DEB_ARCH_TO_QEMU['i386']
+        else:
+            print(
+                f"Could not guess architecture, please use --arch",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+
+    args = [
+            qemu,
+            '-enable-kvm',
+            '-object', 'rng-random,filename=/dev/urandom,id=rng0',
+            '-device', 'virtio-rng-pci,rng=rng0,id=rng-device0',
+            '-m',      '2048',
+            '-nographic',
+        ]
+    args.append(image)
+
+    print(' '.join(str(a) for a in args))
+    if not parsed_args.noexec:
+        if parsed_args.snapshot and not make_snapshot(image):
+            return
+        child = pexpect.spawn(' '.join(args), encoding='utf-8')
+        child.timeout = 240
+        child.expect('host login: ')
+        child.sendline('root')
+        child.logfile = sys.stdout
+        child.expect('root@host:~# ')
+        child.sendline('DEBIAN_FRONTEND=noninteractive apt-get --quiet update')
+        child.expect('root@host:~# ')
+        child.sendline('DEBIAN_FRONTEND=noninteractive apt-get --quiet --assume-yes dist-upgrade')
+        child.expect('root@host:~# ')
+        child.sendline('DEBIAN_FRONTEND=noninteractive apt-get --quiet --assume-yes clean')
+        child.expect('root@host:~# ')
+        child.sendline('DEBIAN_FRONTEND=noninteractive apt-get --quiet --assume-yes autoremove')
+        child.expect('root@host:~# ')
+        child.sendline('sync')
+        child.expect('root@host:~# ')
+        # Don't recall what issue this solves, but it solves it
+        child.sendline('sleep 1')
+        child.expect('root@host:~# ')
+        child.sendline('shutdown -h now')
+
+
+if __name__ == '__main__':
+    main()
