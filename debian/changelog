@@ -1,8 +1,15 @@
 sbuild (0.81.1) UNRELEASED; urgency=medium
 
-  * 
+  * lib/Sbuild/ChrootUnshare.pm: also ignore /dev/console when unpacking
+    rootfs becauke mknod is forbidden in unshare mode
+  * lib/Sbuild/Build.pm: add comment about #977674
+  * bin/sbuild: use umask 0022 as default for Debian -- see dpkg source:
+    scripts/Dpkg/Vendor/Debian.pm
+  * lib/Sbuild/Build.pm: run dpkg-buildpackage with --sanitize-env if dpkg
+    1.20.0 is available
+  * add new unshare autopkgtest with qemu wrapper
 
- -- Johannes 'josch' Schauer <josch@debian.org>  Tue, 26 Jan 2021 14:34:00 +0100
+ -- Johannes 'josch' Schauer <josch@debian.org>  Sun, 31 Jan 2021 09:35:05 +0100
 
 sbuild (0.81.0) unstable; urgency=medium
 
