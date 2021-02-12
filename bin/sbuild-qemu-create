@@ -40,10 +40,6 @@ DEFAULT_ARCH = subprocess.check_output(
 ).strip()
 
 
-OUT_FILE = '<dist>-autopkgtest-<arch>.img'
-MOD_SCRIPT = '/usr/share/sbuild/sbuild-qemu-create-modscript'
-
-
 def gen_sourceslist(mirror, dist, components, with_bpo=False):
     """Generate a sources.list file for the VM.
 
@@ -126,7 +122,6 @@ def main():
     parser.add_argument(
         '-o', '--out-file',
         action='store',
-        default=OUT_FILE,
         help="Output filename. If not supplied, then "
              "DIST-autopkgtest-ARCH.img will be used.",
     )
@@ -157,11 +152,10 @@ def main():
             file=sys.stderr,
         )
         sys.exit(1)
-    if parsed.out_file == OUT_FILE:
-        # Default unchanged - peplace template with instantiated name
-        out_file = f"{parsed.distribution}-autopkgtest-{parsed.arch}.img"
-    else:
+    if parsed.out_file:
         out_file = parsed.out_file
+    else:
+        out_file = f"{parsed.distribution}-autopkgtest-{parsed.arch}.img"
     components = parsed.components.split(',')
 
     # Args that *may* be consumed by modscript (if supplied)
@@ -186,12 +180,13 @@ def main():
     print('sources.list (via export AUTOPKGTEST_APT_SOURCES)\n------------')
     print(os.environ['AUTOPKGTEST_APT_SOURCES'])
 
+    mod_script = '/usr/share/sbuild/sbuild-qemu-create-modscript'
     args = [
         'autopkgtest-build-qemu',
 	'--architecture',           parsed.arch,
         '--mirror',                 parsed.mirror,
         '--size',                   parsed.size,
-        '--script',                 MOD_SCRIPT,
+        '--script',                 mod_script,
     ]
     #if parsed.variant:
     #    args += ['--variant', parsed.variant]
