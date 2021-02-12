@@ -30,8 +30,11 @@ import pexpect
 
 
 DEB_ARCH_TO_QEMU = {
-    'amd64': 'qemu-system-x86_64',
-    'i386': 'qemu-system-i386',
+    'amd64': 'x86_64',
+    'arm64': 'aarch64',
+    'armhf': 'arm',
+    'i386': 'i386',
+    'ppc64el': 'ppc64le',
 }
 
 
@@ -110,11 +113,11 @@ def main():
     else:
         # This assumes that images are named foo-bar-ARCH.img
         components = os.path.basename(parsed_args.image)[:-4].split('-')
-        if 'amd64' in components:
-            qemu = DEB_ARCH_TO_QEMU['amd64']
-        elif 'i386' in components:
-            qemu = DEB_ARCH_TO_QEMU['i386']
-        else:
+        for c in components:
+            qemu_arch = DEB_ARCH_TO_QEMU.get(c)
+            if qemu_arch:
+                break
+        if not qemu_arch:
             print(
                 f"Could not guess architecture, please use --arch",
                 file=sys.stderr,
@@ -122,7 +125,7 @@ def main():
             sys.exit(1)
 
     args = [
-            qemu,
+            f'qemu-system-{qemu_arch}',
             '-enable-kvm',
             '-object', 'rng-random,filename=/dev/urandom,id=rng0',
             '-device', 'virtio-rng-pci,rng=rng0,id=rng-device0',

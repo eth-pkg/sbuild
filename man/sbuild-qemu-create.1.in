@@ -45,7 +45,7 @@ Show this help message and exit.
 .TP
 \fB\-\-arch\fR=ARCH
 Architecture to use. Default is the host architecture. Currently supported
-architectures are: amd64, i386.
+architectures are: amd64, arm64, armhf, i386, ppc64el.
 .TP
 \fB\-\-install\-packages\fR=INSTALL_PACKAGES
 Comma\-separated list of additional packages to install using

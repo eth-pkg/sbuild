@@ -22,23 +22,24 @@
 
 import argparse
 import os
-import platform
+import subprocess
 import sys
 import textwrap
 
 
-SUPPORTED_ARCHS = {
-    'x86_64': 'amd64',
-    'i386': 'i386'
-}
+SUPPORTED_ARCHS = [
+    'amd64',
+    'arm64',
+    'armhf',
+    'i386',
+    'ppc64el',
+]
+DEFAULT_ARCH = subprocess.check_output(
+    ['dpkg', '--print-architecture'],
+    text=True,
+).strip()
 
 
-MACHINE = platform.machine()
-try:
-    ARCH = SUPPORTED_ARCHS[MACHINE]
-except KeyError as e:
-    print(f"Unsupported machine type {MACHINE}", file=sys.stderr)
-    sys.exit(1)
 OUT_FILE = '<dist>-autopkgtest-<arch>.img'
 MOD_SCRIPT = '/usr/share/sbuild/sbuild-qemu-create-modscript'
 
@@ -82,10 +83,10 @@ def main():
     parser.add_argument(
         '--arch',
         action='store',
-        default=ARCH,
+        default=DEFAULT_ARCH,
         help="Architecture to use. Default is the host architecture. "
              "Currently supported architectures are: "
-            f"{', '.join(SUPPORTED_ARCHS.values())}.",
+            f"{', '.join(SUPPORTED_ARCHS)}.",
     )
     parser.add_argument(
         '--install-packages',
@@ -150,7 +151,7 @@ def main():
     parsed = parser.parse_args()
 
     # Internal args
-    if parsed.arch not in SUPPORTED_ARCHS.values():
+    if parsed.arch not in SUPPORTED_ARCHS:
         print(
             f"Unsupported architecture: {parsed.arch}",
             file=sys.stderr,

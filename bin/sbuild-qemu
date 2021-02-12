@@ -22,33 +22,31 @@
 
 import argparse
 import os
-import platform
 import psutil
+import subprocess
 import sys
 
 
-MACHINE_TO_DEB_ARCH = {
-    'x86_64': 'amd64',
-    'i386': 'i386'
-}
 DEB_ARCH_TO_QEMU = {
-    'amd64': 'qemu-system-x86_64',
-    'i386': 'qemu-system-i386',
+    'amd64': 'x86_64',
+    'arm64': 'aarch64',
+    'armhf': 'arm',
+    'i386': 'i386',
+    'ppc64el': 'ppc64le',
 }
 
+DEFAULT_ARCH = subprocess.check_output(
+    ['dpkg', '--print-architecture'],
+    text=True,
+).strip()
 
-MACHINE = platform.machine()
-try:
-    ARCH = MACHINE_TO_DEB_ARCH[MACHINE]
-except KeyError as e:
-    print(f"Unsupported machine type {MACHINE}", file=sys.stderr)
-    sys.exit(1)
+_DEFAULT_IMAGEDIR = os.path.join(os.path.expanduser('~'), '.cache', 'sbuild')
+IMAGEDIR = os.environ.get('IMAGEDIR', _DEFAULT_IMAGEDIR)
+
 # Defaults
 MEM = 2048
 CPUS = psutil.cpu_count(logical=False)
 DIST = 'unstable'
-_DEFAULT_IMAGEDIR = os.path.join(os.path.expanduser('~'), '.cache', 'sbuild')
-IMAGEDIR = os.environ.get('IMAGEDIR', _DEFAULT_IMAGEDIR)
 
 
 def main():
@@ -63,7 +61,7 @@ def main():
     parser.add_argument(
         '--arch',
         action='store',
-        default=ARCH,
+        default=DEFAULT_ARCH,
         help="Architecture to use. Default is the host architecture. "
              "Currently supported architectures are: "
             f"{', '.join(DEB_ARCH_TO_QEMU.keys())}.",
@@ -130,7 +128,11 @@ def main():
                 IMAGEDIR,
                 f'{parsed_args.dist}-autopkgtest-{parsed_args.arch}.img',
             )
-    qemu = DEB_ARCH_TO_QEMU[parsed_args.arch]
+    try:
+        qemu_arch = DEB_ARCH_TO_QEMU[parsed_args.arch]
+    except KeyError:
+        print(f"Unsupported architecture {parsed_args.arch}", file=sys.stderr)
+        sys.exit(1)
 
     args = [
             'sbuild',
@@ -141,7 +143,7 @@ def main():
             '--chroot-mode=autopkgtest',
             '--autopkgtest-virt-server=qemu',
             '--autopkgtest-virt-server-opt',    '--overlay-dir=/tmp',
-            '--autopkgtest-virt-server-opt',    f'--qemu-command={qemu}',
+            '--autopkgtest-virt-server-opt',    f'--qemu-architecture={qemu_arch}',
             '--autopkgtest-virt-server-opt',    f'--ram-size={parsed_args.ram}',
             '--autopkgtest-virt-server-opt',    f'--cpus={parsed_args.cpus}',
             '--autopkgtest-virt-server-opt',    image,
