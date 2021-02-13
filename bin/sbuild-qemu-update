@@ -130,7 +130,7 @@ def main():
             '-enable-kvm',
             '-object', 'rng-random,filename=/dev/urandom,id=rng0',
             '-device', 'virtio-rng-pci,rng=rng0,id=rng-device0',
-            '-m',      '2048',
+            '-m',      '1024',
             '-nographic',
         ]
     args.append(image)
