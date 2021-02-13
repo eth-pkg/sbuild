@@ -127,7 +127,6 @@ def main():
 
     args = [
             f'qemu-system-{qemu_arch}',
-            '-enable-kvm',
             '-object', 'rng-random,filename=/dev/urandom,id=rng0',
             '-device', 'virtio-rng-pci,rng=rng0,id=rng-device0',
             '-m',      '1024',
