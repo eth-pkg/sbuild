@@ -126,7 +126,7 @@ Description: Daemon for automatically building Debian binary packages from Debia
 
 Package: sbuild-qemu
 Architecture: all
-Depends: autopkgtest,
+Depends: autopkgtest (>= 5.17~),
          python3-pexpect,
          python3-psutil,
          qemu-system-x86,
