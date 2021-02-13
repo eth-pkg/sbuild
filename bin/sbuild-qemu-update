@@ -112,7 +112,8 @@ def main():
             sys.exit(1)
     else:
         # This assumes that images are named foo-bar-ARCH.img
-        components = os.path.basename(parsed_args.image)[:-4].split('-')
+        root, _ = os.path.splitext(os.path.basename(parsed_args.image))
+        components = root.split('-')
         for c in components:
             qemu_arch = DEB_ARCH_TO_QEMU.get(c)
             if qemu_arch:
