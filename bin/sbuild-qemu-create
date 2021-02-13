@@ -88,7 +88,7 @@ def main():
         '--install-packages',
         action='store',
         help="Comma-separated list of additional packages to install in the "
-             "image using 'apt-get install'.",
+             "image using 'apt-get install from within the image'.",
     )
     parser.add_argument(
         '--extra-deb',
@@ -140,8 +140,7 @@ def main():
         'mirror',
         action='store',
         help="The mirror to use for the installation. Note that the mirror "
-             "will also be used for the sources.list file in the VM. See "
-             "MIRROR below.",
+             "will also be used for the sources.list file in the VM.",
     )
     parsed = parser.parse_args()
 

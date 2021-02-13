@@ -28,11 +28,12 @@ sbuild\-qemu\-create \- QEMU image creator for sbuild
 .RB [ \-\-size=SIZE ]
 .RB [ \-o=OUT_FILE  ]
 .RB [ \-\-noexec ]
-debmirror
+.RB [RELEASE]
+.RB [MIRROR]
 .PP
 Build an image for use with \fBsbuild-qemu\fR and \fBautopkgtest\fR.
-\fBdistribution\fR will be debootstrapped using mirror \fBdebmirror\fR.
-Note that the mirror will also be used for the \fIsources.list\fR file in
+\fBRELEASE\fR will be debootstrapped from \fBMIRROR\fR.
+Note that the same mirror will also be used for the \fIsources.list\fR file in
 the VM. See MIRROR below.
 .PP
 Note that sbuild\-qemu\-create is just a simple wrapper around
@@ -49,7 +50,7 @@ architectures are: amd64, arm64, armhf, i386, ppc64el.
 .TP
 \fB\-\-install\-packages\fR=INSTALL_PACKAGES
 Comma\-separated list of additional packages to install using
-\fBapt\-get install\fR from within the running image.
+\fBapt\-get install\fR from within the image.
 .TP
 \fB\-\-extra\-deb\fR=EXTRA_DEB
 Package file (.deb) from the local filesystem to install. Can be specified more
@@ -63,8 +64,8 @@ Default: main.
 Skeleton directory to use for \fI\,/root\/\fP.
 .TP
 \fB\-\-size\fR=SIZE
-VM size to use. Note that the images will be created in qcow2 format, so they
-won't consume that space right away. Default: 10G.
+Image size to use. Note that the images will be created in qcow2 format, so
+they won't consume that space right away. Default: 10G.
 .TP
 \fB\-o\fR=OUT_FILE, \fB\-\-out\-file\fR=OUT_FILE
 Output filename. If not supplied, then DIST\-autopkgtest\-ARCH.img will be
@@ -79,6 +80,11 @@ apt\-cacher\-ng(8), on the \fBlocal\fR machine (so that the VM guest can
 access it without much hassle) as a mirror. This will dramatically speed up the
 package build process. On the author's local machine, installing the build
 dependencies of even larger packages takes only a few seconds.
+.PP
+If you use a local cache, then ensure that the mirror is accessible from the
+guest. Using \fIhttp://localhost:PORT\fR will successfully bootstrap the image,
+but APT will fail within the VM, because to the VM, \fIlocalhost\fR is
+something else. An easy workaround is to use an IP address instead.
 .SH "SPECIAL CASES"
 If the distribution is \fBexperimental\fR, \fIsources.list\fR will contain
 entries for both \fBexperimental\fR and \fBunstable\fR.
