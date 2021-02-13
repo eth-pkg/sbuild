@@ -132,10 +132,10 @@ Depends: autopkgtest,
          qemu-system-x86,
          qemu-utils,
          sbuild,
+         vmdb2 (>= 0.22),
          ${misc:Depends},
          ${python3:Depends},
-Recommends: vmdb2 (>= 0.22),
-            qemu-system-arm,
+Recommends: qemu-system-arm,
             qemu-system-ppc,
 Breaks: qemu-sbuild-utils (<< 0.2.1~)
 Replaces: qemu-sbuild-utils (<< 0.2.1~)
