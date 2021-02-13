@@ -122,15 +122,15 @@ def main():
         else:
             image = os.path.join(IMAGEDIR, parsed_args.image)
     else:
-        guessed_name = f'{parsed_args.dist}-autopkgtest-{ARCH}.img'
+        guessed_name = f'{parsed_args.dist}-autopkgtest-{parsed_args.arch}.img'
         if os.path.exists(os.path.abspath(guessed_name)):
             images = os.path.abspath(guessed_name)
         else:
             image = os.path.join(
                 IMAGEDIR,
-                f'{parsed_args.dist}-autopkgtest-{ARCH}.img',
+                f'{parsed_args.dist}-autopkgtest-{parsed_args.arch}.img',
             )
-    qemu = DEB_ARCH_TO_QEMU[ARCH]
+    qemu = DEB_ARCH_TO_QEMU[parsed_args.arch]
 
     args = [
             'sbuild',
