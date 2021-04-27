@@ -627,6 +627,8 @@ sub get_tar_compress_options($) {
 	return ('--use-compress-program', 'lz4');
     } elsif ($filename =~ /\.(xz|txz)$/) {
 	return ('--xz');
+    } elsif ($filename =~ /\.zst$/) {
+	return ('--zstd');
     }
     return ();
 }
