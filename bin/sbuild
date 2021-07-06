@@ -228,7 +228,7 @@ sub create_source_package ($) {
     # directory so the source package files will go to the parent dir.
     my $dscdir = abs_path("$dsc/..");
     if (index($dir, $dsc, 0) == 0) {
-	$conf->set('BUILD_DIR', $dscdir);
+	$conf->_set_default('BUILD_DIR', $dscdir);
     }
 
     $dsc = "${dscdir}/${package}_${uversion}${dversion}.dsc";
