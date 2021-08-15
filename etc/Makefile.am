@@ -30,7 +30,6 @@ builddsysconf_DATA = buildd.conf
 exampleconfdir = $(docdir)/examples
 exampleconf_DATA = example.sbuildrc sbuild-debian-developer-setup-update-all
 
-COMPAT_SETUP = 99builddsourceslist
 SETUP =
 
 sbuild.conf: $(abs_top_srcdir)/tools/sbuild-dumpconfig
@@ -42,11 +41,7 @@ buildd.conf: $(abs_top_srcdir)/tools/sbuild-dumpconfig
 	  $< buildd config > $@
 
 schrootsetupdir = $(SCHROOT_SYSCONF_DIR)/setup.d
-if SBUILD_COMPAT
-schrootsetup_SCRIPTS = $(COMPAT_SETUP) $(SETUP)
-else
 schrootsetup_SCRIPTS = $(SETUP)
-endif
 
 CLEANFILES =		\
 	sbuild.conf	\
@@ -54,6 +49,5 @@ CLEANFILES =		\
 
 EXTRA_DIST =			\
 	$(exampleconf_DATA)	\
-	$(COMPAT_SETUP)		\
 	$(SETUP)		\
 	sbuild-debuild.conf
