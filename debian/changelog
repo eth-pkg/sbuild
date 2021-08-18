@@ -1,3 +1,9 @@
+sbuild (0.81.3) UNRELEASED; urgency=medium
+
+  * control: Fix git URLs.
+
+ -- Samuel Thibault <sthibault@debian.org>  Wed, 18 Aug 2021 11:32:15 +0200
+
 sbuild (0.81.2) unstable; urgency=medium
 
   * Package sbuild-qemu should be arch:all, not arch:amd64.
