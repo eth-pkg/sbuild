@@ -515,9 +515,7 @@ my \$sources = "\${target}/etc/apt/sources.list";
 open(SOURCES, ">>\$sources")
     or die "E: Can't open \$sources for writing";
 
-print SOURCES <<"EOF2";
-$sources_list
-EOF2
+print SOURCES \$sources_list;
 close SOURCES or die "E: Can't close \$sources";
 EOF
     }
@@ -537,10 +535,11 @@ use Sbuild qw(dump_file);
 my \$target = \$ARGV[0];
 my \$passwd_sbuild = \$ARGV[1];
 my \$group_sbuild = \$ARGV[2];
+my \$sources_list = \$ARGV[3];
 $setup_script
 EOF
 	!system(get_unshare_cmd(
-		{IDMAP => \@idmap}), 'perl', '-e', $setup_script, $target, $passwd_sbuild, $group_sbuild
+		{IDMAP => \@idmap}), 'perl', '-e', $setup_script, $target, $passwd_sbuild, $group_sbuild, $sources_list
 	) or die "E: failed running setup script";
     } else {
 	eval $setup_script;
