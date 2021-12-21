@@ -46,10 +46,14 @@ else
 	# available
 	aptsources=
 	if [ -e /etc/apt/sources.list ]; then
+		sed -i 's/ file:\/\// copy:\/\//' /etc/apt/sources.list
+		cat /etc/apt/sources.list
 		aptsources="$aptsources /etc/apt/sources.list"
 	fi
 	for f in /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/*.sources; do
 		[ -e "$f" ] || continue
+		sed -i 's/ file:\/\// copy:\/\//' $f
+		cat $f
 		aptsources="$aptsources $f"
 	done
 	MODE=root
@@ -124,9 +128,9 @@ set -exu
 rootfs="$1"
 
 apt-get indextargets \
-	| grep-dctrl \( -F Created-By Packages -a --regex -F Repo-URI '^file://' \) -s Repo-URI -n \
+	| grep-dctrl \( -F Created-By Packages -a --regex -F Repo-URI '^copy://' \) -s Repo-URI -n \
 	| while read uri; do
-		repo=${uri#file://} # strip prefix
+		repo=${uri#copy://} # strip prefix
 		mkdir -p "$rootfs/$repo"
 		mmdebstrap --hook-helper "$rootfs" "$MMDEBSTRAP_MODE" setup env 1 sync-in "$repo" "$repo" <&$MMDEBSTRAP_HOOKSOCK >&$MMDEBSTRAP_HOOKSOCK
 done
