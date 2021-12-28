@@ -1255,14 +1255,17 @@ chroots provided by arbitrary tarballs. This allows one to set up an arbitrary
 build environment without having to become root. Building packages with schroot
 also doesn't require sudo (schroot is suid root) but setting up and updating
 chroots requires superuser permissions. The unshare backend only makes use of
-two small suid binaries (newuidmap and newgidmap) and only requires root once
-for enabling unprivileged userns clones (Debian carries a patch against the
-Linux kernel that disables this feature by default). So after setting
-kernel.unprivileged_userns_clone=1 /etc/sysctl.d/, this backend allows
+two small suid binaries (newuidmap and newgidmap). This backend allows
 arbitrary tarballs containing chroot environments to be used for package
 building. The default tarball location is in ~/.cache/sbuild/. The expected
 names are resolved in the same order as for the schroot chroot mode and can be
 overridden using the \-c or \-\-chroot options.
+
+On buster and earlier Debian releases, unprivileged userns clones
+(/proc/sys/kernel/unprivileged_userns_clone) were disabled by default by means
+of a Debian-specific kernel patch. On these systems, root is required for
+enabling them. This can also done permanently by setting
+kernel.unprivileged_userns_clone=1 in /etc/sysctl.d/.
 .SH BUILD ARTIFACTS
 Sbuild is meant to be used to build architecture specific binary packages from
 a given source package. In addition, sbuild is also able to generate
