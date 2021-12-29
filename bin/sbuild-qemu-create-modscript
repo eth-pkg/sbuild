@@ -38,28 +38,28 @@ fi
 
 echo "### Customizing base image ###"
 
-if [ -n "$QSC_SKEL" ]
+if [ -n "$SQC_SKEL" ]
 then
-	echo "Copying contents of $QSC_SKEL"
-	if [ ! -d "$QSC_SKEL" ]
+	echo "Copying contents of $SQC_SKEL"
+	if [ ! -d "$SQC_SKEL" ]
 	then
-		echo "$QSC_SKEL is not a directory." >&2
+		echo "$SQC_SKEL is not a directory." >&2
 		exit 1
 	fi
-	cp -pr $QSC_SKEL/. $VMROOT/root
+	cp -pr $SQC_SKEL/. $VMROOT/root
 fi
 
-if [ -n "$QSC_INSTALL_PACKAGES" ]
+if [ -n "$SQC_INSTALL_PACKAGES" ]
 then
 	echo "Installing additional packages"
-	chroot $VMROOT apt-get install --quiet --assume-yes $QSC_INSTALL_PACKAGES
+	chroot $VMROOT apt-get install --quiet --assume-yes $SQC_INSTALL_PACKAGES
 fi
 
-if [ -n "$QSC_EXTRA_DEBS" ]
+if [ -n "$SQC_EXTRA_DEBS" ]
 then
 	echo "Installing extra .debs"
 	VMTMP=`mktemp -d -p $VMROOT`
-	cp -t $VMTMP $QSC_EXTRA_DEBS
+	cp -t $VMTMP $SQC_EXTRA_DEBS
 	chroot $VMROOT dpkg --recursive -i `basename $VMTMP`
 	chroot $VMROOT apt-get update
 	rm -rf $VMTMP

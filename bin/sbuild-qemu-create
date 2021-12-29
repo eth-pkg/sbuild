@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
-# Copyright © 2020      Christian Kastner <ckk@debian.org>
+# Copyright © 2020-2022 Christian Kastner <ckk@debian.org>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -34,6 +34,7 @@ SUPPORTED_ARCHS = [
     'i386',
     'ppc64el',
 ]
+
 DEFAULT_ARCH = subprocess.check_output(
     ['dpkg', '--print-architecture'],
     text=True,
@@ -88,7 +89,7 @@ def main():
         '--install-packages',
         action='store',
         help="Comma-separated list of additional packages to install in the "
-             "image using 'apt-get install from within the image'.",
+             "image using 'apt-get install' from within the image.",
     )
     parser.add_argument(
         '--extra-deb',
@@ -116,7 +117,7 @@ def main():
         type=str,
         action='store',
         default='10G',
-        help="VM size to use. Note that the images are in qcow2 format, so "
+        help="Image size to use. Note that the images are in qcow2 format, so "
              "they won't consume that space right away. Default: 10G.",
     )
     parser.add_argument(
@@ -157,19 +158,20 @@ def main():
         out_file = f"{parsed.distribution}-autopkgtest-{parsed.arch}.img"
     components = parsed.components.split(',')
 
-    # Args that *may* be consumed by modscript (if supplied)
+    # We can only pass arguments to the other tools via the environment
+    #
+    # Args consumed by the modscript
     if parsed.skel:
-        os.environ['QSC_SKEL'] = parsed.skel
-        print('export QSC_SKEL=' + os.environ['QSC_SKEL'])
+        os.environ['SQC_SKEL'] = parsed.skel
+        print('export SQC_SKEL=' + os.environ['SQC_SKEL'])
     if parsed.extra_deb:
         extra_debs = ' '.join(parsed.extra_deb)
-        os.environ['QSC_EXTRA_DEBS'] = extra_debs
-        print('export QSC_EXTRA_DEBS=' + extra_debs)
+        os.environ['SQC_EXTRA_DEBS'] = extra_debs
+        print('export SQC_EXTRA_DEBS=' + extra_debs)
     if parsed.install_packages:
         install_packages = parsed.install_packages.replace(',', ' ')
-        os.environ['QSC_INSTALL_PACKAGES'] = install_packages
-        print('export QSC_INSTALL_PACKAGES=' + install_packages)
-
+        os.environ['SQC_INSTALL_PACKAGES'] = install_packages
+        print('export SQC_INSTALL_PACKAGES=' + install_packages)
     # Args consumed by autopkgtest-build-qemu
     os.environ['AUTOPKGTEST_APT_SOURCES'] = gen_sourceslist(
         parsed.mirror,
@@ -179,22 +181,20 @@ def main():
     print('sources.list (via export AUTOPKGTEST_APT_SOURCES)\n------------')
     print(os.environ['AUTOPKGTEST_APT_SOURCES'])
 
-    mod_script = '/usr/share/sbuild/sbuild-qemu-create-modscript'
-    args = [
-        'autopkgtest-build-qemu',
-	'--architecture',           parsed.arch,
-        '--mirror',                 parsed.mirror,
-        '--size',                   parsed.size,
-        '--script',                 mod_script,
-    ]
     #if parsed.variant:
     #    args += ['--variant', parsed.variant]
     dist = parsed.distribution
     if dist.endswith('-backports'):
-        dist = dist[:-10]
+        dist = dist[:-len('-backports')]
     elif dist == 'experimental':
         dist = 'unstable'
-    args += [
+
+    args = [
+        'autopkgtest-build-qemu',
+        '--architecture',   parsed.arch,
+        '--mirror',         parsed.mirror,
+        '--size',           parsed.size,
+        '--script',         '/usr/share/sbuild/sbuild-qemu-create-modscript',
         dist,
         out_file,
     ]

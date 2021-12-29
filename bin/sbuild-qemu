@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
-# Copyright © 2020      Christian Kastner <ckk@debian.org>
+# Copyright © 2020-2022 Christian Kastner <ckk@debian.org>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -35,28 +35,37 @@ DEB_ARCH_TO_QEMU = {
     'ppc64el': 'ppc64le',
 }
 
+IMAGEDIR = os.environ.get(
+    'IMAGEDIR',
+    os.path.join(os.path.expanduser('~'), '.cache', 'sbuild'),
+)
+
+DEFAULT_MEM  = 2048
+DEFAULT_CPUS = psutil.cpu_count(logical=False)
+DEFAULT_DIST = 'unstable'
 DEFAULT_ARCH = subprocess.check_output(
     ['dpkg', '--print-architecture'],
     text=True,
 ).strip()
 
-_DEFAULT_IMAGEDIR = os.path.join(os.path.expanduser('~'), '.cache', 'sbuild')
-IMAGEDIR = os.environ.get('IMAGEDIR', _DEFAULT_IMAGEDIR)
-
-# Defaults
-MEM = 2048
-CPUS = psutil.cpu_count(logical=False)
-DIST = 'unstable'
-
 
 def main():
     # init options
     parser = argparse.ArgumentParser(
-        description="Build Debian packages using sbuild(1) and QEMU images",
+        description="Build Debian packages with sbuild(1) using QEMU images",
         epilog="All other options are passed on through to sbuild(1). "
                "The image will be started in -snapshot mode, so no changes "
                "are saved, and multiple processes can use the same image "
                "concurrently.",
+    )
+    parser.add_argument(
+        '--image',
+        action='store',
+        help="QEMU image file to use for building. If not specified, will "
+             "look for an image with the name DIST-autopkgtest-ARCH.img. Will "
+             "first look in the current directory, and if no such file exists "
+             "there, then the directory $IMAGEDIR is tried. A suitable image "
+             "can be created with qemu-sbuild-create(1).",
     )
     parser.add_argument(
         '--arch',
@@ -69,36 +78,23 @@ def main():
     parser.add_argument(
         '-d', '--dist',
         action='store',
-        default=DIST,
-        help=f"Distribution (for the .changes file). Default is '{DIST}'.",
-    )
-    parser.add_argument(
-        '--image',
-        action='store',
-        help="VM image to use for building. If not specified, will look for "
-             "an image with the name DIST-autopkgtest-ARCH.img. Will first "
-             "look in the current directory, and if no such file exists "
-             "there, then the directory $IMAGEDIR is tried. A suitable image "
-             "can be created with qemu-sbuild-create(1).",
-    )
-    parser.add_argument(
-        '--autopkgtest-debug',
-        action='store_true',
-        help="Enable debug output for the autopkgtest-virt-qemu(1) driver.",
+        default=DEFAULT_DIST,
+        help=f"Distribution (for the .changes file). "
+             f"Default: '{DEFAULT_DIST}'.",
     )
     parser.add_argument(
         '--ram',
         metavar='MiB',
         action='store',
-        default=MEM,
-        help=f"VM memory size in MB. Default: {MEM}",
+        default=DEFAULT_MEM,
+        help=f"VM memory size in MB. Default: {DEFAULT_MEM}",
     )
     parser.add_argument(
         '--cpus',
         metavar='CPUs',
         action='store',
-        default=CPUS,
-        help="VM CPU count. Default: Number of physical cores on the host.",
+        default=DEFAULT_CPUS,
+        help="VM CPU count. Default on this host: {DEFAULT_CPUS}.",
     )
     parser.add_argument(
         '--overlay-dir',
@@ -111,6 +107,11 @@ def main():
         action='store_true',
         help="Don't actually do anything. Just print the sbuild(1) command "
              "string that would be executed, and then exit.",
+    )
+    parser.add_argument(
+        '--autopkgtest-debug',
+        action='store_true',
+        help="Enable debug output for the autopkgtest-virt-qemu(1) driver.",
     )
     parsed_args, unparsed_args = parser.parse_known_args()
 

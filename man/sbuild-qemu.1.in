@@ -1,4 +1,4 @@
-.\" Copyright © 2020       Christian Kastner <ckk@debian.org>
+.\" Copyright © 2020-2022 Christian Kastner <ckk@debian.org>
 .\"
 .\" This program is free software: you can redistribute it and/or modify
 .\" it under the terms of the GNU General Public License as published by
@@ -20,14 +20,14 @@ sbuild\-qemu \- sbuild using QEMU images
 .SH SYNOPSIS
 .B sbuild\-qemu
 .RB [ \-h ]
+.RB [ \-\-image=IMAGE ]
 .RB [ \-\-arch=ARCH ]
 .RB [ \-d=DIST ]
-.RB [ \-\-image=IMAGE ]
-.RB [ \-\-autopkgtest\-debug ]
 .RB [ \-\-ram=MiB ]
 .RB [ \-\-cpus=CPUs ]
 .RB [ \-\-overlay\-dir=OVERLAY_DIR ]
 .RB [ \-\-noexec ]
+.RB [ \-\-autopkgtest\-debug ]
 .PP
 Build Debian packages with \fBsbuild\fR using QEMU images, by using sbuild's
 \fB\-\-chroot\-mode=autopkgtest\fR.
@@ -41,23 +41,20 @@ never changed. Multiple processes can use the same image concurrently.
 \fB\-h\fR, \fB\-\-help\fR
 Show this help message and exit.
 .TP
+\fB\-\-image\fR=IMAGE
+QEMU image file to use for building. If not specified, will look for an image
+with the name \fBDIST\-autopkgtest\-ARCH.img\fR. Will first look in the current
+directory, and if no such file exists there, then the directory
+\fB$IMAGEDIR\fR is tried. A suitable image can be created with
+sbuild\-qemu\-create(1).
+.TP
 \fB\-\-arch\fR=ARCH
 Architecture to use. Default is the host architecture. Currently supported
 architectures are: amd64, arm64, armhf, i386, ppc64el.
 .TP
 \fB\-d\fR=DIST, \fB\-\-dist\fR=DIST
-This corresponds to sbuild's \fB\-\-dist option. It is used here to construct a
-candidate image name (if no image has been specified explicitly).
-.TP
-\fB\-\-image\fR=IMAGE
-QEMU image to use for building. If not specified, will look for an image with
-the name \fBDIST\-autopkgtest\-ARCH.img\fR. Will first look in the current
-directory, and if no such file exists there, then the directory
-\fB$IMAGEDIR\fR is tried. A suitable image can be created with
-sbuild\-qemu\-create(1).
-.TP
-\fB\-\-autopkgtest\-debug\fR
-Enable debug output for the autopkgtest\-virt\-qemu(1) driver.
+This corresponds to sbuild's \fB\-\-dist option\fR. It is used here to
+construct a candidate image name (if no image has been specified explicitly).
 .TP
 \fB\-\-ram\fR=MiB
 VM memory size in MB. Default: 2048
@@ -72,6 +69,9 @@ Directory for the temporary image overlay instead of autopkgtest's default of
 \fB\-\-noexec\fR
 Don't actually do anything. Just print the sbuild(1) command string that would
 be executed, and then exit.
+.TP
+\fB\-\-autopkgtest\-debug\fR
+Enable debug output for the autopkgtest\-virt\-qemu(1) driver.
 .SH CONSIDERATIONS
 Using a fast temporary image overlay is key to faster build times. An overlay
 created on a \fItmpfs\fR would be ideal, and can speed up I/O by an order of
@@ -112,7 +112,7 @@ are therefore will be passed on through to sbuild for it to use.
 .SH ENVIRONMENT
 \fB$IMAGEDIR\fR defaults to \fI~/.cache/sbuild\fR.
 .SH COPYRIGHT
-Copyright \[co] 2020 Christian Kastner <ckk@debian.org>
+Copyright \[co] 2020-2022 Christian Kastner <ckk@debian.org>
 .SH "SEE ALSO"
 .BR sbuild (1),
 .BR sbuild\-qemu\-create (1),

@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
-# Copyright © 2020      Christian Kastner <ckk@debian.org>
+# Copyright © 2020-2022 Christian Kastner <ckk@debian.org>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -37,9 +37,10 @@ DEB_ARCH_TO_QEMU = {
     'ppc64el': 'ppc64le',
 }
 
-
-_DEFAULT_IMAGEDIR = os.path.join(os.path.expanduser('~'), '.cache', 'sbuild')
-IMAGEDIR = os.environ.get('IMAGEDIR', _DEFAULT_IMAGEDIR)
+IMAGEDIR = os.environ.get(
+    'IMAGEDIR',
+    os.path.join(os.path.expanduser('~'), '.cache', 'sbuild'),
+)
 
 
 def make_snapshot(image):

@@ -1,4 +1,4 @@
-.\" Copyright © 2020       Christian Kastner <ckk@debian.org>
+.\" Copyright © 2020-2022  Christian Kastner <ckk@debian.org>
 .\"
 .\" This program is free software: you can redistribute it and/or modify
 .\" it under the terms of the GNU General Public License as published by
@@ -33,12 +33,12 @@ sbuild\-qemu\-create \- QEMU image creator for sbuild
 .PP
 Build an image for use with \fBsbuild-qemu\fR and \fBautopkgtest\fR.
 \fBRELEASE\fR will be debootstrapped from \fBMIRROR\fR.
-Note that the same mirror will also be used for the \fIsources.list\fR file in
-the VM. See MIRROR below.
+Note that the same mirror will also be used for the \fIsources.list\fR file
+within the VM. See MIRROR below.
 .PP
 Note that sbuild\-qemu\-create is just a simple wrapper around
 autopkgtest\-build\-qemu(1) that automates a few additional steps commonly
-performed with package\-building images.
+performed for package\-building images.
 .SH OPTIONS
 .TP
 \fB\-h\fR, \fB\-\-help\fR
@@ -75,31 +75,34 @@ used.
 Don't actually do anything. Just print the autopkgtest\-build\-qemu(1) command
 string that would be executed, and then exit.
 .SH "MIRROR"
-It is \fBhighly recommended\fR that you use an APT cache, like approx(8), or
-apt\-cacher\-ng(8), on the \fBlocal\fR machine (so that the VM guest can
-access it without much hassle) as a mirror. This will dramatically speed up the
+It is \fBhighly recommended\fR that you use an APT cache, like approx(8) or
+apt\-cacher\-ng(8), on the \fBlocal\fR machine (so that the VM can access
+that cache without much hassle) as a mirror. This will dramatically speed up the
 package build process. On the author's local machine, installing the build
 dependencies of even larger packages takes only a few seconds.
 .PP
-If you use a local cache, then ensure that the mirror is accessible from the
-guest. Using \fIhttp://localhost:PORT\fR will successfully bootstrap the image,
-but APT will fail within the VM, because to the VM, \fIlocalhost\fR is
-something else. An easy workaround is to use an IP address instead.
+If you use a local cache, then ensure that the mirror is accessible from within
+the guest. Using \fIhttp://localhost:9999/debian\fR or similar will
+successfully build the image, but APT will fail within the running VM, because
+to the VM, ``localhost'' is something else. An easy workaround is to use an
+IP address instead, for example \fIhttp://192.168.0.123:9999/debian\fR,
+assuming the host system has the IP 192.168.0.123.
 .SH "SPECIAL CASES"
-If the distribution is \fBexperimental\fR, \fIsources.list\fR will contain
+If \fBRELEASE\fR is \fBexperimental\fR, \fIsources.list\fR will contain
 entries for both \fBexperimental\fR and \fBunstable\fR.
 .PP
-If the distribution ends with \fB\-backports\fR, \fIsources.list\fR will contain
-entries for both the distribution and the distribution it is based upon.
+If \fBRELEASE\fR ends with \fB\-backports\fR, \fIsources.list\fR will contain
+entries for both \fBRELEASE\fR and for the distribution it is based upon. In
+other words, specifying \fIbullseye-backports\fR will also add an entry
+for \fIbullseye\fR.
 .SH "SHARING FILES"
-Among other things, autopkgtest\-virt\-qemu(1) has built-in support for sharing a
-directory on the host with the guest, so no further configuration should be
+Among other things, autopkgtest\-virt\-qemu(1) has built-in support for sharing
+a directory on the host with the guest, so no further configuration should be
 necessary when accessing the VM using autopkgtest.
 .PP
-However, for cases where the VM is launched via QEMU directly, a \fI/shared\fR
-mount point for a 9p filesystem has been added to the VM's \fI/etc/fstab\fR. It
-is configured with the \fBnofail\fR option, so it will be ignored if nothing is
-being shared.
+In additon to that, a mount point for a 9p filesystem is added to the
+VM's \fI/etc/fstab\fR. This is for cases where the VM is launched via QEMU
+directly, rather than going through autopkgtest\-virt\-qemu.
 .PP
 To share a directory on the host with the VM, QEMU should be started with
 the following additional options:
@@ -111,10 +114,10 @@ the following additional options:
 This will create an image \fBunstable\-autopkgtest\-amd64.img\fR (assuming
 that the host architecture is amd64) with the unstable distribution.
 .PP
-\fB$ sudo sbuild\-qemu\-create buster\-backports http://deb.debian.org/debian\fR
+\fB$ sudo sbuild\-qemu\-create bullseye\-backports http://deb.debian.org/debian\fR
 .PP
-This will create an image \fBbuster\-backports\-autopkgtest\-amd64.img\fR,
-with \fIsources.list\fR entries for both buster and buster-backports.
+This will create an image \fBbullseye\-backports\-autopkgtest\-amd64.img\fR,
+with \fIsources.list\fR entries for both bullseye and bullseye-backports.
 .PP
 \fB$ sudo sbuild\-qemu\-create \-\-skel DIR unstable http://deb.debian.org/debian\fR
 .PP
@@ -135,12 +138,8 @@ build dependency of the vast majority of Debian packages.
 .PP
 This would install the package \fBFOO.deb\fR from the local filesystem.
 Useful, for example, to install additional keyring packages.
-.PP
-\fB$ sudo sbuild\-qemu\-create --shared-mountpoint unstable http://deb.debian.org/debian\fR
-.PP
-This will create an image with an fstab entry for the directory \fI/shared\fR.
 .SH COPYRIGHT
-Copyright \[co] 2020 Christian Kastner <ckk@debian.org>
+Copyright \[co] 2020-2022 Christian Kastner <ckk@debian.org>
 .SH "SEE ALSO"
 .BR sbuild (1),
 .BR sbuild\-qemu (1),
