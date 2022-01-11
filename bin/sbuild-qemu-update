@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Copyright © 2020-2022 Christian Kastner <ckk@debian.org>
+#             2021      Simon McVittie <smcv@debian.org>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -29,13 +30,13 @@ import sys
 import pexpect
 
 
-DEB_ARCH_TO_QEMU = {
-    'amd64': 'x86_64',
-    'arm64': 'aarch64',
-    'armhf': 'arm',
-    'i386': 'i386',
-    'ppc64el': 'ppc64le',
-}
+SUPPORTED_ARCHS = [
+    'amd64',
+    'arm64',
+    'armhf',
+    'i386',
+    'ppc64el',
+]
 
 IMAGEDIR = os.environ.get(
     'IMAGEDIR',
@@ -60,6 +61,75 @@ def make_snapshot(image):
 
     run = subprocess.run(['qemu-img', 'snapshot', '-c', iso_stamp, image])
     return True if run.returncode == 0 else False
+
+
+def get_qemu_base_args(image, guest_arch=None):
+    host_arch = subprocess.check_output(
+        ['dpkg', '--print-architecture'],
+        text=True,
+    ).strip()
+
+    if not guest_arch:
+        # This assumes that images are named foo-bar-ARCH.img
+        root, _ = os.path.splitext(os.path.basename(image))
+        components = root.split('-')
+        for c in reversed(components):
+            if c in SUPPORTED_ARCHS:
+                guest_arch = c
+                break
+        if not guest_arch:
+            print(
+                f"Could not guess guest architecture, please use --arch",
+                file=sys.stderr,
+            )
+            return
+    else:
+        if not guest_arch in SUPPORTED_ARCHS:
+            print(
+                f"Unsupported architecture {guest_arch}",
+                file=sys.stderr,
+            )
+            return
+
+    if guest_arch == 'amd64' :
+        argv = ['qemu-system-x86_64']
+        if host_arch == 'amd64':
+            argv.append('-enable-kvm')
+    elif guest_arch == 'i386':
+        argv = ['qemu-system-i386', '-machine', 'q35']
+        if host_arch in ['amd64', 'i386']:
+            argv.append('-enable-kvm')
+    elif guest_arch == 'ppc64el':
+        argv = ['qemu-system-ppc64le']
+        if host_arch == 'ppc64el':
+            argv.append('-enable-kvm')
+    elif guest_arch == 'arm64':
+        argv = [
+            'qemu-system-aarch64',
+            '-machine', 'virt',
+            '-drive',   'if=pflash,format=raw,unit=0,read-only=on,'
+                        'file=/usr/share/AAVMF/AAVMF_CODE.fd',
+        ]
+        if host_arch == 'arm64':
+            argv.extend(['-cpu', 'host', '-enable-kvm'])
+        else:
+            argv.extend(['-cpu', 'cortex-a53'])
+    elif guest_arch == 'armhf':
+            if host_arch == 'arm64':
+                argv = [
+                    'qemu-system-aarch64',
+                    '-cpu', 'host,aarch64=off',
+                    '-enable-kvm'
+                ]
+            else:
+                argv = ['qemu-system-arm']
+            argv.extend([
+                '-machine', 'virt',
+                '-drive',   'if=pflash,format=raw,unit=0,read-only=on,'
+                            'file=/usr/share/AAVMF/AAVMF32_CODE.fd',
+            ])
+
+    return argv
 
 
 def spawn_update(args):
@@ -144,32 +214,8 @@ def main():
         print("Image does not exist", file=sys.stderr)
         sys.exit(1)
 
-    if parsed_args.arch:
-        try:
-            qemu = DEB_ARCH_TO_QEMU[parsed_args.arch]
-        except KeyError as e:
-            print(
-                f"Unsupported architecture {parsed_args.arch}",
-                file=sys.stderr,
-            )
-            sys.exit(1)
-    else:
-        # This assumes that images are named foo-bar-ARCH.img
-        root, _ = os.path.splitext(os.path.basename(parsed_args.image))
-        components = root.split('-')
-        for c in components:
-            qemu_arch = DEB_ARCH_TO_QEMU.get(c)
-            if qemu_arch:
-                break
-        if not qemu_arch:
-            print(
-                f"Could not guess architecture, please use --arch",
-                file=sys.stderr,
-            )
-            sys.exit(1)
-
-    args = [
-            f'qemu-system-{qemu_arch}',
+    args = get_qemu_base_args(parsed_args.image, parsed_args.arch)
+    args.extend([
             '-object', 'rng-random,filename=/dev/urandom,id=rng0',
             '-device', 'virtio-rng-pci,rng=rng0,id=rng-device0',
             '-device', 'virtio-serial',
@@ -177,14 +223,8 @@ def main():
             '-m',      '1024',
             '-smp',    '1',
             '-nographic',
-        ]
-    if qemu_arch in ['aarch64', 'arm']:
-        args += ['-machine', 'virt',
-            '-cpu',     'cortex-a53',
-            '-drive',   'if=pflash,format=raw,unit=0,read-only=on,'
-                        'file=/usr/share/AAVMF/AAVMF_CODE.fd',
-    ]
-    args.append(image)
+            image,
+    ])
 
     print(' '.join(str(a) for a in args))
     if not parsed_args.noexec:
@@ -202,6 +242,7 @@ def main():
         else:
             # This should never be reached
             raise NotImplementedError
+
 
 if __name__ == '__main__':
     main()
