@@ -62,16 +62,58 @@ def make_snapshot(image):
     return True if run.returncode == 0 else False
 
 
+def spawn_update(args):
+    child = pexpect.spawn(' '.join(args), encoding='utf-8')
+    child.timeout = 240
+    child.expect('host login: ')
+    child.sendline('root')
+    child.logfile = sys.stdout
+    child.expect('root@host:~# ')
+    child.sendline('DEBIAN_FRONTEND=noninteractive apt-get --quiet update')
+    child.expect('root@host:~# ')
+    child.sendline('DEBIAN_FRONTEND=noninteractive apt-get --quiet --assume-yes dist-upgrade')
+    child.expect('root@host:~# ')
+    child.sendline('DEBIAN_FRONTEND=noninteractive apt-get --quiet --assume-yes clean')
+    child.expect('root@host:~# ')
+    child.sendline('DEBIAN_FRONTEND=noninteractive apt-get --quiet --assume-yes autoremove')
+    child.expect('root@host:~# ')
+    child.sendline('sync')
+    child.expect('root@host:~# ')
+    # Don't recall what issue this solves, but it solves it
+    child.sendline('sleep 1')
+    child.expect('root@host:~# ')
+    child.sendline('shutdown -h now')
+
+
 def main():
+    descriptions = {
+        'sbuild-qemu-update': 'sbuild-update analog for QEMU images.',
+        'sbuild-qemu-boot': 'Boot a VM using a QEMU image.',
+    }
+    exename = os.path.basename(sys.argv[0])
+    if exename not in descriptions:
+        print(f"Unsupported executable name {exename}", file=sys.stderr)
+        sys.exit(1)
+
     # init options
     parser = argparse.ArgumentParser(
-        description="sbuild-update analog for QEMU images.",
+        description=descriptions[exename],
     )
+    if exename == 'sbuild-qemu-boot':
+        parser.add_argument('--read-write',
+            action='store_true',
+            help="Write changes back to the image, instead of using the image "
+                 "read-only.",
+        )
     parser.add_argument(
         '--snapshot',
         action='store_true',
-        help="Create a snapshot of the image before updating it. Useful for "
-             "reproducibility purposes.",
+        help="Create a snapshot of the image before changing it. Useful for "
+             "reproducibility purposes." + (
+                    "" if exename != "sbuild-qemu-boot" else " Ignored if the "
+                    "image is not booted in read-write mode, which is the "
+                    "default."
+             )
     )
     parser.add_argument(
         '--arch',
@@ -146,29 +188,20 @@ def main():
 
     print(' '.join(str(a) for a in args))
     if not parsed_args.noexec:
-        if parsed_args.snapshot and not make_snapshot(image):
-            return
-        child = pexpect.spawn(' '.join(args), encoding='utf-8')
-        child.timeout = 240
-        child.expect('host login: ')
-        child.sendline('root')
-        child.logfile = sys.stdout
-        child.expect('root@host:~# ')
-        child.sendline('DEBIAN_FRONTEND=noninteractive apt-get --quiet update')
-        child.expect('root@host:~# ')
-        child.sendline('DEBIAN_FRONTEND=noninteractive apt-get --quiet --assume-yes dist-upgrade')
-        child.expect('root@host:~# ')
-        child.sendline('DEBIAN_FRONTEND=noninteractive apt-get --quiet --assume-yes clean')
-        child.expect('root@host:~# ')
-        child.sendline('DEBIAN_FRONTEND=noninteractive apt-get --quiet --assume-yes autoremove')
-        child.expect('root@host:~# ')
-        child.sendline('sync')
-        child.expect('root@host:~# ')
-        # Don't recall what issue this solves, but it solves it
-        child.sendline('sleep 1')
-        child.expect('root@host:~# ')
-        child.sendline('shutdown -h now')
-
+        if exename == 'sbuild-qemu-update':
+            if parsed_args.snapshot and not make_snapshot(image):
+                return
+            spawn_update(args)
+        elif exename == 'sbuild-qemu-boot':
+            if parsed_args.read_write:
+                if parsed_args.snapshot and not make_snapshot(image):
+                    return
+            else:
+                args.append('-snapshot')
+            os.execvp(args[0], args)
+        else:
+            # This should never be reached
+            raise NotImplementedError
 
 if __name__ == '__main__':
     main()
