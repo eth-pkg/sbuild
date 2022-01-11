@@ -130,9 +130,18 @@ def main():
             f'qemu-system-{qemu_arch}',
             '-object', 'rng-random,filename=/dev/urandom,id=rng0',
             '-device', 'virtio-rng-pci,rng=rng0,id=rng-device0',
+            '-device', 'virtio-serial',
+            '-nic',    'user,model=virtio',
             '-m',      '1024',
+            '-smp',    '1',
             '-nographic',
         ]
+    if qemu_arch in ['aarch64', 'arm']:
+        args += ['-machine', 'virt',
+            '-cpu',     'cortex-a53',
+            '-drive',   'if=pflash,format=raw,unit=0,read-only=on,'
+                        'file=/usr/share/AAVMF/AAVMF_CODE.fd',
+    ]
     args.append(image)
 
     print(' '.join(str(a) for a in args))
