@@ -1,6 +1,6 @@
 #
 # ChrootUnshare.pm: chroot library for sbuild
-# Copyright © 2018      Johannes Schauer <josch@debian.org>
+# Copyright © 2018      Johannes Schauer Marin Rodrigues <josch@debian.org>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

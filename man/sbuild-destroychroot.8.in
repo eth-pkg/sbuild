@@ -1,4 +1,4 @@
-.\" Copyright © 2016 Johannes 'josch' Schauer <josch@mister-muffin.de>
+.\" Copyright © 2016 Johannes Schauer Marin Rodrigues <josch@debian.org>
 .\"
 .\" This program is free software: you can redistribute it and/or modify
 .\" it under the terms of the GNU General Public License as published by
@@ -47,11 +47,11 @@ To receive instructions on how to remove an \fIunstable\fP chroot:
 .br
 .SH AUTHORS
 .nf
-Johannes 'josch' Schauer.
+Johannes Schauer Marin Rodrigues.
 .fi
 .SH COPYRIGHT
 .nf
-Copyright \[co] 2016 Johannes 'josch' Schauer <josch@mister-muffin.de>.
+Copyright \[co] 2016 Johannes Schauer Marin Rodrigues <josch@debian.org>.
 .fi
 .SH "SEE ALSO"
 .BR sbuild (1).
