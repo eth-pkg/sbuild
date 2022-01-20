@@ -206,7 +206,7 @@ This command line option sets the \fBBUILD_ARCH\fP configuration variable. See
 for more information.
 .TP
 .BR \-A ", " "\-\-arch\-all"
-Also build Architecture: all packages. This option is the opposite of
+Also build Architecture: all packages. This is the default behaviour for native builds. This option is the opposite of
 \-\-no\-arch\-all.
 See the section
 .BR "BUILD ARTIFACTS"
@@ -216,7 +216,7 @@ This command line option sets the \fBBUILD_ARCH_ALL\fP configuration variable. S
 for more information.
 .TP
 .BR "\-\-no\-arch\-all"
-Do not build Architecture: all packages. This is the default behaviour. This
+Do not build Architecture: all packages. This is the default behaviour for cross builds. This
 option is the opposite of \-\-arch\-all.
 See the section
 .BR "BUILD ARTIFACTS"
