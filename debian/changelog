@@ -1,8 +1,34 @@
-sbuild (0.81.3) UNRELEASED; urgency=medium
+sbuild (0.82.0) UNRELEASED; urgency=medium
 
+  [ Samuel Thibault ]
   * control: Fix git URLs.
 
- -- Samuel Thibault <sthibault@debian.org>  Wed, 18 Aug 2021 11:32:15 +0200
+  [ Johannes Schauer Marin Rodrigues ]
+  * remove etc/99builddsourceslist as it is unused
+  * bin/sbuild-createchroot: avoid allowing execution of arbitrary Perl code
+    via a custom mirror URL (closes: #1001807)
+  * debian/tests/build-procenv: add deb-src repository
+  * debian/tests/unshare-qemuwrapper: use copy:// instead of file://
+  * man/sbuild.1.in: document the --arch-all and --no-arch-all defaults while
+    cross-building
+  * lib/Sbuild/ChrootUnshare.pm: also create /dev/console and /dev/ptmx and
+    mount /dev/pts and /dev/shm
+  * lib/Sbuild/Build.pm: fix error reporting of 'changes.new could not be
+    renamed'
+  * add sbuild-cross-resolver filtering out m-a:foreign and essential:yes
+    packages that are not arch:all and not arch:native during cross-building
+  * bump debhelper-compat to 13
+  * use dh-sequence-python3 instead of --with=python3
+  * run wrap-and-sort
+  * add myself to d/copyright -- better late than never ;)
+
+  [ Christian Kastner ]
+  * sbuild.1: Refresh unshare info
+
+  [ Jochen Sprickerhof ]
+  * Don't overwrite BUILD_DIR when compiling in src dir (Closes: #990734)
+
+ -- Johannes Schauer Marin Rodrigues <josch@debian.org>  Thu, 20 Jan 2022 11:02:09 +0100
 
 sbuild (0.81.2) unstable; urgency=medium
 
