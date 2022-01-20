@@ -13,6 +13,7 @@ debian/tmp/usr/bin/sbuild-shell                usr/bin
 debian/tmp/usr/bin/sbuild-unhold               usr/bin
 debian/tmp/usr/bin/sbuild-update               usr/bin
 debian/tmp/usr/bin/sbuild-upgrade              usr/bin
+debian/tmp/usr/lib/apt/solvers/sbuild-cross-resolver usr/lib/apt/solvers
 debian/tmp/usr/sbin/sbuild-adduser             usr/sbin
 debian/tmp/usr/sbin/sbuild-destroychroot       usr/sbin
 debian/tmp/usr/share/doc/sbuild                usr/share/doc

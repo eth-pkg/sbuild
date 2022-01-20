@@ -22,6 +22,7 @@
 include $(top_srcdir)/scripts/global.mk
 
 sbuilddatadir = $(SBUILD_DATA_DIR)
+aptsolverdir = $(prefix)/lib/apt/solvers
 
 bin_SCRIPTS = 				\
 	sbuild				\
@@ -58,11 +59,15 @@ sbuilddata_SCRIPTS =		\
 doc_DATA = 		\
 	README.bins
 
+aptsolver_SCRIPTS = 		\
+	sbuild-cross-resolver
+
 EXTRA_DIST =			\
 	$(bin_SCRIPTS)		\
 	$(sbin_SCRIPTS) 	\
 	$(sbuilddata_SCRIPTS)	\
 	$(doc_DATA)		\
+	$(aptsolver_SCRIPTS)	\
 	buildd-make-chroot	\
 	check-old-builds	\
 	finish-build		\

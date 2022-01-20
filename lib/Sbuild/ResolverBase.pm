@@ -847,6 +847,11 @@ sub run_apt {
 	'-q');
     push @apt_command, '--allow-unauthenticated' if
 	($self->get_conf('APT_ALLOW_UNAUTHENTICATED'));
+    if ( $self->get('Host Arch') ne $self->get('Build Arch') ) {
+	# drop m-a:foreign and essential:yes packages that are not arch:all
+	# and not arch:native
+	push @apt_command, '--solver', 'sbuild-cross-resolver';
+    }
     push @apt_command, "$mode", $action, @packages;
     my $pipe =
 	$self->pipe_apt_command(

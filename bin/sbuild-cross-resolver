@@ -1,0 +1,84 @@
+#!/usr/bin/perl
+#
+# This script is in the public domain
+#
+# Author: Johannes Schauer Marin Rodrigues <josch@mister-muffin.de>
+#
+# Thin layer around /usr/lib/apt/solvers/apt which removes M-A:foreign and
+# Essential:yes packages that are not arch:all and not arch:native from the
+# EDSP before handing it to the apt solver. This is useful for resolving cross
+# build dependencies as it makes sure that M-A:foreign packages and
+# Essential:yes packages in the solution must come from the build architecture.
+
+use strict;
+use warnings;
+
+use English;
+
+my $build_arch = $ENV{DEB_BUILD_ARCH}; # the architecture we are building on
+my $host_arch = $ENV{DEB_HOST_ARCH}; # the architecture we are building for
+if (! defined $build_arch) {
+    printf STDOUT 'Error: ERR_NO_DEB_BUILD_ARCH\n';
+    printf STDOUT 'Message: You must set DEB_BUILD_ARCH\n';
+    exit 1;
+}
+if (! defined $host_arch) {
+    printf STDOUT 'Error: ERR_NO_DEB_HOST_ARCH\n';
+    printf STDOUT 'Message: You must set DEB_HOST_ARCH\n';
+    exit 1;
+}
+if ($build_arch eq $host_arch) {
+    printf STDOUT 'Error: ERR_NO_CROSS\n';
+    printf STDOUT 'Message: You are not cross compiling\n';
+    exit 1;
+}
+
+if (! -e '/usr/lib/apt/solvers/apt') {
+    printf STDOUT 'Error: ERR_NO_SOLVER\n';
+    printf STDOUT 'Message: The external apt solver doesn\'t exist. You must install the apt-utils package.\n';
+    exit 1;
+}
+
+my $buffer = '';
+my $architecture = undef;
+my $essential = 0;
+my $multiarch = 'no';
+sub keep {
+    if ( $multiarch ne 'foreign' and !$essential ) {
+        return 1;
+    }
+    if ( !defined $architecture ) {
+        print STDOUT 'Error: ERR_NO_ARCH\n';
+        print STDOUT 'Message: package without architecture\n';
+        exit 1;
+    }
+    if ( $architecture eq 'all' or $architecture eq $build_arch ) {
+        return 1;
+    }
+    return 0;
+}
+while ( my $line = <STDIN> ) {
+    $buffer .= $line;
+    if ( $line eq '\n' ) {
+        if (keep) {
+            print STDOUT $buffer;
+        }
+        $buffer       = '';
+        $architecture = undef;
+        $essential    = 0;
+        $multiarch    = 'no';
+        next;
+    }
+    if ( $line =~ /^Essential: yes\n$/ ) {
+        $essential = 1;
+    }
+    if ( $line =~ /^Multi-Arch: (.*)\n$/ ) {
+        $multiarch = $1;
+    }
+    if ( $line =~ /^Architecture: (.*)\n$/ ) {
+        $architecture = $1;
+    }
+}
+if (keep) {
+    print STDOUT $buffer;
+}
