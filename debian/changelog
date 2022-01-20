@@ -1,8 +1,5 @@
 sbuild (0.82.0) UNRELEASED; urgency=medium
 
-  [ Samuel Thibault ]
-  * control: Fix git URLs.
-
   [ Johannes Schauer Marin Rodrigues ]
   * remove etc/99builddsourceslist as it is unused
   * bin/sbuild-createchroot: avoid allowing execution of arbitrary Perl code
@@ -21,6 +18,10 @@ sbuild (0.82.0) UNRELEASED; urgency=medium
   * use dh-sequence-python3 instead of --with=python3
   * run wrap-and-sort
   * add myself to d/copyright -- better late than never ;)
+  * debian/control: add uidmap to Recommends (closes: #986962)
+
+  [ Samuel Thibault ]
+  * control: Fix git URLs.
 
   [ Christian Kastner ]
   * sbuild.1: Refresh unshare info
@@ -28,7 +29,10 @@ sbuild (0.82.0) UNRELEASED; urgency=medium
   [ Jochen Sprickerhof ]
   * Don't overwrite BUILD_DIR when compiling in src dir (Closes: #990734)
 
- -- Johannes Schauer Marin Rodrigues <josch@debian.org>  Thu, 20 Jan 2022 11:02:09 +0100
+  [ Vagrant Cascadian ]
+  * lib/Sbuild/Utility.pm: Add support for zstd compression. (Closes: #987655)
+
+ -- Johannes Schauer Marin Rodrigues <josch@debian.org>  Thu, 20 Jan 2022 11:20:09 +0100
 
 sbuild (0.81.2) unstable; urgency=medium
 
