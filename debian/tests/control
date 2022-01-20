@@ -1,8 +1,14 @@
 Tests: build-procenv
-Depends: @, debootstrap, distro-info, lsb-release, apt (>= 1.1~exp2), apt-utils
+Depends: apt (>= 1.1~exp2), apt-utils, debootstrap, distro-info, lsb-release, @
 Restrictions: needs-root
 
 Tests: unshare-qemuwrapper
 Architecture: amd64
-Depends: mmdebstrap, qemu-system-x86, libguestfs-tools, linux-image-amd64, sleepenh, openssh-client, grep-dctrl
+Depends: grep-dctrl,
+         libguestfs-tools,
+         linux-image-amd64,
+         mmdebstrap,
+         openssh-client,
+         qemu-system-x86,
+         sleepenh
 Restrictions: allow-stderr needs-root

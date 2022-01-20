@@ -7,7 +7,7 @@ Uploaders: Johannes 'josch' Schauer <josch@debian.org>,
            Francesco Paolo Lovergine <frankie@debian.org>,
            Wookey <wookey@debian.org>,
            Michael Stapelberg <stapelberg@debian.org>,
-           Christian Kastner <ckk@debian.org>,
+           Christian Kastner <ckk@debian.org>
 Build-Depends: debhelper-compat (= 13)
 Build-Depends-Indep: dh-python,
                      dh-sequence-python3,
@@ -17,7 +17,7 @@ Build-Depends-Indep: dh-python,
                      libfilesys-df-perl,
                      libmime-lite-perl,
                      libyaml-tiny-perl,
-                     python3-all,
+                     python3-all
 Standards-Version: 4.5.1
 Rules-Requires-Root: no
 Vcs-Browser: https://salsa.debian.org/debian/sbuild
@@ -97,6 +97,7 @@ Architecture: all
 Depends: adduser,
          cron,
          default-mta | mail-transport-agent,
+         devscripts,
          dupload,
          libsbuild-perl,
          libyaml-tiny-perl,
@@ -104,7 +105,6 @@ Depends: adduser,
          sbuild (<< ${source:Version}.1~),
          sbuild (>= ${source:Version}),
          schroot,
-         devscripts,
          ${misc:Depends},
          ${perl:Depends}
 Recommends: sudo
@@ -132,8 +132,8 @@ Depends: autopkgtest,
          qemu-utils,
          sbuild,
          ${misc:Depends},
-         ${python3:Depends},
-Recommends: vmdb2 (>= 0.22),
+         ${python3:Depends}
+Recommends: vmdb2 (>= 0.22)
 Breaks: qemu-sbuild-utils (<< 0.2.1~)
 Replaces: qemu-sbuild-utils (<< 0.2.1~)
 Description: Utilities for using sbuild with QEMU images
