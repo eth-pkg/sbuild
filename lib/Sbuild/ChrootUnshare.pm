@@ -288,11 +288,16 @@ sub _get_exec_argv {
 	hostname sbuild;
 	$network_setup
 	mkdir -p \"\$rootdir/dev\";
-	for f in null zero full random urandom tty; do
+	for f in null zero full random urandom tty console ptmx; do
 	    touch \"\$rootdir/dev/\$f\";
 	    chmod -rwx \"\$rootdir/dev/\$f\";
 	    mount -o bind \"/dev/\$f\" \"\$rootdir/dev/\$f\";
 	done;
+	ln -sfT /proc/self/fd \"\$rootdir/dev/fd\";
+	mkdir -p \"\$rootdir/dev/pts\";
+	mount -o bind \"/dev/pts\" \"\$rootdir/dev/pts\";
+	mkdir -p \"\$rootdir/dev/shm\";
+	mount -t tmpfs tmpfs \"\$rootdir/dev/shm\";
 	mkdir -p \"\$rootdir/sys\";
 	mount -o rbind /sys \"\$rootdir/sys\";
 	mkdir -p \"\$rootdir/proc\";
