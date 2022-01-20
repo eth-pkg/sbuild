@@ -8,7 +8,7 @@ Uploaders: Johannes 'josch' Schauer <josch@debian.org>,
            Wookey <wookey@debian.org>,
            Michael Stapelberg <stapelberg@debian.org>,
            Christian Kastner <ckk@debian.org>,
-Build-Depends: debhelper-compat (= 12)
+Build-Depends: debhelper-compat (= 13)
 Build-Depends-Indep: dh-python,
                      groff-base,
                      libdpkg-perl (>= 1.20),

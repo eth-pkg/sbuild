@@ -1,12 +1,16 @@
 debian/.forward var/lib/buildd/
 debian/tmp/etc/buildd/buildd.conf		etc/buildd
 debian/tmp/usr/bin/buildd*			usr/bin
+debian/tmp/usr/share/man/man1/buildd-abort.1	usr/share/man/man1
 debian/tmp/usr/share/man/man1/buildd-mail-wrapper.1	usr/share/man/man1
 debian/tmp/usr/share/man/man1/buildd-mail.1	usr/share/man/man1
+debian/tmp/usr/share/man/man1/buildd-update-chroots.1	usr/share/man/man1
 debian/tmp/usr/share/man/man1/buildd-uploader.1	usr/share/man/man1
 debian/tmp/usr/share/man/man1/buildd-vlog.1	usr/share/man/man1
 debian/tmp/usr/share/man/man1/buildd-watcher.1	usr/share/man/man1
 debian/tmp/usr/share/man/man1/buildd.1	usr/share/man/man1
 debian/tmp/usr/share/man/man5/buildd.conf.5	usr/share/man/man5
+debian/tmp/usr/share/man/man8/buildd-make-chroot.8	usr/share/man/man8
 debian/tmp/usr/share/perl5/Buildd*		usr/share/perl5
+debian/tmp/usr/share/wanna-build/postgresql/install/*.sql	usr/share/wanna-build/postgresql/install
 debian/tmp/var/lib/buildd			var/lib
