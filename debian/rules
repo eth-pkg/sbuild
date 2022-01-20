@@ -1,8 +1,7 @@
 #!/usr/bin/make -f
 
 %:
-	# dh_python3 is needed for sbuild-qemu
-	dh $@ --with=python3
+	dh $@
 
 override_dh_installinit:
 	dh_installinit --no-start --no-stop-on-upgrade

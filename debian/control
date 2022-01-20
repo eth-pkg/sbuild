@@ -10,6 +10,7 @@ Uploaders: Johannes 'josch' Schauer <josch@debian.org>,
            Christian Kastner <ckk@debian.org>,
 Build-Depends: debhelper-compat (= 13)
 Build-Depends-Indep: dh-python,
+                     dh-sequence-python3,
                      groff-base,
                      libdpkg-perl (>= 1.20),
                      libexception-class-perl,
