@@ -1078,10 +1078,12 @@ sub fetch_source_files {
 	$self->log_subsubsection("Local sources");
 	$self->log("$file exists in $dir; copying to chroot\n");
 	if (! $self->copy_to_chroot("$file", "$build_dir/$dsc")) {
+	    $self->log_error("Could not copy $file to $build_dir/$dsc\n");
 	    return 0;
 	}
 	foreach (@cwd_files) {
 	    if (! $self->copy_to_chroot("$dir/$_", "$build_dir/$_")) {
+		$self->log_error("Could not copy $dir/$_ to $build_dir/$_\n");
 		return 0;
 	    }
 	}
@@ -2662,9 +2664,9 @@ sub build {
 		close( $F2 );
 
 		$session->rename("$build_dir/$changes.new", "$build_dir/$changes");
-		if ($? == 0) {
+		if ($?) {
 		    $self->log("$build_dir/$changes.new could not be " .
-			    "renamed to $build_dir/$changes: $!\n");
+			    "renamed to $build_dir/$changes: $?\n");
 		    $self->log("Distribution field may be wrong!!!");
 		}
 		if ($build_dir) {
