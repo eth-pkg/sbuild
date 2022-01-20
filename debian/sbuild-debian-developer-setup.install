@@ -1,3 +1,2 @@
 etc/sbuild-debian-developer-setup-update-all etc/cron.daily
 usr/bin/sbuild-debian-developer-setup
-usr/share/man/man1/sbuild-debian-developer-setup.1
