@@ -19,6 +19,9 @@ sbuild (0.82.0) UNRELEASED; urgency=medium
   * run wrap-and-sort
   * add myself to d/copyright -- better late than never ;)
   * debian/control: add uidmap to Recommends (closes: #986962)
+  * use debian/*.manpages instead of debian/*.install to install manpages
+  * add UNSHARE_BIND_MOUNTS allowing to bind-mount directories into the chroot
+    in unshare mode (closes: #986694)
 
   [ Samuel Thibault ]
   * control: Fix git URLs.
@@ -32,7 +35,7 @@ sbuild (0.82.0) UNRELEASED; urgency=medium
   [ Vagrant Cascadian ]
   * lib/Sbuild/Utility.pm: Add support for zstd compression. (Closes: #987655)
 
- -- Johannes Schauer Marin Rodrigues <josch@debian.org>  Thu, 20 Jan 2022 11:20:09 +0100
+ -- Johannes Schauer Marin Rodrigues <josch@debian.org>  Thu, 20 Jan 2022 14:21:14 +0100
 
 sbuild (0.81.2) unstable; urgency=medium
 
