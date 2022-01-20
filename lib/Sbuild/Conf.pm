@@ -278,6 +278,23 @@ sub setup ($) {
 	    HELP => 'Template used to create the temporary unpack directory for the unshare chroot mode.'
 	    # CLI_OPTIONS => ['--unshare-tmpdir-template']
 	},
+	'UNSHARE_BIND_MOUNTS'			=> {
+	    TYPE => 'ARRAY',
+	    VARNAME => 'unshare_bind_mounts',
+	    GROUP => 'Programs',
+	    CHECK =>  sub {
+		my $conf = shift;
+		my $entry = shift;
+		my $key = $entry->{'NAME'};
+		for my $entry (@{$conf->get($key)}) {
+		    die "$entry->{directory} doesn't exist" if ! -e $entry->{directory};
+		    die "mountpoint $entry->{mountpoint} must be an absolute path insude the chroot" if $entry->{mountpoint} !~ /^\//;
+		}
+	    },
+	    DEFAULT => [],
+	    HELP => 'Bind mount directories from the outside to a mountpoint inside the chroot in unshare mode.',
+	    EXAMPLE => '$unshare_bind_mounts = [ { directory => "/home/path/outside", mountpoint => "/path/inside" } ];'
+	},
 	'AUTOPKGTEST_VIRT_SERVER'			=> {
 	    TYPE => 'STRING',
 	    VARNAME => 'autopkgtest_virt_server',
