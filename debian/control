@@ -55,7 +55,7 @@ Depends: adduser,
          ${misc:Depends},
          ${perl:Depends},
          ${shlibs:Depends}
-Recommends: autopkgtest (>= 4.0.4), debootstrap, schroot (>= 1.6.0)
+Recommends: autopkgtest (>= 4.0.4), debootstrap, schroot (>= 1.6.0), uidmap
 Suggests: deborphan, e2fsprogs, kmod, wget
 Description: Tool for building Debian binary packages from Debian sources
  The sbuild suite of programs (buildd and sbuild) are used to build
