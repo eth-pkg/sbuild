@@ -1,4 +1,4 @@
-sbuild (0.82.0) UNRELEASED; urgency=medium
+sbuild (0.82.0) unstable; urgency=medium
 
   [ Johannes Schauer Marin Rodrigues ]
   * remove etc/99builddsourceslist as it is unused
@@ -35,7 +35,7 @@ sbuild (0.82.0) UNRELEASED; urgency=medium
   [ Vagrant Cascadian ]
   * lib/Sbuild/Utility.pm: Add support for zstd compression. (Closes: #987655)
 
- -- Johannes Schauer Marin Rodrigues <josch@debian.org>  Thu, 20 Jan 2022 14:21:14 +0100
+ -- Johannes Schauer Marin Rodrigues <josch@debian.org>  Mon, 24 Jan 2022 23:30:27 +0100
 
 sbuild (0.81.2) unstable; urgency=medium
 
