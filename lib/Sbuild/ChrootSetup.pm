@@ -131,7 +131,7 @@ sub basesetup ($$) {
 
     $session->run_command(
 	{ COMMAND => ['/bin/sh', '-c',
-		      'set -e; if [ ! -d /var/lib/sbuild ] ; then mkdir -m 2770 /var/lib/sbuild; fi'],
+		      'set -e; if [ ! -d /var/lib/sbuild ] ; then mkdir -m 2775 /var/lib/sbuild; fi'],
 	  USER => 'root',
 	  DIR => '/' });
     if ($?) {
@@ -159,11 +159,11 @@ sub basesetup ($$) {
     }
 
     $session->run_command(
-	{ COMMAND => ['chmod', '02770', '/var/lib/sbuild'],
+	{ COMMAND => ['chmod', '02775', '/var/lib/sbuild'],
 	  USER => 'root',
 	  DIR => '/' });
     if ($?) {
-	print STDERR "E: Failed to set 02770 permissions on /var/lib/sbuild/\n";
+	print STDERR "E: Failed to set 02775 permissions on /var/lib/sbuild/\n";
 	return $?
     }
 
