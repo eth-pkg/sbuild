@@ -15,23 +15,6 @@ use warnings;
 
 use English;
 
-my $build_arch = $ENV{DEB_BUILD_ARCH}; # the architecture we are building on
-my $host_arch = $ENV{DEB_HOST_ARCH}; # the architecture we are building for
-if (! defined $build_arch) {
-    printf STDOUT 'Error: ERR_NO_DEB_BUILD_ARCH\n';
-    printf STDOUT 'Message: You must set DEB_BUILD_ARCH\n';
-    exit 1;
-}
-if (! defined $host_arch) {
-    printf STDOUT 'Error: ERR_NO_DEB_HOST_ARCH\n';
-    printf STDOUT 'Message: You must set DEB_HOST_ARCH\n';
-    exit 1;
-}
-if ($build_arch eq $host_arch) {
-    printf STDOUT 'Error: ERR_NO_CROSS\n';
-    printf STDOUT 'Message: You are not cross compiling\n';
-    exit 1;
-}
 
 if (! -e '/usr/lib/apt/solvers/apt') {
     printf STDOUT 'Error: ERR_NO_SOLVER\n';
@@ -43,6 +26,7 @@ my $buffer = '';
 my $architecture = undef;
 my $essential = 0;
 my $multiarch = 'no';
+my $build_arch;
 sub keep {
     if ( $multiarch ne 'foreign' and !$essential ) {
         return 1;
@@ -57,11 +41,22 @@ sub keep {
     }
     return 0;
 }
+open my $fh, '|-', '/usr/lib/apt/solvers/apt';
+my $first_stanza = 1;
 while ( my $line = <STDIN> ) {
     $buffer .= $line;
-    if ( $line eq '\n' ) {
+    if ( $line eq "\n" ) {
+        if ($first_stanza) {
+            if (! defined $architecture) {
+                print STDOUT 'ERROR: ERR_NO_ARCH';
+                print STDOUT 'Message: no Architecture field in first stanza';
+                exit 1;
+            }
+            $build_arch = $architecture;
+            $first_stanza = 0;
+        }
         if (keep) {
-            print STDOUT $buffer;
+            print $fh $buffer;
         }
         $buffer       = '';
         $architecture = undef;
@@ -80,5 +75,6 @@ while ( my $line = <STDIN> ) {
     }
 }
 if (keep) {
-    print STDOUT $buffer;
+    print $fh $buffer;
 }
+close $fh;
