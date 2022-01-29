@@ -516,6 +516,36 @@ END
 		$self->set('Build Dir', $tmpdir);
 	}
 
+	# Copy in external solvers if we are cross-building
+	if ($self->get('Host Arch') ne $self->get('Build Arch')) {
+	    if (!$session->test_directory("/usr/lib/apt/solvers")) {
+		if (!$session->mkdir("/usr/lib/apt/solvers", { PARENTS => 1})) {
+		    Sbuild::Exception::Build->throw(
+			error => "/usr/lib/apt/solvers cannot be created",
+			failstage => "create-session");
+		}
+	    }
+	    foreach my $solver ('apt', 'sbuild-cross-resolver') {
+		if ($session->test_regular_file_readable("/usr/lib/apt/solvers/$solver")) {
+		    next;
+		}
+		if (! -e "/usr/lib/apt/solvers/$solver") {
+		    Sbuild::Exception::Build->throw(
+			error => "/usr/lib/apt/solvers/$solver is missing",
+			failstage => "create-session");
+		}
+		if (! $session->copy_to_chroot("/usr/lib/apt/solvers/$solver", "/usr/lib/apt/solvers/$solver")) {
+		    Sbuild::Exception::Build->throw(
+			error => "/usr/lib/apt/solvers/$solver cannot be copied",
+			failstage => "create-session");
+		}
+		if (! $session->chmod("/usr/lib/apt/solvers/$solver", "0755")) {
+		    Sbuild::Exception::Build->throw(
+			error => "/usr/lib/apt/solvers/$solver cannot chmod",
+			failstage => "create-session");
+		}
+	    }
+	}
 
 	# Run pre build external commands
 	$self->check_abort();
