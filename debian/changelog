@@ -1,10 +1,12 @@
 sbuild (0.82.1) UNRELEASED; urgency=medium
 
-  * copy solvers into chroot if cross-building
   * fix sbuild-cross-resolver
+  * copy solvers from /usr/lib/apt/solvers into chroot if cross-building
   * add dependency on apt-utils for /usr/lib/apt/solvers/apt
+  * chown /var/lib/sbuild 755 so that the _apt user can read apt.conf inside it
+  * remove maintainer script support for ancient package versions
 
- -- Johannes Schauer Marin Rodrigues <josch@debian.org>  Sat, 29 Jan 2022 11:51:13 +0100
+ -- Johannes Schauer Marin Rodrigues <josch@debian.org>  Sat, 29 Jan 2022 16:34:38 +0100
 
 sbuild (0.82.0) unstable; urgency=medium
 
