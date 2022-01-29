@@ -22,27 +22,8 @@ set -e
 #     installation fails and the `postinst' is called with `abort-upgrade',
 #     `abort-remove' or `abort-deconfigure'.
 
-# Move a conffile without triggering a dpkg question
-mv_conffile() {
-    OLDCONFFILE="$1"
-    NEWCONFFILE="$2"
-
-    if [ -e "$OLDCONFFILE" ]; then
-        echo "Preserving user changes to $NEWCONFFILE ..."
-        mv -f "$NEWCONFFILE" "$NEWCONFFILE".dpkg-new
-        mv -f "$OLDCONFFILE" "$NEWCONFFILE"
-    fi
-}
-
 case "$1" in
     configure)
-
-	if dpkg --compare-versions "$2" lt "0.60.1-1"; then
-	    mv_conffile "/etc/sbuild/copyfiles-defaults" \
-		"/etc/schroot/buildd/copyfiles"
-	    mv_conffile "/etc/sbuild/nssdatabases-defaults" \
-		"/etc/schroot/buildd/nssdatabases"
-	fi
 
 	# If sbuild is a user group, migrate to a system group.  Save
 	# a list of group members, then add them back to the new group
