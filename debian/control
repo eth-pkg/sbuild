@@ -27,6 +27,7 @@ Package: libsbuild-perl
 Architecture: all
 Section: perl
 Depends: apt,
+         apt-utils,
          dpkg-dev,
          gnupg (>= 2.1),
          libdpkg-perl (>= 1.20),
