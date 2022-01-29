@@ -5,8 +5,10 @@ sbuild (0.82.1) UNRELEASED; urgency=medium
   * add dependency on apt-utils for /usr/lib/apt/solvers/apt
   * chown /var/lib/sbuild 755 so that the _apt user can read apt.conf inside it
   * remove maintainer script support for ancient package versions
+  * debian/control: bump Standards-Version (no changes)
+  * debian/source/include-binaries is not needed anymore
 
- -- Johannes Schauer Marin Rodrigues <josch@debian.org>  Sat, 29 Jan 2022 16:34:38 +0100
+ -- Johannes Schauer Marin Rodrigues <josch@debian.org>  Sat, 29 Jan 2022 16:51:35 +0100
 
 sbuild (0.82.0) unstable; urgency=medium
 
