@@ -107,7 +107,7 @@ directly, rather than going through autopkgtest\-virt\-qemu.
 To share a directory on the host with the VM, QEMU should be started with
 the following additional options:
 .PP
-\fB \-virtfs path=/path/to/host/dir,local,id=shared,mount_tag=shared,security_model=none
+\fB \-virtfs local,path=/path/to/host/dir,id=sbuild-qemu,mount_tag=sbuild-qemu,security_model=none
 .SH EXAMPLES
 \fB$ sudo sbuild\-qemu\-create unstable http://deb.debian.org/debian\fR
 .PP
