@@ -22,6 +22,7 @@ sbuild\-qemu\-boot \- Bood a VM using a QEMU image
 .RB [ \-h ]
 .RB [ \-\-read-write ]
 .RB [ \-\-snapshot ]
+.RB [ \-\-shared-dir ]
 .RB [ \-\-arch=ARCH ]
 .RB [ \-\-noexec ]
 .RB IMAGE
@@ -51,6 +52,10 @@ Write changes back to the image, instead of using the image in read\-only mode.
 Create a snapshot of the image before changing it. Useful for
 reproducibility purposes. Ignored if the image is not booted in read\-write
 mode, which is the default.
+.TP
+\fB\-\-shared\-dir\fR
+Share this directory on the host with the guest. This will only work when the
+image was created with sbuild-qemu-create(1).
 .TP
 \fB\-\-arch\fR=ARCH
 Architecture to use (instead of attempting to auto\-guess).
