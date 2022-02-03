@@ -22,7 +22,6 @@
 
 import argparse
 import os
-import psutil
 import subprocess
 import sys
 
@@ -41,7 +40,7 @@ IMAGEDIR = os.environ.get(
 )
 
 DEFAULT_MEM  = 2048
-DEFAULT_CPUS = psutil.cpu_count(logical=False)
+DEFAULT_CPUS = 2
 DEFAULT_DIST = 'unstable'
 DEFAULT_ARCH = subprocess.check_output(
     ['dpkg', '--print-architecture'],
@@ -93,7 +92,7 @@ def main():
         '--cpus',
         metavar='CPUs',
         action='store',
-        default=DEFAULT_CPUS,
+        default=2,
         help="VM CPU count. Default on this host: {DEFAULT_CPUS}.",
     )
     parser.add_argument(

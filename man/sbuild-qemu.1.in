@@ -60,7 +60,7 @@ construct a candidate image name (if no image has been specified explicitly).
 VM memory size in MB. Default: 2048
 .TP
 \fB\-\-cpus\fR=CPUs
-VM CPU count. Default: Number of physical cores on the host.
+VM CPU count. Default: 2
 .TP
 \fB\-\-overlay\-dir\fR=OVERLAY_DIR
 Directory for the temporary image overlay instead of autopkgtest's default of
