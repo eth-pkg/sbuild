@@ -162,6 +162,20 @@ def main():
              "on the image name).",
     )
     parser.add_argument(
+        '--ram-size',
+        metavar='MiB',
+        action='store',
+        default=2048,
+        help=f"VM memory size in MB. Default: 2",
+    )
+    parser.add_argument(
+        '--cpus',
+        metavar='CPUs',
+        action='store',
+        default=2,
+        help="VM CPU count. Default on this host: {DEFAULT_CPUS}.",
+    )
+    parser.add_argument(
         '--noexec',
         action='store_true',
         help="Don't actually do anything. Just print the command string that "
@@ -188,8 +202,8 @@ def main():
             '-device', 'virtio-rng-pci,rng=rng0,id=rng-device0',
             '-device', 'virtio-serial',
             '-nic',    'user,model=virtio',
-            '-m',      '1024',
-            '-smp',    '1',
+            '-m',      str(parsed_args.ram_size),
+            '-smp',    str(parsed_args.cpus),
             '-nographic',
     ])
     if parsed_args.shared_dir:

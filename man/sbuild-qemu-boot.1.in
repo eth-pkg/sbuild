@@ -24,6 +24,8 @@ sbuild\-qemu\-boot \- Bood a VM using a QEMU image
 .RB [ \-\-snapshot ]
 .RB [ \-\-shared-dir ]
 .RB [ \-\-arch=ARCH ]
+.RB [ \-\-ram\-size=MiB ]
+.RB [ \-\-cpus=CPUs ]
 .RB [ \-\-noexec ]
 .RB IMAGE
 .SH DESCRIPTION
@@ -59,6 +61,12 @@ image was created with sbuild-qemu-create(1).
 .TP
 \fB\-\-arch\fR=ARCH
 Architecture to use (instead of attempting to auto\-guess).
+.TP
+\fB\-\-ram\-size\fR=MiB
+VM memory size in MB. Default: 2048
+.TP
+\fB\-\-cpus\fR=CPUs
+VM CPU count. Default: 2
 .TP
 \fB\-\-noexec\fR
 Don't actually do anything. Just print the command string that
