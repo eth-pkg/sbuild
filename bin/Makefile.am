@@ -36,6 +36,7 @@ bin_SCRIPTS = 				\
 	sbuild-distupgrade		\
 	sbuild-clean			\
 	sbuild-qemu			\
+	sbuild-qemu-boot		\
 	sbuild-qemu-create		\
 	sbuild-qemu-create-modscript	\
 	sbuild-qemu-update		\

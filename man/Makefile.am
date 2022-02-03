@@ -39,6 +39,7 @@ man_MANS =				\
 	sbuild-destroychroot.8		\
 	sbuild-hold.1			\
 	sbuild-qemu.1			\
+	sbuild-qemu-boot.1		\
 	sbuild-qemu-create.1		\
 	sbuild-qemu-update.1		\
 	sbuild-setup.7			\

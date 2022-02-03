@@ -22,7 +22,7 @@
 
 
 # Note that there is significant overlap between this program and
-# sbuild-qemu-boot. Both are in their developmental stages and I'd prefer to
+# sbuild-qemu-update. Both are in their developmental stages and I'd prefer to
 # wait and see where this goes before refactoring them. --ckk
 
 
@@ -31,8 +31,6 @@ import datetime
 import os
 import subprocess
 import sys
-
-import pexpect
 
 
 SUPPORTED_ARCHS = [
@@ -139,13 +137,24 @@ def get_qemu_base_args(image, guest_arch=None):
 
 def main():
     parser = argparse.ArgumentParser(
-        description='sbuild-update analog for QEMU images.',
+        description='Boot a VM using a QEMU image.',
+    )
+    parser.add_argument('--read-write',
+        action='store_true',
+        help="Write changes back to the image, instead of using the image "
+             "read-only.",
     )
     parser.add_argument(
         '--snapshot',
         action='store_true',
         help="Create a snapshot of the image before changing it. Useful for "
-             "reproducibility purposes.",
+             "reproducibility purposes. Ignored if the image is not booted in "
+             "read-write mode, which is the default.",
+    )
+    parser.add_argument(
+        '--shared-dir',
+        help="Share this directory on the host with the guest. This will only "
+             "work when the image was created with sbuild-qemu-create(1).",
     )
     parser.add_argument(
         '--arch',
@@ -163,7 +172,6 @@ def main():
         help="Image. Will first be interpreted as a path. If no suitable "
         "image exists at that location, then $IMAGEDIR\<image> is tried.",
     )
-
     parsed_args = parser.parse_args()
 
     if os.path.exists(parsed_args.image):
@@ -183,35 +191,25 @@ def main():
             '-m',      '1024',
             '-smp',    '1',
             '-nographic',
-            image,
     ])
+    if parsed_args.shared_dir:
+        args.extend([
+            '-virtfs', f'local,path={parsed_args.shared_dir},id=sbuild-qemu,'
+                        'mount_tag=sbuild-qemu,security_model=none',
+        ])
+    args.append(image)
 
     print(' '.join(str(a) for a in args))
     if parsed_args.noexec:
         return
-    elif parsed_args.snapshot and not make_snapshot(image):
-        return
 
-    child = pexpect.spawn(' '.join(args), encoding='utf-8')
-    child.timeout = 240
-    child.expect('host login: ')
-    child.sendline('root')
-    child.logfile = sys.stdout
-    child.expect('root@host:~# ')
-    child.sendline('DEBIAN_FRONTEND=noninteractive apt-get --quiet update')
-    child.expect('root@host:~# ')
-    child.sendline('DEBIAN_FRONTEND=noninteractive apt-get --quiet --assume-yes dist-upgrade')
-    child.expect('root@host:~# ')
-    child.sendline('DEBIAN_FRONTEND=noninteractive apt-get --quiet --assume-yes clean')
-    child.expect('root@host:~# ')
-    child.sendline('DEBIAN_FRONTEND=noninteractive apt-get --quiet --assume-yes autoremove')
-    child.expect('root@host:~# ')
-    child.sendline('sync')
-    child.expect('root@host:~# ')
-    # Don't recall what issue this solves, but it solves it
-    child.sendline('sleep 1')
-    child.expect('root@host:~# ')
-    child.sendline('shutdown -h now')
+    if parsed_args.read_write:
+        if parsed_args.snapshot and not make_snapshot(image):
+            return
+    else:
+        args.append('-snapshot')
+
+    os.execvp(args[0], args)
 
 
 if __name__ == '__main__':
