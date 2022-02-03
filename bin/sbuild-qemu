@@ -39,9 +39,6 @@ IMAGEDIR = os.environ.get(
     os.path.join(os.path.expanduser('~'), '.cache', 'sbuild'),
 )
 
-DEFAULT_MEM  = 2048
-DEFAULT_CPUS = 2
-DEFAULT_DIST = 'unstable'
 DEFAULT_ARCH = subprocess.check_output(
     ['dpkg', '--print-architecture'],
     text=True,
@@ -77,16 +74,16 @@ def main():
     parser.add_argument(
         '-d', '--dist',
         action='store',
-        default=DEFAULT_DIST,
+        default='unstable',
         help=f"Distribution (for the .changes file). "
-             f"Default: '{DEFAULT_DIST}'.",
+             f"Default: 'unstable'.",
     )
     parser.add_argument(
         '--ram-size',
         metavar='MiB',
         action='store',
-        default=DEFAULT_MEM,
-        help=f"VM memory size in MB. Default: {DEFAULT_MEM}",
+        default=2048,
+        help=f"VM memory size in MB. Default: 2",
     )
     parser.add_argument(
         '--cpus',
