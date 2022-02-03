@@ -23,7 +23,7 @@ sbuild\-qemu \- sbuild using QEMU images
 .RB [ \-\-image=IMAGE ]
 .RB [ \-\-arch=ARCH ]
 .RB [ \-d=DIST ]
-.RB [ \-\-ram=MiB ]
+.RB [ \-\-ram\-size=MiB ]
 .RB [ \-\-cpus=CPUs ]
 .RB [ \-\-overlay\-dir=OVERLAY_DIR ]
 .RB [ \-\-noexec ]
@@ -56,7 +56,7 @@ architectures are: amd64, arm64, armhf, i386, ppc64el.
 This corresponds to sbuild's \fB\-\-dist option\fR. It is used here to
 construct a candidate image name (if no image has been specified explicitly).
 .TP
-\fB\-\-ram\fR=MiB
+\fB\-\-ram\-size\fR=MiB
 VM memory size in MB. Default: 2048
 .TP
 \fB\-\-cpus\fR=CPUs

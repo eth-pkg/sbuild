@@ -83,7 +83,7 @@ def main():
              f"Default: '{DEFAULT_DIST}'.",
     )
     parser.add_argument(
-        '--ram',
+        '--ram-size',
         metavar='MiB',
         action='store',
         default=DEFAULT_MEM,
@@ -145,7 +145,7 @@ def main():
             '--autopkgtest-virt-server=qemu',
             '--autopkgtest-virt-server-opt',    '--overlay-dir=/tmp',
             '--autopkgtest-virt-server-opt',    f'--qemu-architecture={qemu_arch}',
-            '--autopkgtest-virt-server-opt',    f'--ram-size={parsed_args.ram}',
+            '--autopkgtest-virt-server-opt',    f'--ram-size={parsed_args.ram_size}',
             '--autopkgtest-virt-server-opt',    f'--cpus={parsed_args.cpus}',
             '--autopkgtest-virt-server-opt',    image,
             # Worarkound -- dose can hang stuff in a qemu VM
