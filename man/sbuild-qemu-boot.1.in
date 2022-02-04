@@ -72,7 +72,7 @@ VM CPU count. Default: 2
 Don't actually do anything. Just print the command string that
 would be executed, and then exit.
 .SH EXAMPLES
-\fB$ sbuild\-qemu\-update unstable\-autopkgtest\-amd64.img\fR
+\fB$ sbuild\-qemu\-boot \-\-shared\-dir /tmp/foo unstable\-autopkgtest\-amd64.img\fR
 .PP
 This will update the image \fBunstable\-autopkgtest\-amd64.img\fR in
 the current directory. If no such file exists there, then 

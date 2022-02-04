@@ -41,13 +41,6 @@ never changed. Multiple processes can use the same image concurrently.
 \fB\-h\fR, \fB\-\-help\fR
 Show this help message and exit.
 .TP
-\fB\-\-image\fR=IMAGE
-QEMU image file to use for building. If not specified, will look for an image
-with the name \fBDIST\-autopkgtest\-ARCH.img\fR. Will first look in the current
-directory, and if no such file exists there, then the directory
-\fB$IMAGEDIR\fR is tried. A suitable image can be created with
-sbuild\-qemu\-create(1).
-.TP
 \fB\-\-arch\fR=ARCH
 Architecture to use. Default is the host architecture. Currently supported
 architectures are: amd64, arm64, armhf, i386, ppc64el.
@@ -55,6 +48,13 @@ architectures are: amd64, arm64, armhf, i386, ppc64el.
 \fB\-d\fR=DIST, \fB\-\-dist\fR=DIST
 This corresponds to sbuild's \fB\-\-dist option\fR. It is used here to
 construct a candidate image name (if no image has been specified explicitly).
+.TP
+\fB\-\-image\fR=IMAGE
+QEMU image file to use for building. If not specified, will look for an image
+with the name \fBDIST\-autopkgtest\-ARCH.img\fR. Will first look in the current
+directory, and if no such file exists there, then the directory
+\fB$IMAGEDIR\fR is tried. A suitable image can be created with
+sbuild\-qemu\-create(1).
 .TP
 \fB\-\-ram\-size\fR=MiB
 VM memory size in MB. Default: 2048

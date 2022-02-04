@@ -55,15 +55,6 @@ def main():
                "concurrently.",
     )
     parser.add_argument(
-        '--image',
-        action='store',
-        help="QEMU image file to use for building. If not specified, will "
-             "look for an image with the name DIST-autopkgtest-ARCH.img. Will "
-             "first look in the current directory, and if no such file exists "
-             "there, then the directory $IMAGEDIR is tried. A suitable image "
-             "can be created with qemu-sbuild-create(1).",
-    )
-    parser.add_argument(
         '--arch',
         action='store',
         default=DEFAULT_ARCH,
@@ -79,18 +70,27 @@ def main():
              f"Default: 'unstable'.",
     )
     parser.add_argument(
+        '--image',
+        action='store',
+        help="QEMU image file to use for building. If not specified, will "
+             "look for an image with the name DIST-autopkgtest-ARCH.img. Will "
+             "first look in the current directory, and if no such file exists "
+             "there, then the directory $IMAGEDIR is tried. A suitable image "
+             "can be created with qemu-sbuild-create(1).",
+    )
+    parser.add_argument(
         '--ram-size',
         metavar='MiB',
         action='store',
         default=2048,
-        help=f"VM memory size in MB. Default: 2",
+        help=f"VM memory size in MB. Default: 2048",
     )
     parser.add_argument(
         '--cpus',
         metavar='CPUs',
         action='store',
         default=2,
-        help="VM CPU count. Default on this host: {DEFAULT_CPUS}.",
+        help="VM CPU count. Default: 2",
     )
     parser.add_argument(
         '--overlay-dir',
@@ -111,6 +111,14 @@ def main():
     )
     parsed_args, unparsed_args = parser.parse_known_args()
 
+    try:
+        qemu_arch = DEB_ARCH_TO_QEMU[parsed_args.arch]
+    except KeyError:
+        print(f"Unsupported architecture: {parsed_args.arch}", file=sys.stderr)
+        print("Supported architectures are: ", file=sys.stderr, end="")
+        print(f"{', '.join(DEB_ARCH_TO_QEMU.keys())}", file=sys.stderr)
+        sys.exit(1)
+
     if parsed_args.image:
         if os.path.exists(os.path.abspath(parsed_args.image)):
             image = parsed_args.image
@@ -125,10 +133,9 @@ def main():
                 IMAGEDIR,
                 f'{parsed_args.dist}-autopkgtest-{parsed_args.arch}.img',
             )
-    try:
-        qemu_arch = DEB_ARCH_TO_QEMU[parsed_args.arch]
-    except KeyError:
-        print(f"Unsupported architecture {parsed_args.arch}", file=sys.stderr)
+
+    if not os.path.exists(image):
+        print(f"File {image} does not exist.", file=sys.stderr)
         sys.exit(1)
 
     args = [
