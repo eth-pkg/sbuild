@@ -1,3 +1,25 @@
+sbuild (0.83.0) unstable; urgency=medium
+
+  * sbuild-qemu (package):
+    - Support for new architectures: armhf, arm64, ppc64el
+    - Move vmdb2 to Depends
+    - Depend on autopkgtest (>= 5.17~)
+  * sbuild-qemu:
+    - Fix looking for images when --arch was specified
+    - sbuild-qemu: rename --ram to --ram-size. This matches the
+      autopkgtest-virt-qemu option
+    - Reduce default CPU count to 2, rather than equal to host cores. This is
+      more likely to work on all platforms
+  * sbuild-qemu-create:
+    - Update shared dir setup (deprecated QEMU syntax). Existing images will no
+      longer work and will need to be recreated
+  * sbuild-qemu-update:
+    - Fix QEMU launch issues (network, serial)
+    - Reduce memory requirement. 1GiB is sufficient for apt-get operations
+  * sbuild-qemu-boot: New utility to boot to a VM console
+
+ -- Christian Kastner <ckk@debian.org>  Sat, 05 Feb 2022 18:02:40 +0100
+
 sbuild (0.82.1) unstable; urgency=medium
 
   * fix sbuild-cross-resolver
