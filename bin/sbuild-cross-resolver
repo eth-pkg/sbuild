@@ -13,9 +13,6 @@
 use strict;
 use warnings;
 
-use English;
-
-
 if (! -e '/usr/lib/apt/solvers/apt') {
     printf STDOUT 'Error: ERR_NO_SOLVER\n';
     printf STDOUT 'Message: The external apt solver doesn\'t exist. You must install the apt-utils package.\n';
