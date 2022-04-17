@@ -292,6 +292,7 @@ sub _get_exec_argv {
 	dir=\"\$1\"; shift;
 	while [ \$# -gt 0 ]; do
 	    if [ \"\$1\" = \"--\" ]; then shift; break; fi;
+	    mkdir -p \"\$rootdir\$2\";
 	    mount -o bind \"\$1\" \"\$rootdir\$2\";
 	    shift; shift;
 	done;
