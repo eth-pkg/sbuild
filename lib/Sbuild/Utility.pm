@@ -162,6 +162,7 @@ sub check_url {
 
     # Load LWP::UserAgent if possible, else return 0.
     if (! can_load( modules => { 'LWP::UserAgent' => undef, } )) {
+	warn "install the libwww-perl package to support downloading dsc files";
 	return 0;
     }
 
