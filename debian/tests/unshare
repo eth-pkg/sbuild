@@ -101,7 +101,7 @@ verify() {
 
 
 # FIXME: generate a key without expiry date
-cat << END | gpg --allow-secret-key-import --import -
+cat << END | gpg --batch --allow-secret-key-import --import -
 -----BEGIN PGP PRIVATE KEY BLOCK-----
 
 xVgEYA6+IBYJKwYBBAHaRw8BAQdAM1MKmD3Qm9XwkCv40xOUt1KTLL3nQ2NYfl6B
