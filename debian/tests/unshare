@@ -6,7 +6,7 @@
 #
 # After bugs #977674 and #981021 are fixed, also test --source-only-changes
 
-set -eu
+set -exu
 
 if [ -z ${AUTOPKGTEST_TMP+x} ]; then
 	echo "AUTOPKGTEST_TMP is unset" >&2;
