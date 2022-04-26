@@ -1,3 +1,20 @@
+sbuild (0.83.1) unstable; urgency=medium
+
+  [ Johannes Schauer Marin Rodrigues ]
+  * bin/sbuild-cross-resolver: we don't need the English module (closes:
+    #1005957)
+  * debian/tests/unshare: run with -x
+  * lib/Sbuild/Utility.pm: add warning about missing libwww-perl (closes:
+    #1009859)
+
+  [ Jochen Sprickerhof ]
+  * lib/Sbuild/ChrootUnshare.pm: mkdir for bind mounts
+
+  [ Daniel Kahn Gillmor ]
+  * Use --batch with gpg when importing secret key (Closes: #1010171)
+
+ -- Johannes Schauer Marin Rodrigues <josch@debian.org>  Tue, 26 Apr 2022 11:21:44 +0200
+
 sbuild (0.83.0) unstable; urgency=medium
 
   * sbuild-qemu (package):
