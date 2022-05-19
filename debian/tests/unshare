@@ -20,6 +20,7 @@ chmod 700 "${AUTOPKGTEST_TMP}/gpghome"
 export GNUPGHOME="${AUTOPKGTEST_TMP}/gpghome"
 
 verify_orig() {
+	echo "verifying test-pkg_1.0.tar.xz" >&2
 cat << END | base64 -d > "${AUTOPKGTEST_TMP}/expected"
 /Td6WFoAAATm1rRGAgAhARYAAAB0L+Wj4Cf/BBZdADoZSs4dfiUjFYSOxzYxnd+/m6AlVEVOGf2j
 nT6NK0F9XZ7LLydbY3I//WjMOM2RFpGUqZ8R8Q8lLmydB5SLN5ZQSPW3OJjHlzxVQmv2v3KUyPxo
@@ -47,6 +48,7 @@ END
 }
 
 verify_deb() {
+	echo "verifying test-pkg_1.0_all.deb" >&2
 cat << END | base64 -d > "${AUTOPKGTEST_TMP}/expected"
 ITxhcmNoPgpkZWJpYW4tYmluYXJ5ICAgMTQ2NzMxMDUxMiAgMCAgICAgMCAgICAgMTAwNjQ0ICA0
 ICAgICAgICAgYAoyLjAKY29udHJvbC50YXIueHogIDE0NjczMTA1MTIgIDAgICAgIDAgICAgIDEw
@@ -68,26 +70,31 @@ END
 	rm "${AUTOPKGTEST_TMP}/expected"
 }
 
-verify() {
-	verify_src="${1+no}"
-	verify_bin="${1+no}"
-	echo "verifying test-pkg_1.0.tar.xz" >&2
-	verify_orig
-	echo "verifying test-pkg_1.0_all.deb" >&2
-	verify_deb
+verify_dsc() {
 	# we shouldn't have to manually pass the keyring because the path is an
 	# implementation detail of gnupg (it used to be named pubring.gpg in
 	# the past) but dscverify ignores GNUPGHOME, see Debian bug #981008
-	if [ "$verify_bin" = "yes" ]; then
-		echo "verifying test-pkg_1.0.dsc" >&2
-		dscverify --keyring="${AUTOPKGTEST_TMP}/gpghome/pubring.kbx" "${AUTOPKGTEST_TMP}/test-pkg_1.0.dsc"
-		echo "verifying test-pkg_1.0_${nativearch}.changes" >&2
-		dscverify --keyring="${AUTOPKGTEST_TMP}/gpghome/pubring.kbx" "${AUTOPKGTEST_TMP}/test-pkg_1.0_${nativearch}.changes"
-	fi
-	if [ "$verify_src" = "yes" ]; then
-		echo "verifying test-pkg_1.0_source.changes" >&2
-		dscverify --keyring="${AUTOPKGTEST_TMP}/gpghome/pubring.kbx" "${AUTOPKGTEST_TMP}/test-pkg_1.0_source.changes"
-	fi
+	echo "verifying test-pkg_1.0.dsc" >&2
+	dscverify --keyring="${AUTOPKGTEST_TMP}/gpghome/pubring.kbx" \
+		"${AUTOPKGTEST_TMP}/test-pkg_1.0.dsc"
+}
+
+verify_bin_changes() {
+	echo "verifying test-pkg_1.0_${nativearch}.changes" >&2
+	dscverify --keyring="${AUTOPKGTEST_TMP}/gpghome/pubring.kbx" \
+		"${AUTOPKGTEST_TMP}/test-pkg_1.0_${nativearch}.changes"
+}
+
+verify_src_changes() {
+	echo "verifying test-pkg_1.0_source.changes" >&2
+	dscverify --keyring="${AUTOPKGTEST_TMP}/gpghome/pubring.kbx" \
+		"${AUTOPKGTEST_TMP}/test-pkg_1.0_source.changes"
+}
+
+verify() {
+	for thing in $*; do
+		verify_$thing
+	done
 	# remove verified files, so that we make sure not to accidentally
 	# verify anything from an earlier build
 	rm "${AUTOPKGTEST_TMP}/test-pkg_1.0_all.deb" \
@@ -211,7 +218,7 @@ mmdebstrap --mode=unshare --variant=apt unstable "${AUTOPKGTEST_TMP}/chroot.tar"
 
 env --chdir="${AUTOPKGTEST_TMP}/test-pkg-1.0/" dpkg-buildpackage --build=full
 env --chdir="${AUTOPKGTEST_TMP}/test-pkg-1.0/" dpkg-buildpackage --target=clean
-verify no yes
+verify orig deb dsc bin_changes
 
 # FIXME use installed sbuild
 
@@ -221,13 +228,13 @@ env --chdir="${AUTOPKGTEST_TMP}/test-pkg-1.0/" sbuild \
 	--keyid="sbuild fake uploader <fake-uploader@debian.org>" \
 	--source \
 	--no-run-lintian --no-run-autopkgtest
-verify no yes
+verify orig deb dsc bin_changes
 
 env --chdir="${AUTOPKGTEST_TMP}/test-pkg-1.0/" sbuild \
 	--chroot="${AUTOPKGTEST_TMP}/chroot.tar" --chroot-mode=unshare \
 	--keyid="sbuild fake uploader <fake-uploader@debian.org>" \
 	--no-run-lintian --no-run-autopkgtest
-verify no yes
+verify orig deb bin_changes
 
 # Test running sbuild on the dsc
 env --chdir="${AUTOPKGTEST_TMP}/test-pkg-1.0/" dpkg-source --build .
@@ -236,14 +243,14 @@ env --chdir="${AUTOPKGTEST_TMP}" sbuild \
 	--keyid="sbuild fake uploader <fake-uploader@debian.org>" \
 	--source \
 	--no-run-lintian --no-run-autopkgtest -d unstable test-pkg_1.0.dsc
-verify no yes
+verify orig deb dsc bin_changes
 
 env --chdir="${AUTOPKGTEST_TMP}/test-pkg-1.0/" dpkg-source --build .
 env --chdir="${AUTOPKGTEST_TMP}" sbuild \
 	--chroot="${AUTOPKGTEST_TMP}/chroot.tar" --chroot-mode=unshare \
 	--keyid="sbuild fake uploader <fake-uploader@debian.org>" \
 	--no-run-lintian --no-run-autopkgtest -d unstable test-pkg_1.0.dsc
-verify no yes
+verify orig deb bin_changes
 
 
 rm "${AUTOPKGTEST_TMP}/test-pkg_1.0_${nativearch}"*.build
