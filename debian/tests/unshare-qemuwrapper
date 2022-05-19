@@ -24,7 +24,7 @@
 
 set -exu
 
-EXTRA_DEPS=gnupg,sbuild,mmdebstrap,build-essential,uidmap,fakeroot,diffoscope
+EXTRA_DEPS=gnupg,sbuild,mmdebstrap,build-essential,uidmap,fakeroot,diffoscope,devscripts
 SCRIPT=./debian/tests/unshare
 
 [ -e debian/tests/control ]
