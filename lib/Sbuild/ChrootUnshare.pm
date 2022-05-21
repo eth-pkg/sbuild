@@ -272,7 +272,10 @@ sub _get_exec_argv {
     my $user = shift;
     my $disable_network = shift // 0;
 
-    my $network_setup = 'cat /etc/resolv.conf > "$rootdir/etc/resolv.conf";';
+    # On systems with libnss-resolve installed there is no need for a
+    # /etc/resolv.conf. This works around this by adding 127.0.0.53 (default
+    # for systemd-resolved) in that case.
+    my $network_setup = '[ -f /etc/resolv.conf ] && cat /etc/resolv.conf > "$rootdir/etc/resolv.conf" || echo "nameserver 127.0.0.53" > "$rootdir/etc/resolv.conf";';
     my $unshare = CLONE_NEWNS | CLONE_NEWPID | CLONE_NEWUTS | CLONE_NEWIPC;
     if ($disable_network) {
 	$unshare |= CLONE_NEWNET;
