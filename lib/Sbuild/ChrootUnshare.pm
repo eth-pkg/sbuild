@@ -309,6 +309,9 @@ sub _get_exec_argv {
 	    mount -o bind \"/dev/\$f\" \"\$rootdir/dev/\$f\";
 	done;
 	ln -sfT /proc/self/fd \"\$rootdir/dev/fd\";
+	ln -sfT /proc/self/fd/0 \"\$rootdir/dev/stdin\";
+	ln -sfT /proc/self/fd/1 \"\$rootdir/dev/stdout\";
+	ln -sfT /proc/self/fd/2 \"\$rootdir/dev/stderr\";
 	mkdir -p \"\$rootdir/dev/pts\";
 	mount -o bind \"/dev/pts\" \"\$rootdir/dev/pts\";
 	mkdir -p \"\$rootdir/dev/shm\";
