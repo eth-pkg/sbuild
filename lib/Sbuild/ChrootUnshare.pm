@@ -303,7 +303,7 @@ sub _get_exec_argv {
 	echo \"127.0.0.1 localhost\\n127.0.1.1 sbuild\" > \"\$rootdir/etc/hosts\";
 	$network_setup
 	mkdir -p \"\$rootdir/dev\";
-	for f in null zero full random urandom tty console ptmx; do
+	for f in null zero full random urandom tty console; do
 	    touch \"\$rootdir/dev/\$f\";
 	    chmod -rwx \"\$rootdir/dev/\$f\";
 	    mount -o bind \"/dev/\$f\" \"\$rootdir/dev/\$f\";
@@ -313,7 +313,8 @@ sub _get_exec_argv {
 	ln -sfT /proc/self/fd/1 \"\$rootdir/dev/stdout\";
 	ln -sfT /proc/self/fd/2 \"\$rootdir/dev/stderr\";
 	mkdir -p \"\$rootdir/dev/pts\";
-	mount -o bind \"/dev/pts\" \"\$rootdir/dev/pts\";
+	mount -o noexec,nosuid,gid=5,mode=620,ptmxmode=666 -t devpts none \"\$rootdir/dev/pts\";
+	ln -sfT /dev/pts/ptmx \"\$rootdir/dev/ptmx\";
 	mkdir -p \"\$rootdir/dev/shm\";
 	mount -t tmpfs tmpfs \"\$rootdir/dev/shm\";
 	mkdir -p \"\$rootdir/sys\";
