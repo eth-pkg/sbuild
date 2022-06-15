@@ -111,7 +111,7 @@ echo "INFO: Displaying information about chroot '$chroot'"
 schroot --info "${chroot}"
 
 echo "INFO: Building package '$pkg' for release '$release'"
-sbuild --extra-repository="deb-src $url unstable main" --verbose -A -d "$release" "$pkg" 2>&1
+sbuild --verbose -A -d "$release" "$pkg" 2>&1
 
 deb=$(ls ${pkg}_*"_${arch}.deb")
 
