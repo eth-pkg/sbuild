@@ -1221,9 +1221,10 @@ EOF
 	}
     }
 
-    #Now build the package:
+    # Now build the package:
+    # NO_PKG_MANGLE=1 disables https://launchpad.net/pkgbinarymangler (only used on Ubuntu)
     $session->run_command(
-	{ COMMAND => ['dpkg-deb', '--build', $dummy_pkg_dir, $dummy_deb],
+	{ COMMAND => ['env', 'NO_PKG_MANGLE=1', 'dpkg-deb', '--build', $dummy_pkg_dir, $dummy_deb],
 	  USER => $self->get_conf('BUILD_USER'),
 	  PRIORITY => 0});
     if ($?) {
