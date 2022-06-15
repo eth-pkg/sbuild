@@ -24,7 +24,7 @@ die()
 pkg=procenv
 components=""
 
-distro=$(lsb_release -is|tr '[A-Z]' '[a-z]')
+distro=$(lsb_release -is|tr '[:upper:]' '[:lower:]')
 [ -z "$distro" ] && die "cannot establish distribution"
 
 host_release=$(lsb_release -cs)
@@ -89,7 +89,8 @@ then
 fi
 
 if [ -z "$http_proxy" ]; then
-    RES=`apt-config shell http_proxy Acquire::http::Proxy`
+    RES=$(apt-config shell http_proxy Acquire::http::Proxy)
+    # shellcheck disable=SC2086
     eval $RES
     export http_proxy
     echo "INFO: using proxy: ${http_proxy:-(none)}"
@@ -100,7 +101,7 @@ echo "INFO: Creating sbuild chroot '$chroot' for release '$release' in directory
 # avoid "debconf: delaying package configuration, since apt-utils is not installed"
 sbuild-createchroot $components "$release" "$dir" "$url"
 if [ -n "$http_proxy" ]; then
-    echo "Acquire::http { Proxy \"$http_proxy\"; };" > $dir/etc/apt/apt.conf.d/01proxy
+    echo "Acquire::http { Proxy \"$http_proxy\"; };" > "$dir/etc/apt/apt.conf.d/01proxy"
 fi
 
 echo "INFO: Checking chroot '$chroot' is known"
@@ -112,10 +113,10 @@ schroot --info "${chroot}"
 echo "INFO: Building package '$pkg' for release '$release'"
 sbuild --extra-repository="deb-src $url unstable main" --verbose -A -d "$release" "$pkg" 2>&1
 
-deb=$(ls ${pkg}_*_${arch}.deb)
+deb=$(ls ${pkg}_*"_${arch}.deb")
 
 echo "INFO: Displaying sbuild log"
-cat ${pkg}_${arch}.build
+cat "${pkg}_${arch}.build"
 
 # Do what we can to check if the .deb looks usable (since we may not
 # be able to install it to test it properly)
@@ -155,7 +156,7 @@ session=$(schroot --list --all-sessions|grep "^session:${release}-${arch}-" || :
 if [ -n "$session" ]
 then
     count=$(echo "$session"|wc -l)
-    [ $count -eq 1 ] || die "expected 1 session, found $count"
+    [ "$count" -eq 1 ] || die "expected 1 session, found $count"
 
     echo "INFO: Ending schroot session '$session'"
     schroot --end-session --chroot "$session"
@@ -166,13 +167,13 @@ fi
 echo "INFO: Cleaning up"
 
 echo "INFO: Removing sbuild chroot symbolic link for '$chroot'"
-link=$(ls /etc/sbuild/chroot/${chroot})
+link=$(ls "/etc/sbuild/chroot/${chroot}")
 # remove soon-to-be-broken symbolic link
 [ -h "$link" ] && rm "$link"
 
 # remove soon-to-be stale configuration file
 echo "INFO: Removing schroot configuration file for '$chroot'"
-config=$(ls /etc/schroot/chroot.d/${chroot}-*)
+config=$(ls "/etc/schroot/chroot.d/${chroot}-"*)
 [ -f "$config" ] && rm "$config"
 
 echo "INFO: SUCCESS"

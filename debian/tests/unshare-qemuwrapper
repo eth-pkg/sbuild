@@ -55,8 +55,8 @@ else
 	fi
 	for f in /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/*.sources; do
 		[ -e "$f" ] || continue
-		sed -i 's/ file:\/\// copy:\/\//' $f
-		cat $f
+		sed -i 's/ file:\/\// copy:\/\//' "$f"
+		cat "$f"
 		aptsources="$aptsources $f"
 	done
 	MODE=root
@@ -141,6 +141,7 @@ SCRIPT
 chmod +x "$TMPDIR/setup.sh"
 
 if [ ! -e "$TMPDIR/${ID}-${release}-host.tar" ]; then
+# shellcheck disable=SC2086
 mmdebstrap --variant=apt --mode=$MODE --verbose \
 	--setup-hook="$TMPDIR/setup.sh" \
 	--include=openssh-server,systemd-sysv,ifupdown,netbase,isc-dhcp-client,udev,policykit-1,linux-image-amd64,$EXTRA_DEPS \
@@ -203,7 +204,7 @@ QEMUPID=$!
 
 onerror() {
 	# attempt poweroff
-	$ssh -o ConnectTimeout=$TIMEOUT root@localhost systemctl poweroff || true
+	$ssh -o ConnectTimeout="$TIMEOUT" root@localhost systemctl poweroff || true
 	# give a few seconds for poweroff
 	sleep 10
 	kill $QEMUPID || true
@@ -232,7 +233,7 @@ onerror() {
 }
 
 # show the log and kill qemu in case the script exits first
-trap "cat --show-nonprinting $TMPDIR/qemu.log; onerror" EXIT
+trap 'cat --show-nonprinting "$TMPDIR/qemu.log"; onerror' EXIT
 
 # the default ssh command does not store known hosts and even ignores host keys
 # it identifies itself with the rsa key generated above
@@ -255,7 +256,7 @@ while true; do
 	# and we break out of the loop
 	[ $rv -eq 0 ] && break
 	# if the command before took less than $TIMEOUT seconds, wait the remaining time
-	TIMESTAMP=$(sleepenh $TIMESTAMP $TIMEOUT || [ $? -eq 1 ]);
+	TIMESTAMP=$(sleepenh "$TIMESTAMP" $TIMEOUT || [ $? -eq 1 ]);
 	# increment the counter and break out of the loop if we tried
 	# too often
 	i=$((i+1))

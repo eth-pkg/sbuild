@@ -118,8 +118,8 @@ verify_src_changes() {
 }
 
 verify() {
-	for thing in $*; do
-		verify_$thing
+	for thing in "$@"; do
+		"verify_$thing"
 	done
 	# remove verified files, so that we make sure not to accidentally
 	# verify anything from an earlier build
