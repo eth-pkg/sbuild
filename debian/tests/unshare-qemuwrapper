@@ -27,6 +27,9 @@ set -exu
 EXTRA_DEPS=gnupg,sbuild,mmdebstrap,build-essential,uidmap,fakeroot,diffoscope,devscripts
 SCRIPT=./debian/tests/unshare
 
+. /etc/os-release
+release=${VERSION_CODENAME:-unstable}
+
 [ -e debian/tests/control ]
 SOURCES="$(pwd)"
 
@@ -137,12 +140,12 @@ done
 SCRIPT
 chmod +x "$TMPDIR/setup.sh"
 
-if [ ! -e "$TMPDIR/debian-unstable-host.tar" ]; then
+if [ ! -e "$TMPDIR/${ID}-${release}-host.tar" ]; then
 mmdebstrap --variant=apt --mode=$MODE --verbose \
 	--setup-hook="$TMPDIR/setup.sh" \
 	--include=openssh-server,systemd-sysv,ifupdown,netbase,isc-dhcp-client,udev,policykit-1,linux-image-amd64,$EXTRA_DEPS \
 	--customize-hook="$TMPDIR/customize.sh" \
-	unstable "$TMPDIR/debian-unstable-host.tar" $aptsources
+	"${release}" "$TMPDIR/${ID}-${release}-host.tar" $aptsources
 fi
 
 # use guestfish to prepare the host system
@@ -159,7 +162,7 @@ guestfish -N "$TMPDIR/host.img"=disk:3G -- \
 	part-disk /dev/sda mbr : \
 	mkfs ext2 /dev/sda1 : \
 	mount /dev/sda1 / : \
-	tar-in "$TMPDIR/debian-unstable-host.tar" / : \
+	tar-in "$TMPDIR/${ID}-${release}-host.tar" / : \
 	mkdir /build : \
 	copy-in "$SOURCES/." /build/ : \
 	upload /usr/lib/SYSLINUX/mbr.bin /mbr.bin : \
@@ -277,7 +280,7 @@ $ssh root@localhost systemctl poweroff || true
 wait $QEMUPID
 
 # cleanup
-for f in debian-unstable-host.tar id_rsa id_rsa.pub \
+for f in "${ID}-${release}-host.tar" id_rsa id_rsa.pub \
 	qemu.log host.img customize.sh setup.sh; do
 	rm "$TMPDIR/$f"
 done

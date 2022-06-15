@@ -13,6 +13,8 @@ if [ -z ${AUTOPKGTEST_TMP+x} ]; then
 	exit 1
 fi
 
+. /etc/os-release
+release=${VERSION_CODENAME:-unstable}
 nativearch=$(dpkg --print-architecture)
 
 mkdir -p "${AUTOPKGTEST_TMP}/gpghome"
@@ -238,7 +240,7 @@ cat << END > "${AUTOPKGTEST_TMP}/test-pkg-1.0/debian/source/format"
 3.0 (native)
 END
 
-mmdebstrap --mode=unshare --variant=apt unstable "${AUTOPKGTEST_TMP}/chroot.tar"
+mmdebstrap --mode=unshare --variant=apt "$release" "${AUTOPKGTEST_TMP}/chroot.tar"
 
 env --chdir="${AUTOPKGTEST_TMP}/test-pkg-1.0/" dpkg-buildpackage --build=full
 env --chdir="${AUTOPKGTEST_TMP}/test-pkg-1.0/" dpkg-buildpackage --target=clean
@@ -269,7 +271,7 @@ env --chdir="${AUTOPKGTEST_TMP}" sbuild \
 	--chroot="${AUTOPKGTEST_TMP}/chroot.tar" --chroot-mode=unshare \
 	--keyid="sbuild fake uploader <fake-uploader@debian.org>" \
 	--source \
-	--no-run-lintian --no-run-autopkgtest -d unstable test-pkg_1.0.dsc
+	--no-run-lintian --no-run-autopkgtest -d "$release" test-pkg_1.0.dsc
 verify orig deb dsc bin_changes
 
 env --chdir="${AUTOPKGTEST_TMP}/test-pkg-1.0/" dpkg-source --build .
@@ -277,7 +279,7 @@ env --chdir="${AUTOPKGTEST_TMP}" sbuild \
 	--no-source-only-changes --nolog \
 	--chroot="${AUTOPKGTEST_TMP}/chroot.tar" --chroot-mode=unshare \
 	--keyid="sbuild fake uploader <fake-uploader@debian.org>" \
-	--no-run-lintian --no-run-autopkgtest -d unstable test-pkg_1.0.dsc
+	--no-run-lintian --no-run-autopkgtest -d "$release" test-pkg_1.0.dsc
 verify orig deb bin_changes
 
 
