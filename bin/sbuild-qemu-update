@@ -152,6 +152,14 @@ def main():
              "on the image name).",
     )
     parser.add_argument(
+        '--timeout',
+        metavar='SECONDS',
+        action='store',
+        help="Maximum time to wait for command to finish with expected "
+             "result. Mostly relevant for foreign architectures, where "
+             "`apt-get update` can take quite a while. Default: 600s."
+    )
+    parser.add_argument(
         '--noexec',
         action='store_true',
         help="Don't actually do anything. Just print the command string that "
@@ -195,7 +203,7 @@ def main():
         return
 
     child = pexpect.spawn(' '.join(args), encoding='utf-8')
-    child.timeout = 600
+    child.timeout = parsed_args.timeout or 600
     child.expect('host login: ')
     child.sendline('root')
     child.logfile = sys.stdout

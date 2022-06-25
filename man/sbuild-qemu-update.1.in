@@ -47,6 +47,11 @@ reproducibility purposes.
 \fB\-\-arch\fR=ARCH
 Architecture to use (instead of attempting to auto\-guess).
 .TP
+\fB\-\-timeout\fR=SECS
+Maximum time to wait for command to finish with expected result. Mostly
+relevant for foreign architectures, where \fBapt-get update\fR can take
+quite a while. Default: 600s.
+.TP
 \fB\-\-noexec\fR
 Don't actually do anything. Just print the command string that
 would be executed, and then exit.
