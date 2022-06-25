@@ -195,7 +195,7 @@ def main():
         return
 
     child = pexpect.spawn(' '.join(args), encoding='utf-8')
-    child.timeout = 240
+    child.timeout = 600
     child.expect('host login: ')
     child.sendline('root')
     child.logfile = sys.stdout
