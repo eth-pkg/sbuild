@@ -288,7 +288,7 @@ sub setup ($) {
 		my $key = $entry->{'NAME'};
 		for my $entry (@{$conf->get($key)}) {
 		    die "$entry->{directory} doesn't exist" if ! -e $entry->{directory};
-		    die "mountpoint $entry->{mountpoint} must be an absolute path insude the chroot" if $entry->{mountpoint} !~ /^\//;
+		    die "mountpoint $entry->{mountpoint} must be an absolute path inside the chroot" if $entry->{mountpoint} !~ /^\//;
 		}
 	    },
 	    DEFAULT => [],
