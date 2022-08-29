@@ -1925,7 +1925,7 @@ sub run_autopkgtest {
 
     $self->log("\n");
 
-    if ($status == 0) {
+    if ($status == 0 || $status == 2) { # 2 is "at least one test was skipped (or at least one flaky test failed)"
 	$self->set('Autopkgtest Reason', 'pass');
     } elsif ($status == 8) {
 	$self->set('Autopkgtest Reason', 'no tests');
