@@ -1,3 +1,25 @@
+sbuild (0.83.2) unstable; urgency=medium
+
+  [ Jochen Sprickerhof ]
+  * Support $path in unshare backend
+  * Support systems without a resolv.conf in unshare backend
+  * Unshare: add minimal etc/hosts
+
+  [ Dave Jones ]
+  * verify() in unshare uses the same (wrong) parameter for $verify_*
+  * devscripts is missing from EXTRA_DEPS
+  * Update verify_deb to match zstd compressed debs
+
+  [ Johannes Schauer Marin Rodrigues ]
+  * lib/Sbuild/ChrootUnshare.pm: add /dev/{stdin,stdout,stderr}
+  * Mount a new instance of /dev/pts in the chroot
+
+  [ Aurelien Jarno ]
+  * Buildd::Mail: support MIME encoded Subject: header
+  * Buildd::Mail: also copy the Content-Type: header when forwarding mail
+
+ -- Aurelien Jarno <aurel32@debian.org>  Mon, 29 Aug 2022 22:44:02 +0200
+
 sbuild (0.83.1) unstable; urgency=medium
 
   [ Johannes Schauer Marin Rodrigues ]
