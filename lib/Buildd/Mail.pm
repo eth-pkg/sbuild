@@ -468,6 +468,7 @@ forward_mail:
 		      ($header->{'reply-to'} ? "Reply-To: $header->{'reply-to'}\n" : "").
 		      ($header->{'in-reply-to'} ? "In-Reply-To: $header->{'in-reply-to'}\n" : "").
 		      ($header->{'references'} ? "References: $header->{'references'}\n" : "").
+		      ($header->{'content-type'} ? "Content-Type: $header->{'content-type'}\n": "").
 		      "Resent-From: $Buildd::gecos <$Buildd::username\@$Buildd::hostname>\n".
 		      "Resent-To: " . $self->get_conf('ADMIN_MAIL') . "\n\n".
 		      $self->get('Mail Body Text') );
