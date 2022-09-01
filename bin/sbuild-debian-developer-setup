@@ -55,6 +55,7 @@ if (!chroot_exists()) {
 	   "--include=eatmydata",
 	   "--alias=UNRELEASED",
 	   "--alias=sid",
+	   "--alias=UNRELEASED-$arch-sbuild",
 	   "$suite",
 	   "/srv/chroot/$suite-$arch-sbuild",
 	   "http://localhost:3142/deb.debian.org/debian") == 0
