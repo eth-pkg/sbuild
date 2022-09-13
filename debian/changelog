@@ -1,3 +1,11 @@
+sbuild (0.83.3) UNRELEASED; urgency=medium
+
+  * debian/tests/unshare: run with --no-source-only-changes
+  * debian/tests/unshare: run with --nolog to output log to stdout
+  * debian/tests/unshare-qemuwrapper: bump disk size to 3G
+
+ -- Johannes Schauer Marin Rodrigues <josch@debian.org>  Tue, 13 Sep 2022 12:42:47 +0200
+
 sbuild (0.83.2) unstable; urgency=medium
 
   [ Jochen Sprickerhof ]
