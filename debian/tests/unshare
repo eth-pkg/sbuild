@@ -248,7 +248,7 @@ verify orig deb dsc bin_changes
 
 # Test running sbuild from the unpacked source
 env --chdir="${AUTOPKGTEST_TMP}/test-pkg-1.0/" sbuild \
-	--no-source-only-changes \
+	--no-source-only-changes --nolog \
 	--chroot="${AUTOPKGTEST_TMP}/chroot.tar" --chroot-mode=unshare \
 	--keyid="sbuild fake uploader <fake-uploader@debian.org>" \
 	--source \
@@ -256,7 +256,7 @@ env --chdir="${AUTOPKGTEST_TMP}/test-pkg-1.0/" sbuild \
 verify orig deb dsc bin_changes
 
 env --chdir="${AUTOPKGTEST_TMP}/test-pkg-1.0/" sbuild \
-	--no-source-only-changes \
+	--no-source-only-changes --nolog \
 	--chroot="${AUTOPKGTEST_TMP}/chroot.tar" --chroot-mode=unshare \
 	--keyid="sbuild fake uploader <fake-uploader@debian.org>" \
 	--no-run-lintian --no-run-autopkgtest
@@ -265,7 +265,7 @@ verify orig deb bin_changes
 # Test running sbuild on the dsc
 env --chdir="${AUTOPKGTEST_TMP}/test-pkg-1.0/" dpkg-source --build .
 env --chdir="${AUTOPKGTEST_TMP}" sbuild \
-	--no-source-only-changes \
+	--no-source-only-changes --nolog \
 	--chroot="${AUTOPKGTEST_TMP}/chroot.tar" --chroot-mode=unshare \
 	--keyid="sbuild fake uploader <fake-uploader@debian.org>" \
 	--source \
@@ -274,14 +274,13 @@ verify orig deb dsc bin_changes
 
 env --chdir="${AUTOPKGTEST_TMP}/test-pkg-1.0/" dpkg-source --build .
 env --chdir="${AUTOPKGTEST_TMP}" sbuild \
-	--no-source-only-changes \
+	--no-source-only-changes --nolog \
 	--chroot="${AUTOPKGTEST_TMP}/chroot.tar" --chroot-mode=unshare \
 	--keyid="sbuild fake uploader <fake-uploader@debian.org>" \
 	--no-run-lintian --no-run-autopkgtest -d unstable test-pkg_1.0.dsc
 verify orig deb bin_changes
 
 
-rm "${AUTOPKGTEST_TMP}/test-pkg_1.0_${nativearch}"*.build
 rm -r "${AUTOPKGTEST_TMP}/gpghome/"
 rm "${AUTOPKGTEST_TMP}/test-pkg-1.0/debian/changelog" \
  "${AUTOPKGTEST_TMP}/test-pkg-1.0/debian/control" \
