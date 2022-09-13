@@ -16,7 +16,7 @@
 .so defs.man
 .TH SBUILD\-QEMU\-BOOT "1" "\*[RELEASE_DATE]" "Version \*[VERSION]" "Debian sbuild"
 .SH NAME
-sbuild\-qemu\-boot \- Bood a VM using a QEMU image
+sbuild\-qemu\-boot \- Boot a VM using a QEMU image
 .SH SYNOPSIS
 .B sbuild\-qemu\-boot
 .RB [ \-h ]
