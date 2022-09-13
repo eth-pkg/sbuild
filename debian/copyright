@@ -43,6 +43,7 @@ Files: Makefile.am
        test/Makefile.am
        tools/Makefile.am
 Copyright: © 2004-2009  Roger Leigh <rleigh@debian.org>
+           © 2016-2022  Johannes Schauer Marin Rodrigues <josch@debian.org>
 License: GPL-3+
 
 Files: debian/*
