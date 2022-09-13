@@ -283,7 +283,8 @@ env --chdir="${AUTOPKGTEST_TMP}" sbuild \
 verify orig deb bin_changes
 
 
-rm -r "${AUTOPKGTEST_TMP}/gpghome/"
+ls -lha "${AUTOPKGTEST_TMP}/gpghome/"
+rm -r "${AUTOPKGTEST_TMP}/gpghome/" || :
 rm "${AUTOPKGTEST_TMP}/test-pkg-1.0/debian/changelog" \
  "${AUTOPKGTEST_TMP}/test-pkg-1.0/debian/control" \
  "${AUTOPKGTEST_TMP}/test-pkg-1.0/debian/source/format" \
