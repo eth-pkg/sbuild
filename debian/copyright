@@ -51,11 +51,13 @@ Copyright: © 2001-2003 Rick Younie <younie@debian.org>
            © 2003-2004 Francesco Paolo Lovergine <frankie@debian.org>
            © 2005 Michael Banck <mbanck@debian.org>
            © 2005-2008 Roger Leigh <rleigh@debian.org>
+           © 2015-2022  Johannes Schauer Marin Rodrigues <josch@debian.org>
 License: GPL-2+
 
 Files: debian/buildd.init
 Copyright: © 2006-2009  Roger Leigh <rleigh@debian.org>
            © 2007       Federico Di Gregorio <fog@debian.org
+           © 2015-2022  Johannes Schauer Marin Rodrigues <josch@debian.org>
 License: GPL-3+
 
 License: GPL-2+
