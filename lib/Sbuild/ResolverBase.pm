@@ -80,6 +80,47 @@ sub new {
     return $self;
 }
 
+sub add_extra_repositories {
+    my $self = shift;
+    my $session = $self->get('Session');
+
+    # Add specified extra repositories into /etc/apt/sources.list.d/.
+    # This has to be done this early so that the early apt
+    # update/upgrade/distupgrade steps also consider the extra repositories.
+    # If this step would be done too late, extra repositories would only be
+    # considered when resolving build dependencies but not for upgrading the
+    # base chroot.
+    if (scalar @{$self->get_conf('EXTRA_REPOSITORIES')} > 0) {
+	my $extra_repositories_archive_list_file = $self->get('Extra repositories archive list file');
+	if ($session->test_regular_file($extra_repositories_archive_list_file)) {
+	    $self->log_error("$extra_repositories_archive_list_file exists - will not write extra repositories to it\n");
+	} else {
+	    my $tmpfilename = $session->mktemp();
+
+	    my $tmpfh = $session->get_write_file_handle($tmpfilename);
+	    if (!$tmpfh) {
+		$self->log_error("Cannot open pipe: $!\n");
+		return 0;
+	    }
+	    for my $repospec (@{$self->get_conf('EXTRA_REPOSITORIES')}) {
+		print $tmpfh "$repospec\n";
+	    }
+	    close $tmpfh;
+	    # List file needs to be moved with root.
+	    if (!$session->chmod($tmpfilename, '0644')) {
+		$self->log("Failed to create apt list file for dummy archive.\n");
+		$session->unlink($tmpfilename);
+		return 0;
+	    }
+	    if (!$session->rename($tmpfilename, $extra_repositories_archive_list_file)) {
+		$self->log("Failed to create apt list file for dummy archive.\n");
+		$session->unlink($tmpfilename);
+		return 0;
+	    }
+	}
+    }
+}
+
 sub setup {
     my $self = shift;
 
@@ -167,41 +208,7 @@ sub setup {
 	    $self->get('APT Conf');
     }
 
-    # Add specified extra repositories into /etc/apt/sources.list.d/.
-    # This has to be done this early so that the early apt
-    # update/upgrade/distupgrade steps also consider the extra repositories.
-    # If this step would be done too late, extra repositories would only be
-    # considered when resolving build dependencies but not for upgrading the
-    # base chroot.
-    if (scalar @{$self->get_conf('EXTRA_REPOSITORIES')} > 0) {
-	my $extra_repositories_archive_list_file = $self->get('Extra repositories archive list file');
-	if ($session->test_regular_file($extra_repositories_archive_list_file)) {
-	    $self->log_error("$extra_repositories_archive_list_file exists - will not write extra repositories to it\n");
-	} else {
-	    my $tmpfilename = $session->mktemp();
-
-	    my $tmpfh = $session->get_write_file_handle($tmpfilename);
-	    if (!$tmpfh) {
-		$self->log_error("Cannot open pipe: $!\n");
-		return 0;
-	    }
-	    for my $repospec (@{$self->get_conf('EXTRA_REPOSITORIES')}) {
-		print $tmpfh "$repospec\n";
-	    }
-	    close $tmpfh;
-	    # List file needs to be moved with root.
-	    if (!$session->chmod($tmpfilename, '0644')) {
-		$self->log("Failed to create apt list file for dummy archive.\n");
-		$session->unlink($tmpfilename);
-		return 0;
-	    }
-	    if (!$session->rename($tmpfilename, $extra_repositories_archive_list_file)) {
-		$self->log("Failed to create apt list file for dummy archive.\n");
-		$session->unlink($tmpfilename);
-		return 0;
-	    }
-	}
-    }
+    $self->add_extra_repositories();
 
     # Create an internal repository for packages given via --extra-package
     # If this step would be done too late, extra packages would only be
