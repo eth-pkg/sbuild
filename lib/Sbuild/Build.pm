@@ -1127,7 +1127,92 @@ sub fetch_source_files {
 
 	# Use apt to download the source files
 	$self->log_subsubsection("Check APT");
-	my %entries = ();
+
+        my $indextargets;
+        {
+            my $pipe = $self->get('Session')->pipe_command(
+                {
+                    COMMAND => [ 'apt-get', 'indextargets' ],
+                    USER    => $self->get_conf('BUILD_USER'),
+                }
+            );
+            if ( !$pipe ) {
+                $self->log_error("Can't open pipe to apt-get: $!\n");
+                return 0;
+            }
+            $indextargets =
+              Dpkg::Index->new( get_key_func => sub { return $_[0]->{URI}; } );
+
+            if ( !$indextargets->parse( $pipe, 'apt-get indextargets' ) ) {
+                $self->log_error(
+                    "Cannot parse output of apt-get indextargets: $!\n");
+                return 0;
+            }
+            close($pipe);
+
+            if ($?) {
+                $self->log_error("apt-get indextargets exit status $?: $!\n");
+                return 0;
+            }
+        }
+        my $found_sources_entry  = 0;
+        my $num_packages_entries = 0;
+        my $entry_uri            = undef;
+        my $entry_codename       = undef;
+        my $entry_component      = undef;
+        foreach my $key ( $indextargets->get_keys() ) {
+            my $cdata      = $indextargets->get_by_key($key);
+            my $createdby  = $cdata->{"Created-By"} // "";
+            my $targetof   = $cdata->{"Target-Of"}  // "";
+            my $identifier = $cdata->{"Identifier"} // "";
+            if (    $createdby eq "Sources"
+                and $identifier eq "Sources"
+                and $targetof eq "deb-src" )
+            {
+                $found_sources_entry = 1;
+            }
+            if (    $createdby eq "Packages"
+                and $identifier eq "Packages"
+                and $targetof eq "deb" )
+            {
+                $num_packages_entries += 1;
+                $entry_uri       = $cdata->{"Repo-URI"};
+                $entry_codename  = $cdata->{"Codename"};
+                $entry_component = $cdata->{"Component"};
+            }
+        }
+        if ( !$found_sources_entry ) {
+            $self->log("There are no deb-src lines in your sources.list\n");
+            if ( $num_packages_entries == 0 ) {
+                $self->log("Cannot generate deb-src entry without deb entry\n");
+            }
+            elsif ( $num_packages_entries > 1 ) {
+                $self->log( "Cannot generate deb-src entry "
+                      . "with more than one deb entry\n" );
+            }
+            elsif ( !defined $entry_uri ) {
+                $self->log( "Cannot generate deb-src entry "
+                      . "with undefined Repo-URI\n" );
+            }
+            elsif ( !defined $entry_codename ) {
+                $self->log( "Cannot generate deb-src entry "
+                      . "with undefined Codename\n" );
+            }
+            elsif ( !defined $entry_component ) {
+                $self->log( "Cannot generate deb-src entry "
+                      . "with undefined Component\n" );
+            }
+            else {
+                my $entry =
+                  "deb-src $entry_uri $entry_codename $entry_component";
+                $self->log(
+                    "Automatically adding to EXTRA_REPOSITORIES: $entry\n");
+                push @{ $self->get_conf('EXTRA_REPOSITORIES') }, $entry;
+                $resolver->add_extra_repositories();
+                $self->run_chroot_update();
+            }
+        }
+
 	$self->log("Checking available source versions...\n");
 
 	# We would like to call apt-cache with --only-source so that the
