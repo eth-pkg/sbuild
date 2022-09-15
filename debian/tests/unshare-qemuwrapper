@@ -36,7 +36,7 @@ SOURCES="$(pwd)"
 if [ -z ${AUTOPKGTEST_TMP+x} ]; then
 	# if AUTOPKGTEST_TMP is not set, then this script is probably not
 	# executed under autopkgtest
-	TMPDIR=$(mktemp --directory)
+	TMPDIR=$(mktemp --directory --tmpdir sbuild.XXXXXXXXXX)
 	aptsources=
 	MODE=auto
 else
