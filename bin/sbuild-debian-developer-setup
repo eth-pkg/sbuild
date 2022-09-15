@@ -50,12 +50,20 @@ sub chroot_exists {
 }
 
 if (!chroot_exists()) {
+    my @aliases = ();
+    if ( $suite eq "unstable" || $suite eq "sid" ) {
+        @aliases = ( "--alias=UNRELEASED", "--alias=UNRELEASED-$arch-sbuild" );
+        if ( $suite eq "unstable" ) {
+            push @aliases, "--alias=sid";
+        }
+        if ( $suite eq "sid" ) {
+            push @aliases, "--alias=unstable";
+        }
+    }
     system("sbuild-createchroot",
 	   "--command-prefix=eatmydata",
 	   "--include=eatmydata",
-	   "--alias=UNRELEASED",
-	   "--alias=sid",
-	   "--alias=UNRELEASED-$arch-sbuild",
+	   @aliases,
 	   "$suite",
 	   "/srv/chroot/$suite-$arch-sbuild",
 	   "http://localhost:3142/deb.debian.org/debian") == 0
