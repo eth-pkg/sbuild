@@ -281,6 +281,7 @@ $ssh root@localhost systemctl poweroff || true
 wait $QEMUPID
 
 # cleanup
+[ -e "$TMPDIR/.guestfs-$(id -u)" ] && rm -r "$TMPDIR/.guestfs-$(id -u)"
 for f in "${ID}-${release}-host.tar" id_rsa id_rsa.pub \
 	qemu.log host.img customize.sh setup.sh; do
 	rm "$TMPDIR/$f"
