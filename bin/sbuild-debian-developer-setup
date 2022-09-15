@@ -28,10 +28,12 @@ use Sbuild qw(help_text);
 
 my $dist = "debian";
 my $suite = "unstable";
+chomp(my $arch = `dpkg --print-architecture`);
 
 my @options = (
     'distribution=s' => \$dist,
     'suite=s' => \$suite,
+    'arch=s' => \$arch,
     'help' => sub { help_text(1, "sbuild-debian-developer-setup") },
     );
 GetOptions(@options);
@@ -42,8 +44,6 @@ if (!defined($ENV{SUDO_USER})) {
 
 system("adduser", "--", $ENV{SUDO_USER}, "sbuild") == 0
     or die "adduser failed: $?";
-
-chomp(my $arch = `dpkg --print-architecture`);
 
 sub chroot_exists {
     system("schroot -i -c chroot:$suite-$arch-sbuild >/dev/null 2>&1") == 0

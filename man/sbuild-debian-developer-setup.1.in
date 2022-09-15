@@ -22,6 +22,7 @@ sbuild\-debian\-developer\-setup \- set up sbuild so that packages for Debian un
 .RB [ \-h \[or] \-\-help ]
 .RB [ \-\-distribution=\fIdistribution\fP ]
 .RB [ \-\-suite=\fIsuite\fP ]
+.RB [ \-\-arch=\fIarch\fP ]
 .SH DESCRIPTION
 
 \fBsbuild-debian-developer-setup\fR is a convenience script to set up an sbuild
@@ -46,6 +47,9 @@ Set up an sbuild chroot for \fIdistribution\fP. Defaults to "debian".
 .TP
 .BR "\-\-suite=\fIsuite\fP"
 Set up an sbuild chroot for \fIsuite\fP. Defaults to "unstable".
+.TP
+.BR "\-\-arch=\fIarch\fP"
+Set up an sbuild chroot with architecture \fIarch\fP. Defaults to system arch.
 .SH EXAMPLES
 To set up sbuild and build the hello world Debian package, use:
 .PP
