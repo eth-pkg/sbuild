@@ -239,7 +239,7 @@ trap 'cat --show-nonprinting "$TMPDIR/qemu.log"; onerror' EXIT
 # it identifies itself with the rsa key generated above
 # pseudo terminal allocation is disabled or otherwise, programs executed via
 # ssh might wait for input on stdin of the ssh process
-ssh="ssh -oUserKnownHostsFile=/dev/null -oStrictHostKeyChecking=no -i "$TMPDIR/id_rsa" -T -p 10022"
+ssh="ssh -oPasswordAuthentication=no -oUserKnownHostsFile=/dev/null -oStrictHostKeyChecking=no -i "$TMPDIR/id_rsa" -T -p 10022"
 
 # we use sleepenh to make sure that we wait the right number of seconds
 # independent on how long the command took beforehand
