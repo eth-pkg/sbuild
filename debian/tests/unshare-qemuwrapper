@@ -144,7 +144,7 @@ if [ ! -e "$TMPDIR/${ID}-${release}-host.tar" ]; then
 # shellcheck disable=SC2086
 mmdebstrap --variant=apt --mode=$MODE --verbose \
 	--setup-hook="$TMPDIR/setup.sh" \
-	--include=openssh-server,systemd-sysv,ifupdown,netbase,isc-dhcp-client,udev,policykit-1,linux-image-amd64,$EXTRA_DEPS \
+	--include=openssh-server,systemd-sysv,ifupdown,netbase,isc-dhcp-client,udev,policykit-1,linux-image-cloud-amd64,$EXTRA_DEPS \
 	--customize-hook="$TMPDIR/customize.sh" \
 	"${release}" "$TMPDIR/${ID}-${release}-host.tar" $aptsources
 fi
