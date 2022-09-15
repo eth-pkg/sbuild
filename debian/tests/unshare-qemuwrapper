@@ -30,6 +30,16 @@ SCRIPT=./debian/tests/unshare
 . /etc/os-release
 release=${VERSION_CODENAME:-unstable}
 
+if [ "$ID" = ubuntu ]; then
+	COMPONENTS=main,universe
+	KERNEL_PACKAGE=linux-image-kvm
+	KERNEL_PATH=/boot
+else
+	COMPONENTS=main
+	KERNEL_PACKAGE=linux-image-cloud-amd64
+	KERNEL_PATH=
+fi
+
 [ -e debian/tests/control ]
 SOURCES="$(pwd)"
 
@@ -96,8 +106,8 @@ default linux
 timeout 0
 
 label linux
-kernel /vmlinuz
-append initrd=/initrd.img root=/dev/vda1 net.ifnames=0 console=ttyS0
+kernel $KERNEL_PATH/vmlinuz
+append initrd=$KERNEL_PATH/initrd.img root=/dev/vda1 net.ifnames=0 console=ttyS0
 END
 
 # network interface config
@@ -144,8 +154,8 @@ if [ ! -e "$TMPDIR/${ID}-${release}-host.tar" ]; then
 # shellcheck disable=SC2086
 mmdebstrap --variant=apt --mode=$MODE --verbose \
 	--setup-hook="$TMPDIR/setup.sh" \
-	--include=openssh-server,systemd-sysv,ifupdown,netbase,isc-dhcp-client,udev,policykit-1,linux-image-cloud-amd64,$EXTRA_DEPS \
-	--customize-hook="$TMPDIR/customize.sh" \
+	--include=openssh-server,systemd-sysv,e2fsprogs,ifupdown,initramfs-tools,netbase,isc-dhcp-client,udev,policykit-1,$KERNEL_PACKAGE,$EXTRA_DEPS \
+	--customize-hook="$TMPDIR/customize.sh" --components="$COMPONENTS" \
 	"${release}" "$TMPDIR/${ID}-${release}-host.tar" $aptsources
 fi
 

@@ -6,7 +6,7 @@ Tests: unshare-qemuwrapper
 Architecture: amd64
 Depends: grep-dctrl,
          libguestfs-tools,
-         linux-image-cloud-amd64,
+         linux-image-cloud-amd64 | linux-image-kvm,
          mmdebstrap,
          openssh-client,
          qemu-system-x86,
