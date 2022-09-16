@@ -1359,7 +1359,7 @@ sub run_apt_ftparchive {
     my $session = $self->get('Session');
 
     # We create the Packages, Sources and Release file inside the chroot.
-    # We cannot use IO::Compress::Gzip, Digest::MD5, or Digest::SHA because
+    # We cannot use Digest::MD5, or Digest::SHA because
     # they are not available inside a chroot with only Essential:yes and apt
     # installed.
     # We cannot use apt-ftparchive as this is not available inside the chroot.
@@ -1464,28 +1464,17 @@ sub hash_file($$)
     closedir($dh);
 }
 
-system('gzip -c --force Packages > Packages.gz') == 0 or die "gzip failed: $?\n";
-system('gzip -c --force Sources  > Sources.gz' ) == 0 or die "gzip failed: $?\n";
-
 my $packages_md5 = hash_file('Packages', 'md5sum');
 my $sources_md5 = hash_file('Sources', 'md5sum');
-my $packagesgz_md5 = hash_file('Packages.gz', 'md5sum');
-my $sourcesgz_md5 = hash_file('Sources.gz', 'md5sum');
 
 my $packages_sha1 = hash_file('Packages', 'sha1sum');
 my $sources_sha1 = hash_file('Sources', 'sha1sum');
-my $packagesgz_sha1 = hash_file('Packages.gz', 'sha1sum');
-my $sourcesgz_sha1 = hash_file('Sources.gz', 'sha1sum');
 
 my $packages_sha256 = hash_file('Packages', 'sha256sum');
 my $sources_sha256 = hash_file('Sources', 'sha256sum');
-my $packagesgz_sha256 = hash_file('Packages.gz', 'sha256sum');
-my $sourcesgz_sha256 = hash_file('Sources.gz', 'sha256sum');
 
 my $packages_size = -s 'Packages';
 my $sources_size = -s 'Sources';
-my $packagesgz_size = -s 'Packages.gz';
-my $sourcesgz_size = -s 'Sources.gz';
 
 # The timestamp format of release files is documented here:
 #   https://wiki.debian.org/RepositoryFormat#Date.2CValid-Until
@@ -1511,18 +1500,12 @@ Suite: invalid
 MD5Sum:
  $packages_md5 $packages_size Packages
  $sources_md5 $sources_size Sources
- $packagesgz_md5 $packagesgz_size Packages.gz
- $sourcesgz_md5 $sourcesgz_size Sources.gz
 SHA1:
  $packages_sha1 $packages_size Packages
  $sources_sha1 $sources_size Sources
- $packagesgz_sha1 $packagesgz_size Packages.gz
- $sourcesgz_sha1 $sourcesgz_size Sources.gz
 SHA256:
  $packages_sha256 $packages_size Packages
  $sources_sha256 $sources_size Sources
- $packagesgz_sha256 $packagesgz_size Packages.gz
- $sourcesgz_sha256 $sourcesgz_size Sources.gz
 END
 
 close $releasefh;
