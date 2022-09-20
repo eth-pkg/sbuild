@@ -25,6 +25,7 @@
 set -exu
 
 EXTRA_DEPS=gnupg,sbuild,mmdebstrap,build-essential,uidmap,fakeroot,diffoscope,devscripts
+PORT=$(python3 -c 'from socket import socket; s=socket(); s.bind(("", 0)); print(s.getsockname()[1]);' || echo 10022)
 SCRIPT=./debian/tests/unshare
 
 . /etc/os-release
@@ -194,7 +195,7 @@ guestfish -N "$TMPDIR/host.img"=disk:3G -- \
 # this also multiplexes the console and the monitor to stdio
 # creates a multiplexed stdio backend connected to the serial port and the qemu
 # monitor
-# redirect tcp connections on port 10022 localhost to the host system port 22
+# redirect tcp connections on port $PORT localhost to the host system port 22
 # redirect all output to a file
 # run in the background
 qemu-system-x86_64 \
@@ -205,7 +206,7 @@ qemu-system-x86_64 \
 	-net nic,model=virtio \
 	-nographic \
 	-serial mon:stdio \
-	-net user,hostfwd=tcp:127.0.0.1:10022-:22 \
+	-net "user,hostfwd=tcp:127.0.0.1:$PORT-:22" \
 	-drive file="$TMPDIR/host.img",format=raw,if=virtio \
 	> "$TMPDIR/qemu.log" </dev/null 2>&1 &
 
@@ -226,7 +227,7 @@ onerror() {
 	echo
 	echo "to test yourself, run qemu with:"
 	echo
-	echo "    $ qemu-system-x86_64 -no-user-config -m 1G -net nic,model=virtio -nographic -serial mon:stdio -net user,hostfwd=tcp:127.0.0.1:10022-:22 -drive file=\"$TMPDIR/host.img\",format=raw,if=virtio"
+	echo "    $ qemu-system-x86_64 -no-user-config -m 1G -net nic,model=virtio -nographic -serial mon:stdio -net user,hostfwd=tcp:127.0.0.1:$PORT-:22 -drive file=\"$TMPDIR/host.img\",format=raw,if=virtio"
 	echo
 	echo "and log in using:"
 	echo
@@ -249,7 +250,7 @@ trap 'cat --show-nonprinting "$TMPDIR/qemu.log"; onerror' EXIT
 # it identifies itself with the rsa key generated above
 # pseudo terminal allocation is disabled or otherwise, programs executed via
 # ssh might wait for input on stdin of the ssh process
-ssh="ssh -oPasswordAuthentication=no -oUserKnownHostsFile=/dev/null -oStrictHostKeyChecking=no -i "$TMPDIR/id_rsa" -T -p 10022"
+ssh="ssh -oPasswordAuthentication=no -oUserKnownHostsFile=/dev/null -oStrictHostKeyChecking=no -i "$TMPDIR/id_rsa" -T -p $PORT"
 
 # we use sleepenh to make sure that we wait the right number of seconds
 # independent on how long the command took beforehand
