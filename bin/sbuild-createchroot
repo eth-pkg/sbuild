@@ -744,7 +744,7 @@ if ($conf->get('MAKE_SBUILD_TARBALL') && !$conf->get('SETUP_ONLY')) {
     }
 
     makedir(dirname($conf->get('MAKE_SBUILD_TARBALL')), 0755);
-    move("$tmpfile", $conf->get('MAKE_SBUILD_TARBALL'));
+    move("$tmpfile", $conf->get('MAKE_SBUILD_TARBALL')) or die "cannot mv to $conf->get('MAKE_SBUILD_TARBALL'): $!";
     chmod 0644, $conf->get('MAKE_SBUILD_TARBALL');
 
     print "I: Done creating " . $conf->get('MAKE_SBUILD_TARBALL') . "\n";
