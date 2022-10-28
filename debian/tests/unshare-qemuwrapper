@@ -162,7 +162,7 @@ fi
 
 # use guestfish to prepare the host system
 #
-#  - create a single 3G partition and unpack the rootfs tarball into it
+#  - create a single 4G partition and unpack the rootfs tarball into it
 #  - put a syslinux MBR into the first 440 bytes of the drive
 #  - install extlinux and make partition bootable
 #
@@ -170,7 +170,7 @@ fi
 #   LIBGUESTFS_BACKEND_SETTINGS=force_tcg
 #   libguestfs-test-tool || true
 #   export LIBGUESTFS_DEBUG=1 LIBGUESTFS_TRACE=1
-guestfish -N "$TMPDIR/host.img"=disk:3G -- \
+guestfish -N "$TMPDIR/host.img"=disk:4G -- \
 	part-disk /dev/sda mbr : \
 	mkfs ext2 /dev/sda1 : \
 	mount /dev/sda1 / : \
