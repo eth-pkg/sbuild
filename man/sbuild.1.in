@@ -1250,8 +1250,8 @@ to manually type the right container or machine name every time when sbuild is
 executed, percent escapes are permitted.
 .TP
 .BR unshare
-This is an experimental backend that allows one to build packages inside
-chroots provided by arbitrary tarballs. This allows one to set up an arbitrary
+This backend allows one to build packages inside chroots provided by arbitrary
+tarballs without superuser privileges. This allows one to set up an arbitrary
 build environment without having to become root. Building packages with schroot
 also doesn't require sudo (schroot is suid root) but setting up and updating
 chroots requires superuser permissions. The unshare backend only makes use of
