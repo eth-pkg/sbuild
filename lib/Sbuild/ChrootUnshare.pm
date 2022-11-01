@@ -196,7 +196,7 @@ sub begin_session {
 	system('env', 'PATH=/usr/sbin:/usr/bin:/sbin:/bin', @unshare_cmd,
 	    '/usr/sbin/chroot', $rootdir, 'sh', '-c',
 	    "getent group sbuild >/dev/null 2>&1 || groupadd --system sbuild ",
-	    "id -u \"$user\">/dev/null 2>&1 || adduser --system --quiet --ingroup sbuild --no-create-home --home /nonexistent --disabled-login --disabled-password \"$user\"");
+	    "id -u \"$user\">/dev/null 2>&1 || useradd --system --gid sbuild --no-create-home --home-dir /nonexistent --shell /usr/sbin/nologin \"$user\"")
     }
 
     $self->set('Session ID', $rootdir);
@@ -322,7 +322,7 @@ sub _get_exec_argv {
 	mount -o rbind /sys \"\$rootdir/sys\";
 	mkdir -p \"\$rootdir/proc\";
 	mount -t proc proc \"\$rootdir/proc\";
-	/usr/sbin/chroot \"\$rootdir\" sh -c \"id -u \\\"\$user\\\">/dev/null 2>&1 || adduser --system --quiet --ingroup sbuild --no-create-home --home /nonexistent --disabled-login --disabled-password \\\"\$user\\\"\";
+	/usr/sbin/chroot \"\$rootdir\" sh -c \"id -u \\\"\$user\\\">/dev/null 2>&1 || useradd --system --gid sbuild --no-create-home --home-dir /nonexistent --shell /usr/sbin/nologin \\\"\$user\\\"\";
 	exec /usr/sbin/chroot \"\$rootdir\" /sbin/runuser -u \"\$user\" -- sh -c \"cd \\\"\\\$1\\\" && shift && \\\"\\\$@\\\"\" -- \"\$dir\" \"\$@\";
 	", '--', $self->get('Session ID'), $user, $dir, @bind_mounts, '--'
     );

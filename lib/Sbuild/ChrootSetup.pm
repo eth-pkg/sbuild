@@ -81,10 +81,10 @@ sub basesetup ($$) {
 	    # This will require root privileges.  However, this should
 	    # only get run at initial chroot setup time.
 	    $session->run_command(
-		{ COMMAND => ['adduser', '--system', '--quiet',
-			'--home', '/var/lib/sbuild', '--no-create-home',
-			'--shell', '/bin/bash', '--ingroup', 'sbuild',
-			'--gecos', 'Debian source builder', $user],
+		{ COMMAND => ['useradd', '--system',
+			'--home-dir', '/var/lib/sbuild', '--no-create-home',
+			'--shell', '/bin/bash', '--gid', 'sbuild',
+			'--comment', 'Debian source builder,,,', $user],
 		    USER => 'root',
 		    STREAMIN => $devnull,
 		    STREAMOUT => $devnull,
