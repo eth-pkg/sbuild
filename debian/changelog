@@ -1,10 +1,56 @@
-sbuild (0.83.3) UNRELEASED; urgency=medium
+sbuild (0.84.0) unstable; urgency=medium
 
+  [ Johannes Schauer Marin Rodrigues ]
+  * bin/sbuild-createchroot: die if move() fails
+  * bin/sbuild-debian-developer-setup: Don't alias to sid/UNRELEASED if suite
+    is not unstable (Closes: #1014574)
+  * debian/copyright: update copyright for makefiles and debian/*
+  * debian/tests/unshare-qemuwrapper: allow ~/.ssh to exist already
+  * debian/tests/unshare-qemuwrapper: bump disk size to 4G (Closes: #1016070)
+  * debian/tests/unshare: don't fail if gpghome cannot be removed
+  * debian/tests/unshare: gpgconf --kill all before removing gpghome
   * debian/tests/unshare: run with --no-source-only-changes
   * debian/tests/unshare: run with --nolog to output log to stdout
-  * debian/tests/unshare-qemuwrapper: bump disk size to 3G
+  * lib/Sbuild/Build.pm: automatically add a deb-src entry if necessary
+  * lib/Sbuild/ResolverBase.pm: factor out add_extra_repositories()
+  * lib/Sbuild/ResolverBase.pm: stop emitting Packages.gz and Sources.gz
+  * man/sbuild-qemu-boot.1.in: fix typo Bood -> Boot
+  * man/sbuild.1.in: unshare chroot mode is not experimental anymore
 
- -- Johannes Schauer Marin Rodrigues <josch@debian.org>  Tue, 13 Sep 2022 12:42:47 +0200
+  [ Benjamin Drung ]
+  * Fix shellcheck issues in autopkgtests
+  * Revert "debian/tests/build-procenv: add deb-src repository"
+  * Run unshare autopkgtest against target release
+  * Set NO_PKG_MANGLE=1 when building dummy packages
+  * unshare-qemuwrapper: Cleanup guestfs appliance
+  * unshare-qemuwrapper: Disable SSH password authentication
+  * unshare-qemuwrapper: Support Ubuntu
+  * unshare-qemuwrapper: Use free port
+  * unshare-qemuwrapper: Use linux-image-cloud-amd64
+  * unshare-qemuwrapper: Use sbuild in temp directory name
+
+  [ Dave Jones ]
+  * Ensure umask is consistent with the comparison blobs
+
+  [ Christoph Berg ]
+  * run_autopkgtest: Accept exit 2 as pass
+
+  [ Andrea Pappacoda ]
+  * sbuild-debian-developer-setup: alias the chroot to UNRELEASED-$arch-sbuild
+    (Closes: #1006135)
+
+  [ Mattias Jernberg ]
+  * bin/sbuild-createchroot: Do not hardcode mirror argument to debootstrap
+    (Closes: #1010665)
+
+  [ Ben Westover ]
+  * sbuild-debian-developer-setup: Add option to specify chroot architecture
+
+  [ Jochen Sprickerhof ]
+  * Replace adduser by useradd
+  * Unshare: create sbuild group
+
+ -- Johannes Schauer Marin Rodrigues <josch@debian.org>  Wed, 02 Nov 2022 21:42:11 +0100
 
 sbuild (0.83.2) unstable; urgency=medium
 
