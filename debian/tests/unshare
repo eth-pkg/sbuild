@@ -243,7 +243,9 @@ cat << END > "${AUTOPKGTEST_TMP}/test-pkg-1.0/debian/source/format"
 3.0 (native)
 END
 
-mmdebstrap --mode=unshare --variant=apt "$release" "${AUTOPKGTEST_TMP}/chroot.tar"
+# passwd is needed for useradd/groupadd (used by --chroot-mode=unshare)
+# temporary fix until it is done from outside of the chroot
+mmdebstrap --mode=unshare --variant=apt --include=passwd "$release" "${AUTOPKGTEST_TMP}/chroot.tar"
 
 env --chdir="${AUTOPKGTEST_TMP}/test-pkg-1.0/" dpkg-buildpackage --build=full
 env --chdir="${AUTOPKGTEST_TMP}/test-pkg-1.0/" dpkg-buildpackage --target=clean
