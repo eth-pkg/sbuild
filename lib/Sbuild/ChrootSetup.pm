@@ -57,13 +57,7 @@ sub basesetup ($$) {
     if ($?) {
 	# This will require root privileges.  However, this should
 	# only get run at initial chroot setup time.
-	$session->run_command(
-	    { COMMAND => ['groupadd', '--system', 'sbuild'],
-	      USER => 'root',
-	      STREAMIN => $devnull,
-	      STREAMOUT => $devnull,
-	      DIR => '/' });
-	if ($?) {
+	if ($session->groupadd("--system", "sbuild")) {
 	    print STDERR "E: Failed to create group sbuild\n";
 	    return $?
 	}
@@ -80,16 +74,10 @@ sub basesetup ($$) {
 	if ($?) {
 	    # This will require root privileges.  However, this should
 	    # only get run at initial chroot setup time.
-	    $session->run_command(
-		{ COMMAND => ['useradd', '--system',
+	    if ($session->useradd("--system",
 			'--home-dir', '/var/lib/sbuild', '--no-create-home',
 			'--shell', '/bin/bash', '--gid', 'sbuild',
-			'--comment', 'Debian source builder,,,', $user],
-		    USER => 'root',
-		    STREAMIN => $devnull,
-		    STREAMOUT => $devnull,
-		    DIR => '/' });
-	    if ($?) {
+			'--comment', 'Debian source builder,,,', $user)) {
 		print STDERR "E: Failed to create user $user\n";
 		return $?
 	    }

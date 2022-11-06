@@ -26,7 +26,7 @@ use Sbuild qw(copy debug debug2);
 use Sbuild::Base;
 use Sbuild::ChrootInfo;
 use Sbuild::ChrootSetup qw(basesetup);
-use Sbuild qw(shellescape);
+use Sbuild qw($devnull shellescape);
 
 use strict;
 use warnings;
@@ -928,6 +928,28 @@ EOF
 	return 0;
     }
     return 1;
+}
+
+sub useradd {
+    my $self = shift;
+    my @args = @_;
+    return $self->run_command(
+        { COMMAND => ['useradd', @args],
+	  USER => 'root',
+	  STREAMIN => $devnull,
+	  STREAMOUT => $devnull,
+	  DIR => '/' });
+}
+
+sub groupadd {
+    my $self = shift;
+    my @args = @_;
+    return $self->run_command(
+	    { COMMAND => ['groupadd', @args],
+	      USER => 'root',
+	      STREAMIN => $devnull,
+	      STREAMOUT => $devnull,
+	      DIR => '/' });
 }
 
 1;

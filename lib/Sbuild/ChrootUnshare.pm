@@ -191,14 +191,6 @@ sub begin_session {
 	return 0;
     }
 
-    # some initial setup
-    for my $user ($self->get_conf('USERNAME'), $self->get_conf('BUILD_USER')) {
-	system('env', 'PATH=/usr/sbin:/usr/bin:/sbin:/bin', @unshare_cmd,
-	    '/usr/sbin/chroot', $rootdir, 'sh', '-c',
-	    "getent group sbuild >/dev/null 2>&1 || groupadd --system sbuild ",
-	    "id -u \"$user\">/dev/null 2>&1 || useradd --system --gid sbuild --no-create-home --home-dir /nonexistent --shell /usr/sbin/nologin \"$user\"")
-    }
-
     $self->set('Session ID', $rootdir);
 
     $self->set('Location', '/sbuild-unshare-dummy-location');
@@ -322,7 +314,6 @@ sub _get_exec_argv {
 	mount -o rbind /sys \"\$rootdir/sys\";
 	mkdir -p \"\$rootdir/proc\";
 	mount -t proc proc \"\$rootdir/proc\";
-	/usr/sbin/chroot \"\$rootdir\" sh -c \"id -u \\\"\$user\\\">/dev/null 2>&1 || useradd --system --gid sbuild --no-create-home --home-dir /nonexistent --shell /usr/sbin/nologin \\\"\$user\\\"\";
 	exec /usr/sbin/chroot \"\$rootdir\" /sbin/runuser -u \"\$user\" -- sh -c \"cd \\\"\\\$1\\\" && shift && \\\"\\\$@\\\"\" -- \"\$dir\" \"\$@\";
 	", '--', $self->get('Session ID'), $user, $dir, @bind_mounts, '--'
     );
@@ -376,6 +367,25 @@ sub get_command_internal {
     $options->{'EXPCOMMAND'} = \@cmdline;
     $options->{'CHDIR'} = undef;
     $options->{'DIR'} = $dir;
+}
+
+# create users from outside the chroot so we don't need user/groupadd inside.
+sub useradd {
+    my $self = shift;
+    my @args = @_;
+    my $rootdir = $self->get('Session ID');
+    my @idmap = read_subuid_subgid;
+    my @unshare_cmd = get_unshare_cmd({IDMAP => \@idmap});
+    return system(@unshare_cmd, "/usr/sbin/useradd", "--root", $rootdir, @args);
+}
+
+sub groupadd {
+    my $self = shift;
+    my @args = @_;
+    my $rootdir = $self->get('Session ID');
+    my @idmap = read_subuid_subgid;
+    my @unshare_cmd = get_unshare_cmd({IDMAP => \@idmap});
+    return system(@unshare_cmd, "/usr/sbin/groupadd", "--root", $rootdir, @args);
 }
 
 1;
