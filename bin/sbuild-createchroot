@@ -334,15 +334,15 @@ if (-e $target) {
 }
 $target = abs_path($target);
 my $script = undef;
-my $mirror = undef;
+my $mirror = "http://deb.debian.org/debian";
 
 $mirror = $ARGV[2] if $#ARGV >= 2;
-$script = $ARGV[3] if $#ARGV >= 3;
+$script = $ARGV[3] if $#ARGV == 3;
 
 if ($conf->get('VERBOSE')) {
     print "I: SUITE: $suite\n";
     print "I: TARGET: $target\n";
-    print "I: MIRROR: $mirror\n" if (defined($mirror));
+    print "I: MIRROR: $mirror\n";
     print "I: SCRIPT: $script\n" if (defined($script));
 }
 
@@ -363,8 +363,7 @@ if ($conf->get('MERGED_USR') ne 'auto') {
 	push @args, $conf->get('MERGED_USR') ?
 	    "--merged-usr" : "--no-merged-usr";
 }
-push @args, "$suite", "$target";
-push @args, "$mirror" if $mirror;
+push @args, "$suite", "$target", "$mirror";
 push @args, "$script" if $script;
 
 # Set the path to debootstrap
