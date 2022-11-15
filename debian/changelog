@@ -1,3 +1,15 @@
+sbuild (0.84.1) unstable; urgency=medium
+
+  [ Jochen Sprickerhof ]
+  * unshare_bind_mounts: use rbind to mount subtrees
+  * unshare: Use user/groupadd from outside the chroot
+
+  [ Johannes Schauer Marin Rodrigues ]
+  * Revert "bin/sbuild-createchroot: Do not hardcode mirror argument" as this
+    creates invalid deb-src entries in sources.list
+
+ -- Johannes Schauer Marin Rodrigues <josch@mister-muffin.de>  Tue, 15 Nov 2022 08:05:31 +0100
+
 sbuild (0.84.0) unstable; urgency=medium
 
   [ Johannes Schauer Marin Rodrigues ]
