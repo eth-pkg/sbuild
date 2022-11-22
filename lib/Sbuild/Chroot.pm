@@ -933,23 +933,31 @@ EOF
 sub useradd {
     my $self = shift;
     my @args = @_;
-    return $self->run_command(
+    $self->run_command(
         { COMMAND => ['useradd', @args],
 	  USER => 'root',
 	  STREAMIN => $devnull,
 	  STREAMOUT => $devnull,
 	  DIR => '/' });
+    if ($?) {
+	return 1;
+    }
+    return 0;
 }
 
 sub groupadd {
     my $self = shift;
     my @args = @_;
-    return $self->run_command(
+    $self->run_command(
 	    { COMMAND => ['groupadd', @args],
 	      USER => 'root',
 	      STREAMIN => $devnull,
 	      STREAMOUT => $devnull,
 	      DIR => '/' });
+    if ($?) {
+	return 1;
+    }
+    return 0;
 }
 
 1;
