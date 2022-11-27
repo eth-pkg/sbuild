@@ -108,6 +108,11 @@ To share a directory on the host with the VM, QEMU should be started with
 the following additional options:
 .PP
 \fB \-virtfs local,path=/path/to/host/dir,id=sbuild-qemu,mount_tag=sbuild-qemu,security_model=none
+.SH "TTY GEOMETRY"
+sbuild\-qemu\-creates a file
+\fI/etc/profile.d/sbuild\-qemu\-terminal\-settings.sh\fR within the VM. This file
+reads terminal column and row geometry passed on through from the host, and
+sets the geometry within the guest using stty(1).
 .SH EXAMPLES
 \fB$ sudo sbuild\-qemu\-create unstable http://deb.debian.org/debian\fR
 .PP

@@ -77,4 +77,38 @@ echo "Updating GRUB menu"
 echo "GRUB_TIMEOUT=1" >> $VMROOT/etc/default/grub
 chroot $VMROOT update-grub
 
+# Enable automatically setting terminal rows/columns if the host passes us the
+# params using -fw_cfg
+echo "Creating script in /etc/profile.d/ to set terminal geometry to host"
+cat > $VMROOT/etc/profile.d/sbuild-qemu-terminal-settings.sh <<"EOF"
+#!/bin/sh
+# Set VM tty rows/columns to host rows/columns
+#
+# This only works if the guest kernel was compiled with CONFIG_FW_CFG_FSYS, and
+# the host rows/columns were passed on through QEMU using -fw_cfg. Regular
+# users will also need permission to read this file (see the udev rule).
+
+ROWSFILE="/sys/firmware/qemu_fw_cfg/by_name/opt/sbuild-qemu/tty-rows/raw"
+COLSFILE="/sys/firmware/qemu_fw_cfg/by_name/opt/sbuild-qemu/tty-cols/raw"
+
+DEB_HOST_ARCH="`dpkg-architecture -qDEB_HOST_ARCH`"
+if [ "$DEB_HOST_ARCH" = "armhf" ] || [ "$DEB_HOST_ARCH" = "arm64" ]
+then
+	TTY=/dev/ttyAMA0
+else
+	TTY=/dev/ttyS0
+fi
+
+if [ -f "$ROWSFILE" ]
+then
+    stty -F "$TTY" rows `cat "$ROWSFILE"`
+fi
+
+if [ -f "$COLSFILE" ]
+then
+    stty -F "$TTY" cols `cat "$COLSFILE"`
+fi
+EOF
+
+
 echo "### Customization of base image complete. ###"

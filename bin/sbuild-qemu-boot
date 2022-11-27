@@ -208,11 +208,22 @@ def main():
             '-smp',    str(parsed_args.cpus),
             '-nographic',
     ])
+
     if parsed_args.shared_dir:
         args.extend([
             '-virtfs', f'local,path={parsed_args.shared_dir},id=sbuild-qemu,'
                         'mount_tag=sbuild-qemu,security_model=none',
         ])
+
+    # Pass on host terminal rows/columns to guest
+    # FIXME: qemu-system-pp64le doesn't support fw_cfg?
+    if args[0] not in ['qemu-system-ppc64le']:
+        termsize = os.get_terminal_size()
+        args.extend([
+            '-fw_cfg', f'name=opt/sbuild-qemu/tty-rows,string={termsize.lines}',
+            '-fw_cfg', f'name=opt/sbuild-qemu/tty-cols,string={termsize.columns}',
+            ])
+
     args.append(image)
 
     print(' '.join(str(a) for a in args))
