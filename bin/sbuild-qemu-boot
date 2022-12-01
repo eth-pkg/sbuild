@@ -175,6 +175,14 @@ def main():
         help="VM CPU count. Default on this host: {DEFAULT_CPUS}.",
     )
     parser.add_argument(
+        '--ssh-port',
+        metavar='PORT',
+        action='store',
+        help="Forward local port PORT to port 22 within the guest. Package "
+             "'openssh-server' must be installed within the guest for this "
+             "to be useful.",
+    )
+    parser.add_argument(
         '--noexec',
         action='store_true',
         help="Don't actually do anything. Just print the command string that "
@@ -195,6 +203,10 @@ def main():
         print("Image does not exist", file=sys.stderr)
         sys.exit(1)
 
+    nic = 'user,model=virtio'
+    if parsed_args.ssh_port:
+        nic += f',hostfwd=tcp:127.0.0.1:{parsed_args.ssh_port}-:22'
+
     args = get_qemu_base_args(parsed_args.image, parsed_args.arch)
     if not args:
         sys.exit(1)
@@ -203,7 +215,7 @@ def main():
             '-object', 'rng-random,filename=/dev/urandom,id=rng0',
             '-device', 'virtio-rng-pci,rng=rng0,id=rng-device0',
             '-device', 'virtio-serial',
-            '-nic',    'user,model=virtio',
+            '-nic',    nic,
             '-m',      str(parsed_args.ram_size),
             '-smp',    str(parsed_args.cpus),
             '-nographic',
