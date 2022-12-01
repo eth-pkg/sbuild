@@ -46,7 +46,27 @@ then
 		echo "$SQC_SKEL is not a directory." >&2
 		exit 1
 	fi
-	cp -pr $SQC_SKEL/. $VMROOT/root
+	cp -pr "$SQC_SKEL/." "$VMROOT/root"
+fi
+
+if [ -n "$SQC_AUTH_KEYS" ]
+then
+	echo "Copying $SQC_AUTH_KEYS to /root/.ssh/"
+	if [ ! -f "$SQC_AUTH_KEYS" ]
+	then
+		echo "$SQC_AUTH_KEYS is not a regular file." >&2
+		exit 1
+	fi
+
+	TARGET_KEYS="$VMROOT/root/.ssh/authorized_keys"
+	if [ ! -d "$VMROOT/root/.ssh" ]
+	then
+		mkdir --mode=0700 "$VMROOT/root/.ssh"
+	fi
+	cp "$SQC_AUTH_KEYS" "$VMROOT/root/.ssh/authorized_keys"
+	chroot $VMROOT chmod 0600 /root/.ssh/authorized_keys
+	chroot $VMROOT chown root:root /root/.ssh/authorized_keys
+	chroot $VMROOT apt-get install --quiet --assume-yes openssh-server
 fi
 
 if [ -n "$SQC_INSTALL_PACKAGES" ]

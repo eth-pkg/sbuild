@@ -113,6 +113,14 @@ def main():
         help="Skeleton directory to use for /root.",
     )
     parser.add_argument(
+        '--authorized-keys',
+        metavar='FILE',
+        action='store',
+        help="Install this file as /root/.ssh/authorized_keys. This will "
+             "automatically install the 'openssh-server' package. This "
+             "supercedes any copying of this file by the --skel option. ",
+    )
+    parser.add_argument(
         '--size',
         type=str,
         action='store',
@@ -164,6 +172,9 @@ def main():
     if parsed.skel:
         os.environ['SQC_SKEL'] = parsed.skel
         print('export SQC_SKEL=' + os.environ['SQC_SKEL'])
+    if parsed.authorized_keys:
+        os.environ['SQC_AUTH_KEYS'] = parsed.authorized_keys
+        print('export SQC_AUTH_KEYS=' + os.environ['SQC_AUTH_KEYS'])
     if parsed.extra_deb:
         extra_debs = ' '.join(parsed.extra_deb)
         os.environ['SQC_EXTRA_DEBS'] = extra_debs
