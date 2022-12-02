@@ -136,6 +136,27 @@ def get_qemu_base_args(image, guest_arch=None):
     return argv
 
 
+def update_interaction(child):
+    child.expect('host login: ')
+    child.sendline('root')
+    child.logfile = sys.stdout
+    child.expect('root@host:~# ')
+    child.sendline('DEBIAN_FRONTEND=noninteractive apt-get --quiet update')
+    child.expect('root@host:~# ')
+    child.sendline('DEBIAN_FRONTEND=noninteractive apt-get --quiet --assume-yes dist-upgrade')
+    child.expect('root@host:~# ')
+    child.sendline('DEBIAN_FRONTEND=noninteractive apt-get --quiet --assume-yes clean')
+    child.expect('root@host:~# ')
+    child.sendline('DEBIAN_FRONTEND=noninteractive apt-get --quiet --assume-yes autoremove')
+    child.expect('root@host:~# ')
+    child.sendline('sync')
+    child.expect('root@host:~# ')
+    # Don't recall what issue this solves, but it solves it
+    child.sendline('sleep 1')
+    child.expect('root@host:~# ')
+    child.sendline('shutdown -h now')
+
+
 def main():
     parser = argparse.ArgumentParser(
         description='sbuild-update analog for QEMU images.',
@@ -153,6 +174,8 @@ def main():
     )
     parser.add_argument(
         '--timeout',
+        type=int,
+        default=600,
         metavar='SECONDS',
         action='store',
         help="Maximum time to wait for command to finish with expected "
@@ -203,25 +226,12 @@ def main():
         return
 
     child = pexpect.spawn(' '.join(args), encoding='utf-8')
-    child.timeout = parsed_args.timeout or 600
-    child.expect('host login: ')
-    child.sendline('root')
-    child.logfile = sys.stdout
-    child.expect('root@host:~# ')
-    child.sendline('DEBIAN_FRONTEND=noninteractive apt-get --quiet update')
-    child.expect('root@host:~# ')
-    child.sendline('DEBIAN_FRONTEND=noninteractive apt-get --quiet --assume-yes dist-upgrade')
-    child.expect('root@host:~# ')
-    child.sendline('DEBIAN_FRONTEND=noninteractive apt-get --quiet --assume-yes clean')
-    child.expect('root@host:~# ')
-    child.sendline('DEBIAN_FRONTEND=noninteractive apt-get --quiet --assume-yes autoremove')
-    child.expect('root@host:~# ')
-    child.sendline('sync')
-    child.expect('root@host:~# ')
-    # Don't recall what issue this solves, but it solves it
-    child.sendline('sleep 1')
-    child.expect('root@host:~# ')
-    child.sendline('shutdown -h now')
+    child.timeout = parsed_args.timeout
+    try:
+        update_interaction(child)
+    except pexpect.TIMEOUT:
+        print("Update timed out. Consider using --timeout.", file=sys.stderr)
+        child.terminate()
 
 
 if __name__ == '__main__':
