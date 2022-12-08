@@ -1,6 +1,6 @@
 Tests: build-procenv
 Depends: apt (>= 1.1~exp2), apt-utils, debootstrap, distro-info, lsb-release, @
-Restrictions: needs-root
+Restrictions: needs-root skippable
 
 Tests: unshare-qemuwrapper
 Architecture: amd64

@@ -61,6 +61,13 @@ arch=$(dpkg --print-architecture 2>/dev/null)
 [ -z "$AUTOPKGTEST_TMP" ] && die "AUTOPKGTEST_TMP not set"
 dir="$AUTOPKGTEST_TMP/schroot-$release"
 
+if ! mknod "$AUTOPKGTEST_TMP"/test-dev-null c 1 3; then
+    echo "Cannot make special nodes; running in unprivileged container?" >&2
+    exit 77
+else
+    rm "$AUTOPKGTEST_TMP"/test-dev-null
+fi
+
 # The expected name of the schroot that sbuild-createchroot will create
 chroot="${release}-${arch}-sbuild"
 
