@@ -1,3 +1,10 @@
+sbuild (0.84.2) unstable; urgency=medium
+
+  [ Stefano Rivera ]
+  * fix autopkgtest LXD mode and sbuild-qemu (closes: #1024619)
+
+ -- Johannes Schauer Marin Rodrigues <josch@debian.org>  Thu, 08 Dec 2022 10:20:58 +0100
+
 sbuild (0.84.1) unstable; urgency=medium
 
   [ Jochen Sprickerhof ]
