@@ -32,8 +32,8 @@ Build Debian packages with \fBsbuild\fR using QEMU images, by using sbuild's
 \fB\-\-chroot\-mode=autopkgtest\fR.
 .PP
 All options other than the ones described below are passed on through to
-\fBsbuild\fR(1), though the options \fB\-\-dist\fR and \fB\-\-arch\fR
-are peeked at when looking for images. The image will be
+\fBsbuild\fR(1), though the options \fB\-\-dist\fR, \fB\-\-arch\fR
+and \fB\-\-build\fR are peeked at when looking for images. The image will be
 started in \fB\-snapshot\fR mode, so the image is never modified. Multiple
 processes can use the same image concurrently.
 .SH OPTIONS
@@ -45,7 +45,7 @@ Show this help message and exit.
 QEMU image file to use for building. If not specified, sbuild-qemu will look
 for an image with the name \fBDIST\-autopkgtest\-ARCH.img\fR, where DIST is
 taken from \fB\-\-dist\fR if present, and ARCH is taken from \fB\-\-arch\fR
-if present. Otherwise, DIST defaults to 'unstable', and
+or \fB\-\-build\fR if present. Otherwise, DIST defaults to 'unstable', and
 ARCH to the host architecture. sbuild-qemu will first look in the current
 directory for such an image, and then in the directory \fB$IMAGEDIR\fR. A
 suitable image can be created with sbuild\-qemu\-create(1).
