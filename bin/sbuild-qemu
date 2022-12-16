@@ -49,34 +49,26 @@ def main():
     # init options
     parser = argparse.ArgumentParser(
         description="Build Debian packages with sbuild(1) using QEMU images",
-        epilog="All other options are passed on through to sbuild(1). "
-               "The image will be started in -snapshot mode, so no changes "
-               "are saved, and multiple processes can use the same image "
-               "concurrently.",
-    )
-    parser.add_argument(
-        '--arch',
-        action='store',
-        default=DEFAULT_ARCH,
-        help="Architecture to use. Default is the host architecture. "
-             "Currently supported architectures are: "
-            f"{', '.join(DEB_ARCH_TO_QEMU.keys())}.",
-    )
-    parser.add_argument(
-        '-d', '--dist',
-        action='store',
-        default='unstable',
-        help=f"Distribution (for the .changes file). "
-             f"Default: 'unstable'.",
+        epilog="All options other than the ones described below are passed on "
+               "through to sbuild(1), though the options --dist, and arch"
+               "are peeked at when looking for images. The image will "
+               "be started in -snapshot mode, so the image is never modified. "
+               "Multiple processes can use the same image concurrently. The "
+               "architectures currently supported by sbuild-qemu are: "
+               f"{', '.join(DEB_ARCH_TO_QEMU.keys())}.",
     )
     parser.add_argument(
         '--image',
         action='store',
-        help="QEMU image file to use for building. If not specified, will "
-             "look for an image with the name DIST-autopkgtest-ARCH.img. Will "
-             "first look in the current directory, and if no such file exists "
-             "there, then the directory $IMAGEDIR is tried. A suitable image "
-             "can be created with qemu-sbuild-create(1).",
+        help="QEMU image file to use for building. If not specified, "
+             "sbuild-qemu will look for an image with the name "
+             "DIST-autopkgtest-ARCH.img, where DIST is taken from --dist "
+             "if present, and ARCH is taken from --arch if "
+             "present. Otherwise, DIST defaults to 'unstable', and ARCH to "
+             "the host architecture. sbuild-qemu will first look in the "
+             "current directory for such an image, and then in the directory "
+             "$IMAGEDIR. A suitable image can be created with "
+             "qemu-sbuild-create(1).",
     )
     parser.add_argument(
         '--ram-size',
