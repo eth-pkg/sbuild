@@ -103,6 +103,7 @@ sbuild \- build debian packages from source
 .RB [ \-\-extra\-repository=\fIspec\fP ]
 .RB [ \-\-extra\-repository\-key=\fIfile.asc\fP ]
 .RB [ \-\-build\-path=\fIstring\fP ]
+.RB [ \-\-dsc\-dir=\fIstring\fP ]
 .RB [ \-\-autopkgtest-virt-server=\fIschroot|lxc|chroot|qemu|ssh\fP ]
 .RB [ \-\-autopkgtest\-virt\-server\-opt=\fIstring\fP ]
 .RB [ \-\-autopkgtest\-virt\-server\-opts=\fIoptions\fP ]
@@ -1099,6 +1100,15 @@ is shared between multiple schroot sessions. You can change this behaviour in
 This command line option sets the \fBBUILD_PATH\fP configuration variable. See
 .BR sbuild.conf (5)
 for more information.
+.TP
+.BR \-\-dsc\-dir=\fIstring\fP
+By default the package is built in a path of the following format
+/build/packagename-XXXXXX/packagename-version/ where packagename-version are
+replaced by the values in debian/changelog. This option allows one to specify a
+custom packagename-version path where the package is built inside the chroot.
+This is useful to specify a static path for different versions for example for ccache.
+This command line option sets the \fBDSC_DIR\fP configuration variable. See
+.BR sbuild.conf (5) for more information.
 .TP
 .BR \-\-autopkgtest-virt-server=\fIschroot|lxc|chroot|qemu|ssh\fP
 The autopkgtest virtualization server. Can be specified with or without the autopkgtest-virt-

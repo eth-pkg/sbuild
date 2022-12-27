@@ -247,7 +247,11 @@ sub set_version {
     $self->set('VersionUpstream', $b_version);
     $self->set('VersionDebian', $b_revision);
     $self->set('DSC File', "${pkg}_${osversion}.dsc");
-    $self->set('DSC Dir', "${pkg}-${b_version}");
+    if (length $self->get_conf('DSC_DIR')) {
+	$self->set('DSC Dir', $self->get_conf('DSC_DIR'));
+    } else {
+	$self->set('DSC Dir', "${pkg}-${b_version}");
+    }
 
     debug("Package = " . $self->get('Package') . "\n");
     debug("Version = " . $self->get('Version') . "\n");

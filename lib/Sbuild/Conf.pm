@@ -763,6 +763,14 @@ sub setup ($) {
 	    HELP => 'By default the package is built in a path of the following format /build/packagename-XXXXXX/packagename-version/ where XXXXXX is a random ascii string. This option allows one to specify a custom path where the package is built inside the chroot. The sbuild user in the chroot must have permissions to create the path. Common writable locations are subdirectories of /tmp or /build. Using /tmp might be dangerous, because (depending on the chroot backend) the /tmp inside the chroot might be a world writable location that can be accessed by processes outside the chroot. The directory /build can only be accessed by the sbuild user and group and should be a safe location. The buildpath must be an empty directory because the last component of the path will be removed after the build is finished. Notice that depending on the chroot backend (see CHROOT_MODE), some locations inside the chroot might be bind mounts that are shared with other sbuild instances. You must avoid using these shared locations as the build path or otherwise concurrent runs of sbuild will likely fail. With the default schroot chroot backend, the directory /build is shared between multiple schroot sessions. You can change this behaviour in /etc/schroot/sbuild/fstab. The behaviour of other chroot backends will vary.',
 	    CLI_OPTIONS => ['--build-path']
 	},
+	'DSC_DIR'				=> {
+	    TYPE => 'STRING',
+	    VARNAME => 'dsc_dir',
+	    GROUP => 'Build options',
+	    DEFAULT => undef,
+	    HELP => 'By default the package is built in a path of the following format /build/packagename-XXXXXX/packagename-version/ where packagename-version are replaced by the values in debian/changelog. This option allows one to specify a custom packagename-version path where the package is built inside the chroot. This is useful to specify a static path for different versions for example for ccache.',
+	    CLI_OPTIONS => ['--dsc-dir']
+	},
 	'SBUILD_MODE'				=> {
 	    TYPE => 'STRING',
 	    VARNAME => 'sbuild_mode',
