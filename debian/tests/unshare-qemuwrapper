@@ -28,8 +28,11 @@ EXTRA_DEPS=gnupg,sbuild,mmdebstrap,build-essential,uidmap,fakeroot,diffoscope,de
 PORT=$(python3 -c 'from socket import socket; s=socket(); s.bind(("", 0)); print(s.getsockname()[1]);' || echo 10022)
 SCRIPT=./debian/tests/unshare
 
-. /etc/os-release
-release=${VERSION_CODENAME:-unstable}
+release=$(./debian/tests/get_default_release.py)
+if [ -z "$release" ]; then
+	echo "cannot get default release" >&2
+	exit 1
+fi
 
 if [ "$ID" = ubuntu ]; then
 	COMPONENTS=main,universe

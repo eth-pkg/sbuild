@@ -13,8 +13,11 @@ if [ -z ${AUTOPKGTEST_TMP+x} ]; then
 	exit 1
 fi
 
-. /etc/os-release
-release=${VERSION_CODENAME:-unstable}
+release=$(./debian/tests/get_default_release.py)
+if [ -z "$release" ]; then
+	echo "cannot get default release" >&2
+	exit 1
+fi
 nativearch=$(dpkg --print-architecture)
 
 mkdir -p "${AUTOPKGTEST_TMP}/gpghome"
