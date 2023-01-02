@@ -23,7 +23,7 @@ export GNUPGHOME="${AUTOPKGTEST_TMP}/gpghome"
 
 verify_orig() {
 	echo "verifying test-pkg_1.0.tar.xz" >&2
-cat << END | base64 -d > "${AUTOPKGTEST_TMP}/expected"
+cat << END | base64 -d | xz -cd > "${AUTOPKGTEST_TMP}/expected"
 /Td6WFoAAATm1rRGAgAhARYAAAB0L+Wj4Cf/BBZdADoZSs4dfiUjFYSOxzYxnd+/m6AlVEVOGf2j
 nT6NK0F9XZ7LLydbY3I//WjMOM2RFpGUqZ8R8Q8lLmydB5SLN5ZQSPW3OJjHlzxVQmv2v3KUyPxo
 V5uvr2rp1j0gfmjB4O+m6SMxUWGmCOp3mrA13iUy99dt9OK9tRQagXItob106li/2LWmOsXR3/5M
@@ -45,8 +45,9 @@ hGY9jQZg/RJY+A49vQTPzt87LF8IOdmecD4cNYHyLIOZ8rTlNVWMZ+M7JSu8UhWWGG9jrQ0IVIi9
 HHF+p/1uF4uIAuk/Y8D2ZKB+C3sTI/A47u58/zG6hpHuZbkUJ2qVEIqSBVZhSEuJoaAAAAAAwt/l
 WjS+6mMAAbIIgFAAAOm1wiWxxGf7AgAAAAAEWVo=
 END
-	diffoscope "${AUTOPKGTEST_TMP}/expected" "${AUTOPKGTEST_TMP}/test-pkg_1.0.tar.xz"
-	rm "${AUTOPKGTEST_TMP}/expected"
+	xz -cd < "${AUTOPKGTEST_TMP}/test-pkg_1.0.tar.xz" > "${AUTOPKGTEST_TMP}/test-pkg_1.0.tar"
+	diffoscope "${AUTOPKGTEST_TMP}/expected" "${AUTOPKGTEST_TMP}/test-pkg_1.0.tar"
+	rm "${AUTOPKGTEST_TMP}/expected" "${AUTOPKGTEST_TMP}/test-pkg_1.0.tar"
 }
 
 verify_deb() {
