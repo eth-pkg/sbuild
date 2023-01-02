@@ -546,16 +546,13 @@ sub read_subuid_subgid() {
 	last if ($n eq $username);
     }
     close $fh;
-    push @result, ["u", 0, $subid, $num_subid];
 
-    if (scalar(@result) < 1) {
-	printf STDERR "/etc/subuid does not contain an entry for $username\n";
+    if ($n ne $username) {
+	printf STDERR "No entry for $username in /etc/subuid";
 	return;
     }
-    if (scalar(@result) > 1) {
-	printf STDERR "/etc/subuid contains multiple entries for $username\n";
-	return;
-    }
+
+    push @result, ["u", 0, $subid, $num_subid];
 
     open $fh, "<", "/etc/subgid" or die "cannot open /etc/subgid for reading: $!";
     while (my $line = <$fh>) {
@@ -563,16 +560,13 @@ sub read_subuid_subgid() {
 	last if ($n eq $username);
     }
     close $fh;
-    push @result, ["g", 0, $subid, $num_subid];
 
-    if (scalar(@result) < 2) {
-	printf STDERR "/etc/subgid does not contain an entry for $username\n";
+    if ($n ne $username) {
+	printf STDERR "No entry for $username in /etc/subgid";
 	return;
     }
-    if (scalar(@result) > 2) {
-	printf STDERR "/etc/subgid contains multiple entries for $username\n";
-	return;
-    }
+
+    push @result, ["g", 0, $subid, $num_subid];
 
     return @result;
 }

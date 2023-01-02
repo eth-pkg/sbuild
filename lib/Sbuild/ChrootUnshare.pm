@@ -105,9 +105,16 @@ sub begin_session {
     my @idmap = read_subuid_subgid;
 
     # sanity check
-    if (scalar(@idmap) != 2 || $idmap[0][0] ne 'u' || $idmap[1][0] ne 'g') {
-	printf STDERR "invalid idmap\n";
-	return 0;
+    if (   scalar(@idmap) != 2
+        || $idmap[0][0] ne 'u'
+        || $idmap[1][0] ne 'g'
+        || length $idmap[0][1] == 0
+        || length $idmap[0][2] == 0
+        || length $idmap[1][1] == 0
+        || length $idmap[1][2] == 0)
+    {
+        printf STDERR "invalid idmap\n";
+        return 0;
     }
 
     $self->set('Uid Gid Map', \@idmap);
