@@ -247,7 +247,7 @@ cat << END > "${AUTOPKGTEST_TMP}/test-pkg-1.0/debian/source/format"
 3.0 (native)
 END
 
-mmdebstrap --mode=unshare --variant=apt "$release" "${AUTOPKGTEST_TMP}/chroot.tar"
+mmdebstrap --mode=unshare --variant=apt --skip=cleanup/apt/lists "$release" "${AUTOPKGTEST_TMP}/chroot.tar"
 
 env --chdir="${AUTOPKGTEST_TMP}/test-pkg-1.0/" dpkg-buildpackage --build=full
 env --chdir="${AUTOPKGTEST_TMP}/test-pkg-1.0/" dpkg-buildpackage --target=clean
@@ -260,7 +260,7 @@ run_sbuild() {
 		--chroot="${AUTOPKGTEST_TMP}/chroot.tar" --chroot-mode=unshare \
 		--keyid="sbuild fake uploader <fake-uploader@debian.org>" \
 		--no-run-lintian --no-run-autopkgtest \
-		--no-apt-upgrade --no-apt-distupgrade \
+		--no-apt-upgrade --no-apt-distupgrade --no-apt-update \
 		"$@"
 }
 
