@@ -1,3 +1,17 @@
+sbuild (0.84.3) UNRELEASED; urgency=medium
+
+  * lib/Sbuild/Conf.pm: replace deprecated
+    Dpkg::Build::Info::get_build_env_allowed by
+    Dpkg::BuildInfo::get_build_env_allowed (Closes: #1027719)
+  * lib/Sbuild/ResolverBase.pm: copying debs can take a long time -- output log
+    messages
+  * the sbuild dummy repository should not be considered to create a deb-src
+    entry automatically
+  * lib/Sbuild/ChrootUnshare.pm: guard against empty /etc/subuid and
+    /etc/subgid
+
+ -- Johannes Schauer Marin Rodrigues <josch@debian.org>  Mon, 02 Jan 2023 14:03:44 +0100
+
 sbuild (0.84.2) unstable; urgency=medium
 
   [ Stefano Rivera ]
