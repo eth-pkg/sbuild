@@ -253,40 +253,30 @@ env --chdir="${AUTOPKGTEST_TMP}/test-pkg-1.0/" dpkg-buildpackage --build=full
 env --chdir="${AUTOPKGTEST_TMP}/test-pkg-1.0/" dpkg-buildpackage --target=clean
 verify orig deb dsc bin_changes
 
-# FIXME use installed sbuild
+run_sbuild() {
+	workingdir=$1; shift
+	env --chdir="${AUTOPKGTEST_TMP}/$workingdir/" sbuild \
+		--no-source-only-changes --nolog \
+		--chroot="${AUTOPKGTEST_TMP}/chroot.tar" --chroot-mode=unshare \
+		--keyid="sbuild fake uploader <fake-uploader@debian.org>" \
+		--no-run-lintian --no-run-autopkgtest \
+		"$@"
+}
 
 # Test running sbuild from the unpacked source
-env --chdir="${AUTOPKGTEST_TMP}/test-pkg-1.0/" sbuild \
-	--no-source-only-changes --nolog \
-	--chroot="${AUTOPKGTEST_TMP}/chroot.tar" --chroot-mode=unshare \
-	--keyid="sbuild fake uploader <fake-uploader@debian.org>" \
-	--source \
-	--no-run-lintian --no-run-autopkgtest
+run_sbuild test-pkg-1.0 --source
 verify orig deb dsc bin_changes
 
-env --chdir="${AUTOPKGTEST_TMP}/test-pkg-1.0/" sbuild \
-	--no-source-only-changes --nolog \
-	--chroot="${AUTOPKGTEST_TMP}/chroot.tar" --chroot-mode=unshare \
-	--keyid="sbuild fake uploader <fake-uploader@debian.org>" \
-	--no-run-lintian --no-run-autopkgtest
+run_sbuild test-pkg-1.0
 verify orig deb bin_changes
 
 # Test running sbuild on the dsc
 env --chdir="${AUTOPKGTEST_TMP}/test-pkg-1.0/" dpkg-source --build .
-env --chdir="${AUTOPKGTEST_TMP}" sbuild \
-	--no-source-only-changes --nolog \
-	--chroot="${AUTOPKGTEST_TMP}/chroot.tar" --chroot-mode=unshare \
-	--keyid="sbuild fake uploader <fake-uploader@debian.org>" \
-	--source \
-	--no-run-lintian --no-run-autopkgtest -d "$release" test-pkg_1.0.dsc
+run_sbuild '' --source -d "$release" test-pkg_1.0.dsc
 verify orig deb dsc bin_changes
 
 env --chdir="${AUTOPKGTEST_TMP}/test-pkg-1.0/" dpkg-source --build .
-env --chdir="${AUTOPKGTEST_TMP}" sbuild \
-	--no-source-only-changes --nolog \
-	--chroot="${AUTOPKGTEST_TMP}/chroot.tar" --chroot-mode=unshare \
-	--keyid="sbuild fake uploader <fake-uploader@debian.org>" \
-	--no-run-lintian --no-run-autopkgtest -d "$release" test-pkg_1.0.dsc
+run_sbuild ''  -d "$release" test-pkg_1.0.dsc
 verify orig deb bin_changes
 
 
