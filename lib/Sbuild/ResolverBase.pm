@@ -1493,12 +1493,12 @@ setlocale(LC_TIME, $old_locale);
 open(my $releasefh, '>', 'Release') or die "cannot open Release for writing: $!";
 
 print $releasefh <<"END";
-Codename: invalid
+Codename: invalid-sbuild-codename
 Date: $datestring
 Description: Sbuild Build Dependency Temporary Archive
 Label: sbuild-build-depends-archive
 Origin: sbuild-build-depends-archive
-Suite: invalid
+Suite: invalid-sbuild-suite
 MD5Sum:
  $packages_md5 $packages_size Packages
  $sources_md5 $sources_size Sources

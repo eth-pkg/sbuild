@@ -1171,9 +1171,30 @@ sub fetch_source_files {
             {
                 $found_sources_entry = 1;
             }
-            if (    $createdby eq "Packages"
-                and $identifier eq "Packages"
-                and $targetof eq "deb" )
+            if (    $createdby eq 'Packages'
+                and $identifier eq 'Packages'
+                and $targetof eq 'deb'
+                and length $cdata->{"Repo-URI"} > 0
+                and length $cdata->{"Codename"} > 0
+                and length $cdata->{"Label"} > 0
+                and length $cdata->{"Origin"} > 0
+                and length $cdata->{"Suite"} > 0
+                and $cdata->{"Repo-URI"} =~ /^file:\//
+                and $cdata->{"Codename"} eq 'invalid-sbuild-codename'
+                and $cdata->{'Label'} eq 'sbuild-build-depends-archive'
+                and $cdata->{'Origin'} eq 'sbuild-build-depends-archive'
+                and $cdata->{'Suite'} eq 'invalid-sbuild-suite' )
+            {
+                # do not count the sbuild dummy repository created by any
+                # --extra-package options
+                next;
+            }
+            if (    $createdby eq 'Packages'
+                and $identifier eq 'Packages'
+                and $targetof eq 'deb'
+                and length $cdata->{"Repo-URI"} > 0
+                and length $cdata->{"Codename"} > 0
+                and length $cdata->{"Component"} > 0 )
             {
                 $num_packages_entries += 1;
                 $entry_uri       = $cdata->{"Repo-URI"};
@@ -1189,18 +1210,6 @@ sub fetch_source_files {
             elsif ( $num_packages_entries > 1 ) {
                 $self->log( "Cannot generate deb-src entry "
                       . "with more than one deb entry\n" );
-            }
-            elsif ( !defined $entry_uri ) {
-                $self->log( "Cannot generate deb-src entry "
-                      . "with undefined Repo-URI\n" );
-            }
-            elsif ( !defined $entry_codename ) {
-                $self->log( "Cannot generate deb-src entry "
-                      . "with undefined Codename\n" );
-            }
-            elsif ( !defined $entry_component ) {
-                $self->log( "Cannot generate deb-src entry "
-                      . "with undefined Component\n" );
             }
             else {
                 my $entry =
