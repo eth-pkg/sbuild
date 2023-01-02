@@ -24,7 +24,7 @@
 
 set -exu
 
-EXTRA_DEPS=gnupg,sbuild,mmdebstrap,build-essential,uidmap,fakeroot,diffoscope,devscripts
+EXTRA_DEPS=gnupg,sbuild,mmdebstrap,build-essential,uidmap,fakeroot,diffoscope,devscripts,python3-apt
 PORT=$(python3 -c 'from socket import socket; s=socket(); s.bind(("", 0)); print(s.getsockname()[1]);' || echo 10022)
 SCRIPT=./debian/tests/unshare
 
