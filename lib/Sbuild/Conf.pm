@@ -801,7 +801,7 @@ $individual_stalled_pkg_timeout->{\'kicad-packages3d\'} = 90;'
 	    TYPE => 'ARRAY:STRING',
 	    VARNAME => 'environment_filter',
 	    GROUP => 'Core options',
-	    DEFAULT => [ sort (map "^$_\$", Dpkg::Build::Info::get_build_env_allowed()) ],
+	    DEFAULT => [ sort (map "^$_\$", Dpkg::BuildInfo::get_build_env_allowed()) ],
 #	    GET => sub {
 #		my $conf = shift;
 #		my $entry = shift;
@@ -809,12 +809,12 @@ $individual_stalled_pkg_timeout->{\'kicad-packages3d\'} = 90;'
 #		my $retval = $conf->_get($entry->{'NAME'});
 #
 #		if (!defined($retval)) {
-#		    $retval = [ map "^$_\$", Dpkg::Build::Info::get_build_env_allowed() ];
+#		    $retval = [ map "^$_\$", Dpkg::BuildInfo::get_build_env_allowed() ];
 #		}
 #
 #		return $retval;
 #	    },
-	    HELP => 'Only environment variables matching one of the regular expressions in this arrayref will be passed to dpkg-buildpackage and other programs run by sbuild. The default value for this configuration setting is the list of variable names as returned by Dpkg::Build::Info::get_build_env_allowed() which is also the list of variable names that is whitelisted to be recorded in .buildinfo files. Caution: the default value listed below was retrieved from the dpkg Perl library version available when this man page was generated. It might be different if your dpkg Perl library version differs.',
+	    HELP => 'Only environment variables matching one of the regular expressions in this arrayref will be passed to dpkg-buildpackage and other programs run by sbuild. The default value for this configuration setting is the list of variable names as returned by Dpkg::BuildInfo::get_build_env_allowed() which is also the list of variable names that is whitelisted to be recorded in .buildinfo files. Caution: the default value listed below was retrieved from the dpkg Perl library version available when this man page was generated. It might be different if your dpkg Perl library version differs.',
 	    EXAMPLE =>
 '# Setting the old environment filter
 $environment_filter = [\'^PATH$\',
@@ -827,10 +827,10 @@ $environment_filter = [\'^PATH$\',
 			\'^SHELL$\'];
 # Appending FOOBAR to the default
 use Dpkg::Build::Info;
-$environment_filter = [Dpkg::Build::Info::get_build_env_allowed(), \'FOOBAR\'];
+$environment_filter = [Dpkg::BuildInfo::get_build_env_allowed(), \'FOOBAR\'];
 # Removing FOOBAR from the default
 use Dpkg::Build::Info;
-$environment_filter = [map /^FOOBAR$/ ? () : $_, Dpkg::Build::Info::get_build_env_allowed()];
+$environment_filter = [map /^FOOBAR$/ ? () : $_, Dpkg::BuildInfo::get_build_env_allowed()];
 '
 	},
 	'BUILD_ENVIRONMENT'			=> {
