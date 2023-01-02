@@ -161,6 +161,7 @@ mmdebstrap --variant=apt --mode=$MODE --verbose \
 	--setup-hook="$TMPDIR/setup.sh" \
 	--include=openssh-server,systemd-sysv,e2fsprogs,ifupdown,initramfs-tools,netbase,isc-dhcp-client,udev,policykit-1,$KERNEL_PACKAGE,$EXTRA_DEPS \
 	--customize-hook="$TMPDIR/customize.sh" --components="$COMPONENTS" \
+	--skip=cleanup/apt/lists \
 	"${release}" "$TMPDIR/${ID}-${release}-host.tar" $aptsources
 fi
 
