@@ -260,6 +260,7 @@ run_sbuild() {
 		--chroot="${AUTOPKGTEST_TMP}/chroot.tar" --chroot-mode=unshare \
 		--keyid="sbuild fake uploader <fake-uploader@debian.org>" \
 		--no-run-lintian --no-run-autopkgtest \
+		--no-apt-upgrade --no-apt-distupgrade \
 		"$@"
 }
 
