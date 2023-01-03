@@ -461,7 +461,7 @@ sub run_chroot_session {
 		failstage => "create-session");
 	}
 
-	if (defined($self->get_conf('BUILD_PATH')) && $self->get_conf('BUILD_PATH')) {
+	if (length $self->get_conf('BUILD_PATH')) {
 	    my $build_path = $self->get_conf('BUILD_PATH');
 	    $self->set('Build Dir', $build_path);
 	    if (!($session->test_directory($build_path))) {
@@ -2448,9 +2448,9 @@ sub build {
     }
 
     my $buildcmd = [];
-    push (@{$buildcmd}, $self->get_conf('BUILD_ENV_CMND'))
-	if (defined($self->get_conf('BUILD_ENV_CMND')) &&
-	    $self->get_conf('BUILD_ENV_CMND'));
+    if (length $self->get_conf('BUILD_ENV_CMND') ) {
+        push( @{$buildcmd}, $self->get_conf('BUILD_ENV_CMND') );
+    }
     push (@{$buildcmd}, 'dpkg-buildpackage');
 
     my $dpkgversion = version->new(0);
@@ -2483,27 +2483,24 @@ sub build {
 	push (@{$buildcmd}, '-a' . $host_arch);
     }
 
-    if (defined($self->get_conf('BUILD_PROFILES')) &&
-	$self->get_conf('BUILD_PROFILES')) {
+    if (length $self->get_conf('BUILD_PROFILES')) {
 	my $profiles = $self->get_conf('BUILD_PROFILES');
 	$profiles =~ tr/ /,/;
 	push (@{$buildcmd}, '-P' . $profiles);
     }
 
-    if (defined($self->get_conf('PGP_OPTIONS')) &&
-	$self->get_conf('PGP_OPTIONS')) {
+    if (defined $self->get_conf('PGP_OPTIONS')) {
 	if (ref($self->get_conf('PGP_OPTIONS')) eq 'ARRAY') {
 	    push (@{$buildcmd}, @{$self->get_conf('PGP_OPTIONS')});
-        } else {
+        } elsif (length $self->get_conf('PGP_OPTIONS')) {
 	    push (@{$buildcmd}, $self->get_conf('PGP_OPTIONS'));
 	}
     }
 
-    if (defined($self->get_conf('SIGNING_OPTIONS')) &&
-	$self->get_conf('SIGNING_OPTIONS')) {
+    if (defined $self->get_conf('SIGNING_OPTIONS')) {
 	if (ref($self->get_conf('SIGNING_OPTIONS')) eq 'ARRAY') {
 	    push (@{$buildcmd}, @{$self->get_conf('SIGNING_OPTIONS')});
-        } else {
+        } elsif (length $self->get_conf('SIGNING_OPTIONS')) {
 	    push (@{$buildcmd}, $self->get_conf('SIGNING_OPTIONS'));
 	}
     }
@@ -2528,8 +2525,7 @@ sub build {
 	}
     }
 
-    if (defined($self->get_conf('DPKG_BUILDPACKAGE_USER_OPTIONS')) &&
-	$self->get_conf('DPKG_BUILDPACKAGE_USER_OPTIONS')) {
+    if (defined $self->get_conf('DPKG_BUILDPACKAGE_USER_OPTIONS')) {
 	push (@{$buildcmd}, @{$self->get_conf('DPKG_BUILDPACKAGE_USER_OPTIONS')});
     }
 
@@ -2830,11 +2826,10 @@ sub build {
 	    my $so_changes = $self->get('Package_SVersion') . "_source.changes";
 	    $self->log_subsubsection("$so_changes:");
 	    my $genchangescmd = ['dpkg-genchanges', '--build=source'];
-	    if (defined($self->get_conf('SIGNING_OPTIONS')) &&
-		$self->get_conf('SIGNING_OPTIONS')) {
+	    if (defined $self->get_conf('SIGNING_OPTIONS')) {
 		if (ref($self->get_conf('SIGNING_OPTIONS')) eq 'ARRAY') {
 		    push (@{$genchangescmd}, @{$self->get_conf('SIGNING_OPTIONS')});
-		} else {
+		} elsif (length $self->get_conf('SIGNING_OPTIONS')) {
 		    push (@{$genchangescmd}, $self->get_conf('SIGNING_OPTIONS'));
 		}
 	    }
@@ -3470,7 +3465,7 @@ sub close_build_log {
 	       $hours, $minutes, $seconds, $space));
 
     if ($self->get_status() eq "successful") {
-	if (defined($self->get_conf('KEY_ID')) && $self->get_conf('KEY_ID')) {
+	if (length $self->get_conf('KEY_ID')) {
 	    my $key_id = $self->get_conf('KEY_ID');
 	    my $build_dir = $self->get_conf('BUILD_DIR');
 	    my $changes;
@@ -3575,7 +3570,7 @@ sub send_mime_build_log {
 
     # Add the GPG key ID to the mail if present so that it's clear if the log
     # still needs signing or not.
-    if (defined($self->get_conf('KEY_ID')) && $self->get_conf('KEY_ID')) {
+    if (length $self->get_conf('KEY_ID')) {
 	$msg->add('Key-ID', $self->get_conf('KEY_ID'));
     }
 
