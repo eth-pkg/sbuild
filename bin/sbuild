@@ -30,6 +30,7 @@ use warnings;
 
 use Cwd qw(:DEFAULT abs_path);
 use File::Basename qw(basename dirname);
+use File::Spec;
 use POSIX;
 use Data::Dumper;
 use Dpkg::Control;
@@ -87,7 +88,16 @@ sub main () {
 	my $source_dir = 0;
 
 	if (-e $jobname) {
-	    $jobname = abs_path($jobname);
+	    # $jobname should be an absolute path, so that the %SBUILD_DSC
+	    # escape also is absolute. This is important for `dgit sbuild`.
+	    # See Debian bug #801436 for details. On the other hand, the
+	    # last component of the path must not have any possible symlinks
+	    # resolved so that a symlink ending in .dsc is not turned
+	    # into a path that does not end in .dsc. See Debian bug #1012856
+	    # for details. Thus, we call File::Spec->rel2abs instead of
+	    # Cwd::abs_path because the latter behaves like `realpath` and
+	    # resolves symlinks while the former does not.
+	    $jobname = File::Spec->rel2abs($jobname);
 	}
 
 	if (-d $jobname) {
