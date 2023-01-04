@@ -80,6 +80,7 @@ Depends: apt-cacher-ng | apt-cacher,
          cron | cron-daemon,
          sbuild (>= 0.77.0-5),
          schroot,
+         debootstrap,
          ${misc:Depends},
          ${perl:Depends},
          ${shlibs:Depends}
