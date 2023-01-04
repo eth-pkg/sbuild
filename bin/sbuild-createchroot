@@ -95,7 +95,7 @@ sub setup {
 	    DEFAULT => 'schroot'
 	},
 	'MERGED_USR'				=> {
-	    DEFAULT => 0
+	    DEFAULT => 'auto'
 	},
     );
 
