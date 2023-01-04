@@ -1,4 +1,4 @@
-sbuild (0.84.3) UNRELEASED; urgency=medium
+sbuild (0.85.0) UNRELEASED; urgency=medium
 
   [ Johannes Schauer Marin Rodrigues ]
   * lib/Sbuild/Conf.pm: replace deprecated
@@ -33,7 +33,13 @@ sbuild (0.84.3) UNRELEASED; urgency=medium
   [ Jochen Sprickerhof ]
   * Make the DSC Dir configurable
 
- -- Johannes Schauer Marin Rodrigues <josch@debian.org>  Wed, 04 Jan 2023 10:31:04 +0100
+  [ Dave Jones ]
+  * Skip build-procenv when mknod would fail
+
+  [ Benjamin Drung ]
+  * Fix building symlinks not ending on .dsc (Closes: #1012856)
+
+ -- Johannes Schauer Marin Rodrigues <josch@debian.org>  Wed, 04 Jan 2023 13:02:12 +0100
 
 sbuild (0.84.2) unstable; urgency=medium
 
