@@ -34,7 +34,7 @@ sbuild (0.85.0) UNRELEASED; urgency=medium
   * Make the DSC Dir configurable
 
   [ Dave Jones ]
-  * Skip build-procenv when mknod would fail
+  * Skip build-procenv when mknod would fail (Closes: #928364)
 
   [ Benjamin Drung ]
   * Fix building symlinks not ending on .dsc (Closes: #1012856)
