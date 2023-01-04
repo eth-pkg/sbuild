@@ -1,16 +1,39 @@
 sbuild (0.84.3) UNRELEASED; urgency=medium
 
+  [ Johannes Schauer Marin Rodrigues ]
   * lib/Sbuild/Conf.pm: replace deprecated
     Dpkg::Build::Info::get_build_env_allowed by
     Dpkg::BuildInfo::get_build_env_allowed (Closes: #1027719)
+  * debian/control: bump libdpkg-perl dep to 1.21.14 because of
+    Dpkg::BuildInfo::get_build_env_allowed
   * lib/Sbuild/ResolverBase.pm: copying debs can take a long time -- output log
     messages
   * the sbuild dummy repository should not be considered to create a deb-src
     entry automatically
   * lib/Sbuild/ChrootUnshare.pm: guard against empty /etc/subuid and
     /etc/subgid
+  * debian/tests/unshare: uncompress source package before comparing to ignore
+    differences in the compression (dpkg recently started using threaded xz
+    compression for source packages)
+  * add get_default_release.py to figure out the archive used by the currently
+    running system
+  * debian/tests/unshare: put common sbuild invocation into a function
+  * debian/tests/unshare: do not run apt upgrade nor apt update
+  * debian/tests/control: add dependency on python3-apt
+  * debian/tests/unshare-qemuwrapper: do not cleanup apt list files or
+    otherwise we have to call apt update again later
+  * lib/Sbuild/Build.pm: reduce number of self->get_conf() calls
+  * debian/control: add debootstrap as dependency of
+    sbuild-debian-developer-setup
+  * bin/sbuild-createchroot: set MERGED_USR to 'auto' letting debootstrap
+    decide
+  * bin/sbuild-debian-developer-setup: inform the user where the chroot is and
+    that the current user has already been added to the sbuild group
 
- -- Johannes Schauer Marin Rodrigues <josch@debian.org>  Mon, 02 Jan 2023 14:03:44 +0100
+  [ Jochen Sprickerhof ]
+  * Make the DSC Dir configurable
+
+ -- Johannes Schauer Marin Rodrigues <josch@debian.org>  Wed, 04 Jan 2023 10:31:04 +0100
 
 sbuild (0.84.2) unstable; urgency=medium
 
