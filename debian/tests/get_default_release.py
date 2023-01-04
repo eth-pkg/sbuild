@@ -1,6 +1,14 @@
 #!/usr/bin/env python3
 
-import apt_pkg, sys
+import platform
+import sys
+
+import apt_pkg
+
+os_release = platform.freedesktop_os_release()
+if os_release["ID"] != "debian" and os_release.get("VERSION_CODENAME"):
+    print(os_release["VERSION_CODENAME"])
+    sys.exit(0)
 
 apt_pkg.init()
 c = apt_pkg.Cache(None)
