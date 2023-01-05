@@ -131,7 +131,7 @@ mkdir -p "\$rootfs/root/.ssh"
 cp "$TMPDIR/id_rsa.pub" "\$rootfs/root/.ssh/authorized_keys"
 chroot "\$rootfs" chown 0:0 /root/.ssh/authorized_keys
 
-chroot "\$rootfs" adduser --gecos user --disabled-password user
+chroot "\$rootfs" useradd --create-home user
 SCRIPT
 chmod +x "$TMPDIR/customize.sh"
 
