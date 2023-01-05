@@ -68,6 +68,14 @@ else
     rm "$AUTOPKGTEST_TMP"/test-dev-null
 fi
 
+# on Debian Salsa CI, $AUTOPKGTEST_NORMAL_USER is empty
+if [ -z "$AUTOPKGTEST_NORMAL_USER" ]; then
+	AUTOPKGTEST_NORMAL_USER=debci
+	useradd --create-home "$AUTOPKGTEST_NORMAL_USER"
+fi
+passwd --delete "$AUTOPKGTEST_NORMAL_USER"
+usermod --append --groups sudo,sbuild "$AUTOPKGTEST_NORMAL_USER"
+
 # The expected name of the schroot that sbuild-createchroot will create
 chroot="${release}-${arch}-sbuild"
 
@@ -106,7 +114,7 @@ fi
 echo "INFO: Creating sbuild chroot '$chroot' for release '$release' in directory '$dir' from url '$url'"
 [ -n "$components" ] && components="--components=$components"
 # avoid "debconf: delaying package configuration, since apt-utils is not installed"
-sbuild-createchroot $components "$release" "$dir" "$url"
+runuser -u "$AUTOPKGTEST_NORMAL_USER" -- sudo sbuild-createchroot $components "$release" "$dir" "$url"
 if [ -n "$http_proxy" ]; then
     echo "Acquire::http { Proxy \"$http_proxy\"; };" > "$dir/etc/apt/apt.conf.d/01proxy"
 fi
@@ -118,7 +126,7 @@ echo "INFO: Displaying information about chroot '$chroot'"
 schroot --info "${chroot}"
 
 echo "INFO: Building package '$pkg' for release '$release'"
-sbuild --verbose -A -d "$release" "$pkg" 2>&1
+runuser -u "$AUTOPKGTEST_NORMAL_USER" -- sbuild --verbose -A -d "$release" "$pkg" 2>&1
 
 deb=$(ls ${pkg}_*"_${arch}.deb")
 
