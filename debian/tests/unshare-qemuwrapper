@@ -34,15 +34,12 @@ if [ -z "$release" ]; then
 	exit 1
 fi
 
-. /etc/os-release
+# for $ID
+eval "$(grep "^ID=" /etc/os-release)"
 if [ "$ID" = ubuntu ]; then
 	COMPONENTS=main,universe
-	KERNEL_PACKAGE=linux-image-kvm
-	KERNEL_PATH=/boot
 else
 	COMPONENTS=main
-	KERNEL_PACKAGE=linux-image-cloud-amd64
-	KERNEL_PATH=
 fi
 
 [ -e debian/tests/control ]
@@ -52,178 +49,54 @@ if [ -z ${AUTOPKGTEST_TMP+x} ]; then
 	# if AUTOPKGTEST_TMP is not set, then this script is probably not
 	# executed under autopkgtest
 	TMPDIR=$(mktemp --directory --tmpdir sbuild.XXXXXXXXXX)
-	aptsources=
-	MODE=auto
 else
 	# since AUTOPKGTEST_TMP is set, we assume that this script is executed
 	# under autopkgtest --> switch to the temporary directory
 	TMPDIR="$AUTOPKGTEST_TMP"
 	mkdir -p "$TMPDIR"
-	# we need to install the chroot using the same apt sources as used by
-	# the autopkgtest chroot so that the packages to be tested are
-	# available
-	aptsources=
-	if [ -e /etc/apt/sources.list ]; then
-		sed -i 's/ file:\/\// copy:\/\//' /etc/apt/sources.list
-		cat /etc/apt/sources.list
-		aptsources="$aptsources /etc/apt/sources.list"
-	fi
-	for f in /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/*.sources; do
-		[ -e "$f" ] || continue
-		sed -i 's/ file:\/\// copy:\/\//' "$f"
-		cat "$f"
-		aptsources="$aptsources $f"
-	done
-	MODE=root
 fi
 
 # make TMPDIR world-readable or otherwise it cannot be accessed in unshare mode
 chmod a+rx "$TMPDIR"
 cd "$TMPDIR"
 
-# generate a new ssh key for us, so that we can authenticate ourselves to the
-# setup system, as well as the cryptsystem (both dropbear and openssh) via
-# public key instead of using passwords
+# generate a new ssh key for us, so that we can authenticate ourselves
 if [ ! -e "$TMPDIR/id_rsa" ]; then
-ssh-keygen -q -t rsa -f "$TMPDIR/id_rsa" -N ""
+	ssh-keygen -q -t rsa -f "$TMPDIR/id_rsa" -N ""
 fi
 
-cat << SCRIPT > "$TMPDIR/customize.sh"
-#!/bin/sh
-set -exu
-
-rootfs="\$1"
-
-# setup various files in /etc
-echo host > "\$rootfs/etc/hostname"
-echo "127.0.0.1 localhost host" > "\$rootfs/etc/hosts"
-echo "/dev/vda1 / auto errors=remount-ro 0 1" > "\$rootfs/etc/fstab"
-cat /etc/resolv.conf > "\$rootfs/etc/resolv.conf"
-echo 'net.ipv4.ip_forward=1' > "\$rootfs/etc/sysctl.conf"
-
-# give a trivial password to the root user for easy debugging in case something fails
-echo root:abcdef | chroot "\$rootfs" /usr/sbin/chpasswd
-
-# extlinux config to boot from /dev/vda1 with predictable network interface
-# naming and a serial console for logging
-cat << END > "\$rootfs/extlinux.conf"
-default linux
-timeout 0
-
-label linux
-kernel $KERNEL_PATH/vmlinuz
-append initrd=$KERNEL_PATH/initrd.img root=/dev/vda1 net.ifnames=0 console=ttyS0
-END
-
-# network interface config
-# we can use eth0 because we boot with net.ifnames=0 for predictable interface
-# names
-cat << END > "\$rootfs/etc/network/interfaces"
-auto lo
-iface lo inet loopback
-
-auto eth0
-iface eth0 inet dhcp
-END
-
-# copy in the public key
-mkdir -p "\$rootfs/root/.ssh"
-cp "$TMPDIR/id_rsa.pub" "\$rootfs/root/.ssh/authorized_keys"
-chroot "\$rootfs" chown 0:0 /root/.ssh/authorized_keys
-
-chroot "\$rootfs" useradd --create-home user
-SCRIPT
-chmod +x "$TMPDIR/customize.sh"
-
-# mmdebstrap will not have access to any file:// apt repositories because the
-# path will be outside the chroot. To fix this, copy their contents into the
-# chroot. We could also bind-mount the repos but then their contents would only
-# be available during installation and not anymore at a later point
-cat << 'SCRIPT' > "$TMPDIR/setup.sh"
-#!/bin/sh
-set -exu
-
-rootfs="$1"
-
-apt-get indextargets \
-	| grep-dctrl \( -F Created-By Packages -a --regex -F Repo-URI '^copy://' \) -s Repo-URI -n \
-	| while read uri; do
-		repo=${uri#copy://} # strip prefix
-		mkdir -p "$rootfs/$repo"
-		mmdebstrap --hook-helper "$rootfs" "$MMDEBSTRAP_MODE" setup env 1 sync-in "$repo" "$repo" <&$MMDEBSTRAP_HOOKSOCK >&$MMDEBSTRAP_HOOKSOCK
-done
-SCRIPT
-chmod +x "$TMPDIR/setup.sh"
-
-if [ ! -e "$TMPDIR/${ID}-${release}-host.tar" ]; then
-# shellcheck disable=SC2086
-mmdebstrap --variant=apt --mode=$MODE --verbose \
-	--setup-hook="$TMPDIR/setup.sh" \
-	--include=openssh-server,systemd-sysv,e2fsprogs,ifupdown,initramfs-tools,netbase,isc-dhcp-client,udev,policykit-1,$KERNEL_PACKAGE,$EXTRA_DEPS \
-	--customize-hook="$TMPDIR/customize.sh" --components="$COMPONENTS" \
-	--skip=cleanup/apt/lists \
-	"${release}" "$TMPDIR/${ID}-${release}-host.tar" $aptsources
+if [ ! -e "$TMPDIR/${ID}-${release}-host.ext4" ]; then
+# shellcheck disable=SC2016
+	debvm-create \
+		--output="$TMPDIR/${ID}-${release}-host.ext4" \
+		--release="${release}" \
+		--size=4G \
+		--sshkey="$TMPDIR/id_rsa.pub" \
+		-- \
+		--hook-dir=/usr/share/mmdebstrap/hooks/file-mirror-automount \
+		--include="$EXTRA_DEPS" \
+		--setup-hook='for f in /etc/apt/sources.list /etc/apt/sources.list.d/* /etc/apt/preferences.d/*;
+			do [ -e "$f" ] && { echo; sed "s| file://| copy://|" "$f"; } | tee "$1/$f" >&2; done' \
+		--customize-hook='chroot "$1" useradd --create-home user' \
+		--customize-hook='mkdir "$1"/build' \
+		--customize-hook='sync-in '"$SOURCES/"' /build/' \
+		--components="$COMPONENTS"
 fi
 
-# use guestfish to prepare the host system
-#
-#  - create a single 4G partition and unpack the rootfs tarball into it
-#  - put a syslinux MBR into the first 440 bytes of the drive
-#  - install extlinux and make partition bootable
-#
-# useful stuff to debug any errors:
-#   LIBGUESTFS_BACKEND_SETTINGS=force_tcg
-#   libguestfs-test-tool || true
-#   export LIBGUESTFS_DEBUG=1 LIBGUESTFS_TRACE=1
-guestfish -N "$TMPDIR/host.img"=disk:4G -- \
-	part-disk /dev/sda mbr : \
-	mkfs ext2 /dev/sda1 : \
-	mount /dev/sda1 / : \
-	tar-in "$TMPDIR/${ID}-${release}-host.tar" / : \
-	mkdir /build : \
-	copy-in "$SOURCES/." /build/ : \
-	upload /usr/lib/SYSLINUX/mbr.bin /mbr.bin : \
-	copy-file-to-device /mbr.bin /dev/sda size:440 : \
-	rm /mbr.bin : \
-	extlinux / : \
-	sync : \
-	umount / : \
-	part-set-bootable /dev/sda 1 true : \
-	shutdown
-
-# start the host system
-# prefer using kvm but fall back to tcg if not available
-# avoid entropy starvation by feeding the crypt system with random bits from /dev/urandom
-# the default memory size of 128 MiB is not enough for Debian, so we go with 1G
-# use a virtio network card instead of emulating a real network device
-# we don't need any graphics
-# this also multiplexes the console and the monitor to stdio
-# creates a multiplexed stdio backend connected to the serial port and the qemu
-# monitor
-# redirect tcp connections on port $PORT localhost to the host system port 22
-# redirect all output to a file
-# run in the background
-qemu-system-x86_64 \
-	-M accel=kvm:tcg \
-	-no-user-config \
-	-object rng-random,filename=/dev/urandom,id=rng0 -device virtio-rng-pci,rng=rng0 \
-	-m 1G \
-	-net nic,model=virtio \
-	-nographic \
-	-serial mon:stdio \
-	-net "user,hostfwd=tcp:127.0.0.1:$PORT-:22" \
-	-drive file="$TMPDIR/host.img",format=raw,if=virtio \
-	> "$TMPDIR/qemu.log" </dev/null 2>&1 &
+debvm-run --sshport="$PORT" --image="$TMPDIR/${ID}-${release}-host.ext4" \
+	> "$TMPDIR/debvm.log" </dev/null 2>&1 &
 
 # store the pid
 QEMUPID=$!
 
 onerror() {
 	# attempt poweroff
-	$ssh -o ConnectTimeout="$TIMEOUT" root@localhost systemctl poweroff || true
-	# give a few seconds for poweroff
-	sleep 10
-	kill $QEMUPID || true
+	if [ -n "${ssh+x}" ]; then
+		$ssh -o ConnectTimeout=20 root@localhost systemctl poweroff || :
+		# give a few seconds for poweroff
+		sleep 20
+		kill $QEMUPID || :
+	fi
 	# turn off verbose output
 	set +x
 	echo "script failed -- temporary files are stored in $TMPDIR:"
@@ -232,12 +105,9 @@ onerror() {
 	echo
 	echo "to test yourself, run qemu with:"
 	echo
-	echo "    $ qemu-system-x86_64 -no-user-config -m 1G -net nic,model=virtio -nographic -serial mon:stdio -net user,hostfwd=tcp:127.0.0.1:$PORT-:22 -drive file=\"$TMPDIR/host.img\",format=raw,if=virtio"
+	echo "    $ debvm-run --sshport=$PORT --image=$TMPDIR/${ID}-${release}-host.ext4"
 	echo
-	echo "and log in using:"
-	echo
-	echo "    user: root"
-	echo "    pass: abcdef"
+	echo "and log in as root (without a password)"
 	echo
 	echo "or connect to it via ssh:"
 	echo
@@ -249,57 +119,29 @@ onerror() {
 }
 
 # show the log and kill qemu in case the script exits first
-trap 'cat --show-nonprinting "$TMPDIR/qemu.log"; onerror' EXIT
+trap 'cat --show-nonprinting "$TMPDIR/debvm.log"; onerror' EXIT
+
+# the default of 60 seconds can be too slow for salsaci
+debvm-waitssh -t 120 "$PORT"
+
+trap onerror EXIT
 
 # the default ssh command does not store known hosts and even ignores host keys
 # it identifies itself with the rsa key generated above
 # pseudo terminal allocation is disabled or otherwise, programs executed via
 # ssh might wait for input on stdin of the ssh process
-ssh="ssh -oPasswordAuthentication=no -oUserKnownHostsFile=/dev/null -oStrictHostKeyChecking=no -i "$TMPDIR/id_rsa" -T -p $PORT"
-
-# we use sleepenh to make sure that we wait the right number of seconds
-# independent on how long the command took beforehand
-TIMESTAMP=$(sleepenh 0 || [ $? -eq 1 ])
-# the timeout in seconds
-TIMEOUT=5
-# the maximum number of tries
-NUM_TRIES=20
-i=0
-while true; do
-	rv=0
-	$ssh -o ConnectTimeout=$TIMEOUT root@localhost echo success || rv=1
-	# with an exit code of zero, the ssh connection was successful
-	# and we break out of the loop
-	[ $rv -eq 0 ] && break
-	# if the command before took less than $TIMEOUT seconds, wait the remaining time
-	TIMESTAMP=$(sleepenh "$TIMESTAMP" $TIMEOUT || [ $? -eq 1 ]);
-	# increment the counter and break out of the loop if we tried
-	# too often
-	i=$((i+1))
-	if [ $i -ge $NUM_TRIES ]; then
-		break
-	fi
-done
-
-# if all tries were exhausted, the process failed
-if [ $i -eq $NUM_TRIES ]; then
-	echo "timeout reached: unable to connect to qemu via ssh"
-	exit 1
-fi
-
-trap onerror EXIT
+ssh="ssh -o NoHostAuthenticationForLocalhost=yes -i "$TMPDIR/id_rsa" -T -p $PORT"
 
 $ssh root@localhost env --chdir=/build/ AUTOPKGTEST_TMP=/tmp runuser -u user -- "$SCRIPT"
 
 # shut the system off
 trap - EXIT
-$ssh root@localhost systemctl poweroff || true
+$ssh root@localhost systemctl poweroff || :
 wait $QEMUPID
 
 # cleanup
 [ -e "$TMPDIR/.guestfs-$(id -u)" ] && rm -r "$TMPDIR/.guestfs-$(id -u)"
-for f in "${ID}-${release}-host.tar" id_rsa id_rsa.pub \
-	qemu.log host.img customize.sh setup.sh; do
+for f in "${ID}-${release}-host.ext4" id_rsa id_rsa.pub debvm.log; do
 	rm "$TMPDIR/$f"
 done
 if [ -z ${AUTOPKGTEST_TMP+x} ]; then
