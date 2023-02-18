@@ -87,6 +87,7 @@ def main():
     parser.add_argument(
         '--overlay-dir',
         action='store',
+	default='/tmp',
         help="Directory for the temporary image overlay instead of "
              "autopkgtest's default of /tmp (or $TMPDIR).",
     )
@@ -157,7 +158,7 @@ def main():
             '--purge-deps=never',
             '--chroot-mode=autopkgtest',
             '--autopkgtest-virt-server=qemu',
-            '--autopkgtest-virt-server-opt',    '--overlay-dir=/tmp',
+            '--autopkgtest-virt-server-opt',    f'--overlay-dir={parsed_args.overlay_dir}',
             '--autopkgtest-virt-server-opt',    f'--qemu-architecture={qemu_arch}',
             '--autopkgtest-virt-server-opt',    f'--ram-size={parsed_args.ram_size}',
             '--autopkgtest-virt-server-opt',    f'--cpus={parsed_args.cpus}',
@@ -167,9 +168,6 @@ def main():
         ]
     if parsed_args.autopkgtest_debug:
         args += ['--autopkgtest-virt-server-opt', '--debug']
-    if parsed_args.overlay_dir:
-        d = parsed_args.overlay_dir
-        args += ['--autopkgtest-virt-server-opt', f'--overlay_dir={d}']
 
     # Pass on the remaining (before peeking) arguments to sbuild
     args += unparsed_args
