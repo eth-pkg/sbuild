@@ -1,3 +1,22 @@
+sbuild (0.85.1) unstable; urgency=medium
+
+  [ Johannes Schauer Marin Rodrigues ]
+  * add .mailmap
+
+  [ Christian Kastner ]
+  * Add myself to .mailmap
+  * Bump Standards-Version to 4.6.2 (no changes needed)
+  * sbuild-qemu: Properly handle --arch, --build, --host.
+  * sbuild-qemu: Fix broken --overlay-dir
+  * sbuild-qemu-update: Increase default timeout to 600s.
+  * sbuild-qemu-update: Add --timeout option
+  * sbuild-qemu-create: Add support for /root/.ssh/authorized_keys
+  * sbuild-qemu-create: Properly quote variables
+  * sbuild-qemu-boot: Set tty geometry to host's geometry
+  * sbuild-qemu-boot: Add option to forward SSH
+
+ -- Christian Kastner <ckk@debian.org>  Fri, 10 Mar 2023 22:17:29 +0100
+
 sbuild (0.85.0) unstable; urgency=medium
 
   [ Johannes Schauer Marin Rodrigues ]
