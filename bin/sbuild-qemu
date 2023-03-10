@@ -50,9 +50,9 @@ def main():
     parser = argparse.ArgumentParser(
         description="Build Debian packages with sbuild(1) using QEMU images",
         epilog="All options other than the ones described below are passed on "
-               "through to sbuild(1), though the options --dist, --arch, and"
+               "through to sbuild(1), though the options --dist, --arch, and "
                "--build are peeked at when looking for images. The image will "
-               "be started in -snapshot mode, so the image is never modified. "
+               "be started in snapshot mode, so the image is never modified. "
                "Multiple processes can use the same image concurrently. The "
                "architectures currently supported by sbuild-qemu are: "
                f"{', '.join(DEB_ARCH_TO_QEMU.keys())}.",

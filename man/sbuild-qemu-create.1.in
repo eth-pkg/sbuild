@@ -33,9 +33,9 @@ sbuild\-qemu\-create \- QEMU image creator for sbuild
 .RB [MIRROR]
 .PP
 Build an image for use with \fBsbuild-qemu\fR and \fBautopkgtest\fR.
-\fBRELEASE\fR will be debootstrapped from \fBMIRROR\fR.
-Note that the same mirror will also be used for the \fIsources.list\fR file
-within the VM. See MIRROR below.
+\fBRELEASE\fR will be debootstrapped from \fBMIRROR\fR. This mirror
+will also be used for the \fIsources.list\fR file within the VM.
+See MIRROR below.
 .PP
 Note that sbuild\-qemu\-create is just a simple wrapper around
 autopkgtest\-build\-qemu(1) that automates a few additional steps commonly

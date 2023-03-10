@@ -116,9 +116,10 @@ def main():
         '--authorized-keys',
         metavar='FILE',
         action='store',
-        help="Install this file as /root/.ssh/authorized_keys. This will "
-             "automatically install the 'openssh-server' package. This "
-             "supercedes any copying of this file by the --skel option. ",
+        help="Install this file as /root/.ssh/authorized_keys within the "
+             "guest. This will automatically install the 'openssh-server' "
+             "package. This supercedes any copying of this file by the "
+             "--skel option.",
     )
     parser.add_argument(
         '--size',
