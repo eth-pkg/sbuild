@@ -27,7 +27,7 @@ Copyright: © 1998-2000 Roman Hodek <roman@hodek.net>
            © 2005      Michael Banck <mbanck@debian.org>
            © 2005-2008 Roger Leigh <rleigh@debian.org>
            © 2015-2022 Johannes Schauer Marin Rodrigues <josch@debian.org>
-           © 2020      Christian Kastner <ckk@debian.org>
+           © 2020-2023 Christian Kastner <ckk@debian.org>
 License: GPL-2+
 
 Files: Makefile.am
