@@ -18,7 +18,7 @@ Build-Depends-Indep: dh-python,
                      libmime-lite-perl,
                      libyaml-tiny-perl,
                      python3-all
-Standards-Version: 4.6.0
+Standards-Version: 4.6.2
 Rules-Requires-Root: no
 Vcs-Browser: https://salsa.debian.org/debian/sbuild
 Vcs-Git: https://salsa.debian.org/debian/sbuild.git
