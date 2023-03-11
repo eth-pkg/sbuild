@@ -66,7 +66,7 @@ Skeleton directory to use for \fI\,/root\/\fP.
 .TP
 \fB\-\-authorized\-keys\fR=FILE
 Install this file as \fI/root/.ssh/authorized_keys\fR within the guest. This
-will automatically install the \fBopenssh-server\fR package. This supercedes
+will automatically install the \fBopenssh-server\fR package. This supersedes
 any copying of this file by the \-\-skel option.
 .TP
 \fB\-\-size\fR=SIZE
