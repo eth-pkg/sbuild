@@ -28,7 +28,7 @@ sbuild \- build debian packages from source
 .RB [ \-\-archive=\fIarchive\fP ]
 .RB [ \-d \[or] \-\-dist=\fIdistribution\fP ]
 .RB [ \-c \[or] \-\-chroot=\fIchroot\fP ]
-.RB [ \-\-chroot-mode=\fIschroot|sudo|autopkgtest|unshare\fP ]
+.RB [ \-\-chroot\-mode=\fIschroot|sudo|autopkgtest|unshare\fP ]
 .RB [ \-\-arch=\fIarchitecture\fP ]
 .RB [ \-\-arch\-any " \[or] " \-\-no\-arch\-any ]
 .RB [ \-\-build=\fIarchitecture\fP ]
@@ -42,12 +42,12 @@ sbuild \- build debian packages from source
 .RB [ \-\-binNMU\-timestamp=\fItimestamp\fP ]
 .RB [ \-\-binNMU\-changelog=\fIchangelog\fP ]
 .RB [ \-\-build\-dir=\fIdirectory\fP ]
-.RB [ \-\-add-depends=\fIdependency\fP ]
-.RB [ \-\-add-conflicts=\fIdependency\fP ]
-.RB [ \-\-add-depends\-arch=\fIdependency\fP ]
-.RB [ \-\-add-conflicts\-arch=\fIdependency\fP ]
-.RB [ \-\-add-depends\-indep=\fIdependency\fP ]
-.RB [ \-\-add-conflicts\-indep=\fIdependency\fP ]
+.RB [ \-\-add\-depends=\fIdependency\fP ]
+.RB [ \-\-add\-conflicts=\fIdependency\fP ]
+.RB [ \-\-add\-depends\-arch=\fIdependency\fP ]
+.RB [ \-\-add\-conflicts\-arch=\fIdependency\fP ]
+.RB [ \-\-add\-depends\-indep=\fIdependency\fP ]
+.RB [ \-\-add\-conflicts\-indep=\fIdependency\fP ]
 .RB [ \-m \[or] \-\-maintainer=\fImaintainer\fP ]
 .RB [ \-e \[or] \-\-uploader=\fIuploader\fP ]
 .RB [ \-k \[or] \-\-keyid=\fIkey-id\fP ]
@@ -56,9 +56,9 @@ sbuild \- build debian packages from source
 .RB [ \-j \[or] \-\-jobs=\fIn\fP ]
 .RB [ \-\-debbuildopt=\fIoption\fP ]
 .RB [ \-\-debbuildopts=\fIoptions\fP ]
-.RB [ \-\-dpkg-source-opt=\fIoptions\fP ]
-.RB [ \-\-dpkg-source-opts=\fIoptions\fP ]
-.RB [ \-\-dpkg-file-suffix=\fIsuffix\fP ]
+.RB [ \-\-dpkg\-source\-opt=\fIoptions\fP ]
+.RB [ \-\-dpkg\-source\-opts=\fIoptions\fP ]
+.RB [ \-\-dpkg\-file\-suffix=\fIsuffix\fP ]
 .RB [ \-p \[or] \-\-purge=\fPpurge-mode\fP ]
 .RB [ \-\-purge\-build=\fPpurge-mode\fP ]
 .RB [ \-\-purge\-deps=\fPpurge-mode\fP ]
@@ -104,7 +104,7 @@ sbuild \- build debian packages from source
 .RB [ \-\-extra\-repository\-key=\fIfile.asc\fP ]
 .RB [ \-\-build\-path=\fIstring\fP ]
 .RB [ \-\-dsc\-dir=\fIstring\fP ]
-.RB [ \-\-autopkgtest-virt-server=\fIschroot|lxc|chroot|qemu|ssh\fP ]
+.RB [ \-\-autopkgtest\-virt\-server=\fIschroot|lxc|chroot|qemu|ssh\fP ]
 .RB [ \-\-autopkgtest\-virt\-server\-opt=\fIstring\fP ]
 .RB [ \-\-autopkgtest\-virt\-server\-opts=\fIoptions\fP ]
 .RB [ \-\-purge\-extra\-packages\fP ]
@@ -125,7 +125,7 @@ source package name along with a version in the form \fIpackage_version\fP, a
 source package name, or a .dsc file. If no arguments are given, the current
 working directory is passed as an argument.
 .PP
-For arguments given as source directories, dpkg-source is first run to produce
+For arguments given as source directories, dpkg\-source is first run to produce
 a source .dsc file. Then, the package is built using the .dsc produced. For
 arguments in the form \fIpackage_version\fP or \fIpackage\fP, apt is used to
 download the source package. For arguments given as a .dsc file, sbuild builds
@@ -168,9 +168,9 @@ Print version information.
 .BR "\-\-add\-conflicts\-indep=\fIdependency\fP"
 These options add a build dependencies to the source package being built, in
 addition to the build dependency information specified in debian/control.
-These dependencies will be concatenated directly to the Build-Depends,
-Build-Conflicts, Build-Depends-Arch, Build-Conflicts-Arch, Build-Depends-Indep
-and Build-Conflicts-Indep dependencies, respectively.  The options may be used
+These dependencies will be concatenated directly to the Build\-Depends,
+Build\-Conflicts, Build\-Depends\-Arch, Build\-Conflicts\-Arch, Build\-Depends\-Indep
+and Build\-Conflicts\-Indep dependencies, respectively.  The options may be used
 any number of times to add multiple dependencies.  The format is identical to
 the format used in debian/control.
 These command line options append to the \fBMANUAL_DEPENDS\fP, \fBMANUAL_CONFLICTS\fP, \fBMANUAL_DEPENDS_ARCH\fP, \fBMANUAL_CONFLICTS_ARCH\fP, \fBMANUAL_DEPENDS_INDEP\fP and \fBMANUAL_CONFLICTS_INDEP\fP configuration variables, respectively. See
@@ -179,7 +179,7 @@ for more information.
 .TP
 .BR "\-\-arch=\fIarchitecture\fP"
 Build using the architecture specified.  A chroot named
-\fI$distribution\-$arch-sbuild\fP or \fI$distribution\-arch\fP is searched for,
+\fI$distribution\-$arch\-sbuild\fP or \fI$distribution\-arch\fP is searched for,
 in that order of preference.  The chroot must be installed and configured
 appropriately to build as that architecture, e.g. using
 \fIpersonality=linux32\fP to build i386 packages on an amd64 system.  Note that
@@ -262,7 +262,7 @@ schroot name or alias that matches \fI$distribution\-$arch\-sbuild\fP,
 \fI$distribution\-sbuild\fP, \fI$distribution\-$arch\fP or \fI$distribution\fP
 that exists.  With the \fBsudo\fP chroot mode, this option specifies the chroot
 directory to use.  The directory is either expected in /etc/sbuild/chroot (in
-buildd sbuild mode) or in the build directory (see \-\-build\-dir), prefixed with "chroot-" (in
+buildd sbuild mode) or in the build directory (see \-\-build\-dir), prefixed with "chroot\-" (in
 user sbuild mode, the default). If not specified, the default is to search for
 a directory in the respective locations named in the same way as for the
 schroot mode.  With the \fBunshare\fP chroot mode, if this option is a path,
@@ -270,17 +270,17 @@ then it specifies the location of the chroot tarball directly. Otherwise, a
 tarball with equal basename from ~/.cache/sbuild will be used. If not
 specified, the default is to search for a tarball named in the same way as for
 the schroot mode under ~/.cache/sbuild.  With the \fBautopkgtest\fP chroot mode
-this option has no effect.  The --autopkgtest-virt-server-opts are used to pick
+this option has no effect.  The \-\-autopkgtest\-virt\-server\-opts are used to pick
 the chroot in autopkgtest chroot mode.
 This command line option sets the \fBCHROOT\fP configuration variable. See
 .BR sbuild.conf (5)
 for more information.
 .TP
-.BR "\-\-chroot-mode=\fIschroot|sudo|autopkgtest|unshare\fP"
+.BR "\-\-chroot\-mode=\fIschroot|sudo|autopkgtest|unshare\fP"
 Select the desired chroot mode. Four values are possible: schroot (the
 default), sudo (which uses sudo to execute chroot in a directory from
-/etc/sbuild/chroot or ./chroot), autopkgtest which uses the autopkgtest-virt-* binaries
-(selectable via the \-\-autopkgtest-virt-server option) and unshare (which uses linux
+/etc/sbuild/chroot or ./chroot), autopkgtest which uses the autopkgtest\-virt\-* binaries
+(selectable via the \-\-autopkgtest\-virt\-server option) and unshare (which uses linux
 namespaces for chroot and doesn't require superuser privileges).
 See the section
 .BR "CHROOT MODES"
@@ -311,7 +311,7 @@ Enable debug output.
 .BR "\-\-apt\-clean"
 .TQ
 .BR "\-\-no\-apt\-clean"
-Run (or do not run) apt-get clean in the chroot before executing the build,
+Run (or do not run) apt\-get clean in the chroot before executing the build,
 overriding the default setting.
 This command line option sets the \fBAPT_CLEAN\fP configuration variable. See
 .BR sbuild.conf (5)
@@ -320,11 +320,11 @@ for more information.
 .BR "\-\-apt\-update"
 .TQ
 .BR "\-\-no\-apt\-update"
-Run (or do not run) apt-get update in the chroot before executing the build,
+Run (or do not run) apt\-get update in the chroot before executing the build,
 overriding the default setting.
 This option has no effect on updating the internal sbuild apt repository, the
-repository for extra packages (see --extra-package) and the repositories given
-via --extra-repository. These are always updated. Thus, this option only
+repository for extra packages (see \-\-extra\-package) and the repositories given
+via \-\-extra\-repository. These are always updated. Thus, this option only
 influences updates of the default repositories of the chroot.
 This command line option sets the \fBAPT_UPDATE\fP configuration variable. See
 .BR sbuild.conf (5)
@@ -333,7 +333,7 @@ for more information.
 .BR "\-\-apt\-upgrade"
 .TQ
 .BR "\-\-no\-apt\-upgrade"
-Run (or do not run) apt-get upgrade in the chroot before executing the build,
+Run (or do not run) apt\-get upgrade in the chroot before executing the build,
 overriding the default setting.
 This command line option sets the \fBAPT_UPGRADE\fP configuration variable. See
 .BR sbuild.conf (5)
@@ -342,7 +342,7 @@ for more information.
 .BR "\-\-apt\-distupgrade"
 .TQ
 .BR "\-\-no\-apt\-distupgrade"
-Run (or do not run) apt-get distupgrade in the chroot before executing the build,
+Run (or do not run) apt\-get distupgrade in the chroot before executing the build,
 overriding the default setting.
 This command line option sets the \fBAPT_DISTUPGRADE\fP configuration variable. See
 .BR sbuild.conf (5)
@@ -373,7 +373,7 @@ for more information.
 .BR \-\-source\-only\-changes
 .TQ
 .BR "\-\-no\-source\-only\-changes
-In addition to the .changes file generated by dpkg-buildpackage, also produce
+In addition to the .changes file generated by dpkg\-buildpackage, also produce
 (or don't produce) a .changes file suitable for a source-only upload. If
 requested by \-\-keyid, this .changes file will also be signed by debsign.
 This command line option sets
@@ -383,15 +383,15 @@ for more information.
 .TP
 .BR \-j ", " "\-\-jobs=\fIn\fP"
 Number of jobs to run simultaneously.  Passed through to dpkg\-buildpackage.
-This command line option appends the appropriate \fB-j\fP option to the \fBDPKG_BUILDPACKAGE_USER_OPTIONS\fP configuration variable. See
+This command line option appends the appropriate \fB\-j\fP option to the \fBDPKG_BUILDPACKAGE_USER_OPTIONS\fP configuration variable. See
 .BR sbuild.conf (5)
 for more information.
 .TP
 .BR \-\-debbuildopt=\fIoption\fP
 Pass the specified option directly to dpkg\-buildpackage in addition to the
 options already passed by sbuild. This option can be passed multiple times
-(once per dpkg-buildpackage option) and can be freely mixed with the
-\-\-debbuildopts option. Options will be passed to dpkg-buildpackage in the
+(once per dpkg\-buildpackage option) and can be freely mixed with the
+\-\-debbuildopts option. Options will be passed to dpkg\-buildpackage in the
 order that the \-\-debbuildopt and \-\-debbuildopts options are given on the
 command line.
 This command line option appends to the \fBDPKG_BUILDPACKAGE_USER_OPTIONS\fP configuration variable. See
@@ -411,19 +411,19 @@ This command line option appends to the \fBDPKG_BUILDPACKAGE_USER_OPTIONS\fP con
 for more information.
 .TP
 .BR \-\-dpkg\-source\-opt=\fIoptions\fP
-Pass the specified option directly to dpkg-source in addition to the options
+Pass the specified option directly to dpkg\-source in addition to the options
 already passed by sbuild. This is only used when creating a source package from
 a Debianized source directory. This option can be passed multiple times (once
-per dpkg-source option) and can be freely mixed with the \-\-dpkg\-source\-opts
-option. Options will be passed to dpkg-source in the order that the
+per dpkg\-source option) and can be freely mixed with the \-\-dpkg\-source\-opts
+option. Options will be passed to dpkg\-source in the order that the
 \-\-dpkg\-source\-opt and \-\-dpkg\-source\-opts options are given on the
 command line.
 This command line option appends to the \fBDPKG_SOURCE_OPTIONS\fP configuration variable. See
 .BR sbuild.conf (5)
 for more information.
 .br
-\fBNOTE:\fR The '\fI-b\fP', '\fI--before-build\fP' and '\fI--after-build\fP'
-options will always be passed to dpkg-source, respectively.
+\fBNOTE:\fR The '\fI\-b\fP', '\fI\-\-before\-build\fP' and '\fI\-\-after\-build\fP'
+options will always be passed to dpkg\-source, respectively.
 .TP
 .BR \-\-dpkg\-source\-opts=\fIoptions\fP
 Pass the specified options directly to dpkg\-source in addition to the options
@@ -439,15 +439,15 @@ This command line option appends to the \fBDPKG_SOURCE_OPTIONS\fP configuration 
 .BR sbuild.conf (5)
 for more information.
 .br
-\fBNOTE:\fR The '\fI-b\fP', '\fI--before-build\fP' and '\fI--after-build\fP'
-options will always be passed to dpkg-source, respectively.
+\fBNOTE:\fR The '\fI\-b\fP', '\fI\-\-before\-build\fP' and '\fI\-\-after\-build\fP'
+options will always be passed to dpkg\-source, respectively.
 .TP
-.BR "\-\-dpkg-file-suffix=\fIsuffix\fP"
+.BR "\-\-dpkg\-file\-suffix=\fIsuffix\fP"
 Add the suffix to the filename of the changes and buildinfo files generated by
 dpkg.
 .br
-\fBNOTE:\fR This option is ignored if dpkg-dev in the build environment is too
-old to support it. At least dpkg-dev 1.18.11 is required.
+\fBNOTE:\fR This option is ignored if dpkg\-dev in the build environment is too
+old to support it. At least dpkg\-dev 1.18.11 is required.
 .TP
 .BR "\-\-mail\-log\-to=\fIemail-address\fP"
 Send the build log to the specified email address.
@@ -513,7 +513,7 @@ for more information.
 Build the source package in addition to the other requested build artifacts. By
 default, the dsc will not be rewritten because the source package is the input
 to sbuild, not its output. Even when running from an unpacked source tree
-sbuild will first build the source package using dpkg-source and then pass that
+sbuild will first build the source package using dpkg\-source and then pass that
 on to the sbuild machinery. Use this option only when you know what you are
 doing. This will rewrite the original dsc passed to sbuild.
 See the section
@@ -523,7 +523,7 @@ This command line option sets the \fBBUILD_SOURCE\fP configuration variable. See
 .BR sbuild.conf (5)
 for more information.
 .TP
-.BR "\-\-no-source"
+.BR "\-\-no\-source"
 Don't rebuild the source package. This is the default. It is the opposite of
 \-\-source.
 See the section
@@ -542,11 +542,11 @@ This command line option sets the \fBFORCE_ORIG_SOURCE\fP configuration variable
 for more information.
 .TP
 .BR "\-\-use\-snapshot"
-Installs the latest snapshot gcc compiler from the \fIgcc-snapshot\fP package,
+Installs the latest snapshot gcc compiler from the \fIgcc\-snapshot\fP package,
 and alters the build environment to use the snapshot compiler for the build.
-Specifically, this option appends \fI/usr/lib/gcc-snapshot/lib\fP to the value
+Specifically, this option appends \fI/usr/lib/gcc\-snapshot/lib\fP to the value
 of the \fBLD_LIBRARY_PATH\fP configuration variable and
-\fI/usr/lib/gcc-snapshot/bin\fP to the value of the \fBPATH\fP configuration
+\fI/usr/lib/gcc\-snapshot/bin\fP to the value of the \fBPATH\fP configuration
 variable.  It also sets the \fBGCC_SNAPSHOT\fP configuration variable. See
 .BR sbuild.conf (5)
 for more information.
@@ -572,8 +572,8 @@ specify an arbitrary version suffix instead of a custom changelog entry. To
 have a custom version suffix and a custom changelog entry, use \-\-make\-binNMU
 and \-\-append\-to\-version at the same time with \-\-binNMU=0.
 This option is incompatible with \-\-binNMU\-changelog.
-This option implies --no-arch-all.
-This command line option sets the \fBBIN_NMU\fP configuration variable and sets the \fBBIN_NMU_VERSION\fP configuration variable to 1 if it was not set yet, for example by the --binNMU option. See
+This option implies \-\-no\-arch\-all.
+This command line option sets the \fBBIN_NMU\fP configuration variable and sets the \fBBIN_NMU_VERSION\fP configuration variable to 1 if it was not set yet, for example by the \-\-binNMU option. See
 .BR sbuild.conf (5)
 for more information.
 .TP
@@ -598,7 +598,7 @@ To pass an arbitrary changelog text as well, combine this option with
 \-\-make\-binNMU but be aware that this will also add the +b\fIn\fR suffix
 unless you also pass \-\-binNMU=0 to disable it.
 This option is incompatible with \-\-binNMU\-changelog.
-This option implies --no-arch-all.
+This option implies \-\-no\-arch\-all.
 This command line option sets the \fBAPPEND_TO_VERSION\fP configuration variable. See
 .BR sbuild.conf (5)
 for more information.
@@ -608,7 +608,7 @@ Set the timestamp of the new binNMU changelog entry. By default, the time of
 the build will be used to generate the binNMU changelog timestamp. This option
 allows one to use a custom timestamp instead. The timestamp is either given as
 an integer in Unix time or as a string in the format compatible with Debian
-changelog entries (i.e. as it is generated by date -R).
+changelog entries (i.e. as it is generated by date \-R).
 This option is incompatible with \-\-binNMU\-changelog.
 This command line option sets the \fBBIN_NMU_TIMESTAMP\fP configuration
 variable. See
@@ -629,7 +629,7 @@ variable. See
 for more information.
 .TP
 .BR "\-\-build\-dir=\fIdirectory\fP"
-Set the output directory for the build artifacts created by dpkg-buildpackage
+Set the output directory for the build artifacts created by dpkg\-buildpackage
 and the log file. By default, the current directory is used or, when sbuild is
 executed from within an unpacked source directory, the parent directory.
 This command line option sets the \fBBUILD_DIR\fP configuration
@@ -733,7 +733,7 @@ for more information.
 .TP
 .BR \-\-piuparts\-root\-arg=\fIoptions\fP
 Add an argument that is used to launch piuparts as root. Without this option,
-the default is to use "sudo --" to launch piuparts. If an empty string is
+the default is to use "sudo \-\-" to launch piuparts. If an empty string is
 supplied, then piuparts is launched without any prefixed command.  This option
 can be specified multiple times.  This command line option appends to the
 \fBPIUPARTS_ROOT_ARGS\fP configuration variable. See
@@ -742,7 +742,7 @@ for more information.
 .TP
 .BR \-\-piuparts\-root\-args=\fIoptions\fP
 Add arguments that are used to launch piuparts as root.  Without this option,
-the default is to use "sudo --" to launch piuparts. If an empty string is
+the default is to use "sudo \-\-" to launch piuparts. If an empty string is
 supplied, then piuparts is launched without any prefixed command.  The argument
 will be split by whitespaces. To pass options containing whitespaces use the
 option \-\-piuparts\-root\-arg.  This command line option appends to the
@@ -798,7 +798,7 @@ for more information.
 .TP
 .BR \-\-autopkgtest\-root\-arg=\fIoptions\fP
 Add an argument that is used to launch autopkgtest as root. Without this
-option, the default is to use "sudo --" to launch autopkgtest. If an empty
+option, the default is to use "sudo \-\-" to launch autopkgtest. If an empty
 string is supplied, then autopkgtest is launched without any prefixed command.
 This option can be specified multiple times.  This command line option appends
 to the
@@ -808,7 +808,7 @@ for more information.
 .TP
 .BR \-\-autopkgtest\-root\-args=\fIoptions\fP
 Add arguments that are used to launch autopkgtest as root.  Without this
-option, the default is to use "sudo --" to launch autopkgtest. If an empty
+option, the default is to use "sudo \-\-" to launch autopkgtest. If an empty
 string is supplied, then autopkgtest is launched without any prefixed command.
 The argument will be split by whitespaces. To pass options containing
 whitespaces use the option \-\-autopkgtest\-root\-arg.  This command line
@@ -843,11 +843,11 @@ This command line option appends to the \fBEXTERNAL_COMMANDS\fP configuration va
 for more information.
 .TP
 .BR \-\-chroot\-update\-failed\-commands=\fIstring\fP
-Run these commands after any of 'apt-get update', 'apt-get upgrade' or 'apt-get
-dist-upgrade' failed.
+Run these commands after any of 'apt\-get update', 'apt\-get upgrade' or 'apt\-get
+dist\-upgrade' failed.
 This hook is not run for updates of the internal sbuild apt repository, the
-repository for extra packages (see --extra-package) and the repositories given
-via --extra-repository.
+repository for extra packages (see \-\-extra\-package) and the repositories given
+via \-\-extra\-repository.
 The environment is intact, and the failure can be
 investigated. Especially %SBUILD_SHELL is useful here. This option can be used
 multiple times to add multiple commands. Certain percent escapes are supported.
@@ -874,7 +874,7 @@ for more information.
 .TP
 .BR \-\-starting\-build\-commands=\fIstring\fP
 Run these commands after dependencies are installed, just before the package
-build with dpkg-buildpackage starts. The command is run as the root user
+build with dpkg\-buildpackage starts. The command is run as the root user
 inside the chroot. This option can be used multiple times to add
 multiple commands. Certain percent escapes are supported. To write a literal
 percent sign, escape it with another percent sign. See the section
@@ -897,7 +897,7 @@ This command line option appends to the \fBEXTERNAL_COMMANDS\fP configuration va
 for more information.
 .TP
 .BR \-\-build\-failed\-commands=\fIstring\fP
-These commands are run if dpkg-buildpackage has failed directly after the
+These commands are run if dpkg\-buildpackage has failed directly after the
 failed attempt. The environment is intact, and the failure can be investigated.
 Especially %SBUILD_SHELL is useful here. The command is run as the root
 user inside the chroot. This option can be used multiple times
@@ -960,7 +960,7 @@ for more information.
 .TP
 .BR "\-\-setup\-hook=\fIhook-script\fP" " " \fBDEPRECATED\fP
 This option is deprecated. Use of this option will add \fIhook-script\fP to the
-external commands to run via \fIchroot-setup-commands\fP.
+external commands to run via \fIchroot\-setup\-commands\fP.
 This command line option sets the \fBCHROOT_SETUP_SCRIPT\fP configuration variable and appends to the \fBEXTERNAL_COMMANDS\fP configuration variable. See
 .BR sbuild.conf (5)
 for more information.
@@ -979,11 +979,11 @@ installing from multiple suites (\fIunstable\fP and \fIexperimental\fP).  Due
 to performance issues, aptitude is not recommended for
 use by default.  If the dependency situation is so complex that neither apt nor
 aptitude are able to find a solution, then you can use the aspcud resolver.
-This resolver uses apt-cudf to ask aspcud, a real solver (in the math sense),
+This resolver uses apt\-cudf to ask aspcud, a real solver (in the math sense),
 to find a solution to the installation problem. Since aspcud uses a real solver
 (an ASP solver) it will always find a solution if one exists. The solution
 found by the aspcud resolver can be refined by changing the default
-optimization criteria through the --aspcud-criteria option.  The xapt resolver
+optimization criteria through the \-\-aspcud\-criteria option.  The xapt resolver
 is intended only for cross-building, and is a temporary transitional feature
 which will be removed following the complete introduction of multi-arch
 support. Finally, the null resolver is a dummy solver which does not install,
@@ -995,33 +995,33 @@ for more information.
 .TP
 .BR \-\-aspcud\-criteria=\fIcriteria\fP
 Optimization criteria in extended MISC 2012 syntax passed to aspcud through
-apt-cudf.  Optimization criteria are separated by commas, sorted by decreasing
+apt\-cudf.  Optimization criteria are separated by commas, sorted by decreasing
 order of priority and are prefixed with a polarity (+ to maximize and - to
-minimize).  The default criteria is \fB-removed,-changed,-new\fP which first
+minimize).  The default criteria is \fB\-removed,\-changed,\-new\fP which first
 minimizes the number of removed packages, then the number of changed packages
 (up or downgrades) and then the number of new packages. A common task is to
 minimize the number of packages from experimental.  To do this you can add a
-criteria like \fB-count(solution,APT-Release:=/a=experimental/)\fP to the
+criteria like \fB\-count(solution,APT\-Release:=/a=experimental/)\fP to the
 default criteria.  This will then minimize the number of packages in the
-solution which contain the string \fIa=experimental\fP in the \fIAPT-Release\fP
+solution which contain the string \fIa=experimental\fP in the \fIAPT\-Release\fP
 field of the EDSP output created by apt. For more help on how to write
 optimization criteria, see the
-.BR apt-cudf (1)
-man page. Specifically the help on the --criteria option.
+.BR apt\-cudf (1)
+man page. Specifically the help on the \-\-criteria option.
 This command line option sets the \fBASPCUD_CRITERIA\fP configuration variable. See
 .BR sbuild.conf (5)
 for more information.
 .TP
 .BR \-\-resolve\-alternatives
-Allow the use of alternatives in Build-Depends, Build-Depends-Arch and
-Build-Depends-Indep.  This is the default for the aptitude dependency resolver.
+Allow the use of alternatives in Build\-Depends, Build\-Depends\-Arch and
+Build\-Depends\-Indep.  This is the default for the aptitude dependency resolver.
 This command line option sets the \fBRESOLVE_ALTERNATIVES\fP configuration variable. See
 .BR sbuild.conf (5)
 for more information.
 .TP
 .BR \-\-no\-resolve\-alternatives
-Do not allow the use of alternatives in Build-Depends, Build-Depends-Arch and
-Build-Depends-Indep.  Note that alternatives for the same package
+Do not allow the use of alternatives in Build\-Depends, Build\-Depends\-Arch and
+Build\-Depends\-Indep.  Note that alternatives for the same package
 (e.g. different versions) are still allowed.  This is the default for the
 apt and xapt dependency resolvers.
 This command line option sets the \fBRESOLVE_ALTERNATIVES\fP configuration variable. See
@@ -1056,22 +1056,22 @@ to allow packages in the experimental distribution to fulfill
 build-dependencies. Note that the build chroot must already trust the
 key of this repository or a key must be given with the
 .nh
-.B \-\-extra\-repository-key
+.B \-\-extra\-repository\-key
 .hy
 flag (see
-.BR apt-secure (8)).
+.BR apt\-secure (8)).
 This command line option appends to the \fBEXTRA_REPOSITORIES\fP configuration variable. See
 .BR sbuild.conf (5)
 for more information.
 .TP
-.BR \-\-extra\-repository-key=\fIfile.asc\fP
+.BR \-\-extra\-repository\-key=\fIfile.asc\fP
 Add \fIfile.asc\fP to the list of trusted keys inside the chroot. The key is
 read from the filename given, and added to the trusted keys. For more
 information, see
-.BR apt-secure (8).
+.BR apt\-secure (8).
 This flag is particularly useful if the target in
 .nh
-.B --extra-repository
+.B \-\-extra\-repository
 .hy
 is not signed
 with a key that's trusted by the base chroot.
@@ -1081,7 +1081,7 @@ for more information.
 .TP
 .BR \-\-build\-path=\fIstring\fP
 By default the package is built in a path of the following format
-/build/packagename-XXXXXX/packagename-version/ where XXXXXX is a random ascii
+/build/packagename\-XXXXXX/packagename\-version/ where XXXXXX is a random ascii
 string. This option allows one to specify a custom path where the package is
 built inside the chroot. The sbuild user in the chroot must have permissions to
 create the path. Common writable locations are subdirectories of /tmp or
@@ -1091,7 +1091,7 @@ be accessed by processes outside the chroot. The directory /build can only be
 accessed by the sbuild user and group and should be a safe location.  The
 buildpath must be an empty directory because the last component of the path
 will be removed after the build is finished.  Notice that depending on the
-chroot mode (see --chroot-mode), some locations inside the chroot might be
+chroot mode (see \-\-chroot\-mode), some locations inside the chroot might be
 bind mounts that are shared with other sbuild instances. You must avoid using
 these shared locations as the build path or otherwise concurrent runs of sbuild
 will likely fail. With the default schroot chroot mode, the directory /build
@@ -1103,32 +1103,32 @@ for more information.
 .TP
 .BR \-\-dsc\-dir=\fIstring\fP
 By default the package is built in a path of the following format
-/build/packagename-XXXXXX/packagename-version/ where packagename-version are
+/build/packagename\-XXXXXX/packagename\-version/ where packagename\-version are
 replaced by the values in debian/changelog. This option allows one to specify a
-custom packagename-version path where the package is built inside the chroot.
+custom packagename\-version path where the package is built inside the chroot.
 This is useful to specify a static path for different versions for example for ccache.
 This command line option sets the \fBDSC_DIR\fP configuration variable. See
 .BR sbuild.conf (5) for more information.
 .TP
-.BR \-\-autopkgtest-virt-server=\fIschroot|lxc|chroot|qemu|ssh\fP
-The autopkgtest virtualization server. Can be specified with or without the autopkgtest-virt-
+.BR \-\-autopkgtest\-virt\-server=\fIschroot|lxc|chroot|qemu|ssh\fP
+The autopkgtest virtualization server. Can be specified with or without the autopkgtest\-virt\-
 prefix.  For instance, the following set of command line options will use the
-autopkgtest-virt-schroot chroot mode for a package build:
+autopkgtest\-virt\-schroot chroot mode for a package build:
 .nh
-.B \-\-chroot-mode=autopkgtest \-\-autopkgtest\-virt\-server=schroot \-\-autopkgtest-virt-server-opt=unstable-amd64-sbuild
+.B \-\-chroot\-mode=autopkgtest \-\-autopkgtest\-virt\-server=schroot \-\-autopkgtest\-virt\-server\-opt=unstable\-amd64\-sbuild
 .hy
 This command line option sets the \fBAUTOPKGTEST_VIRT_SERVER\fP configuration variable. See
 .BR sbuild.conf (5)
 for more information.
 .TP
-.BR \-\-autopkgtest-virt-server-opt=\fIstring\fP
-Pass the specified option directly to the respective autopkgtest-virt-* virtualization
+.BR \-\-autopkgtest\-virt\-server\-opt=\fIstring\fP
+Pass the specified option directly to the respective autopkgtest\-virt\-* virtualization
 server in addition to the options already passed by sbuild. This option can be
-passed multiple times (once per autopkgtest-virt-* option) and can be freely mixed with
-the \-\-autopkgtest-virt-server\-opts option.  Options will be passed to the respective
-autopkgtest-virt-* virtualization server in the order that the \-\-autopkgtest-virt-server\-opt
-and \-\-autopkgtest-virt-server\-opts options are given on the command line.  See the
-manual pages of the respective autopkgtest-virt-* commands for more information.
+passed multiple times (once per autopkgtest\-virt\-* option) and can be freely mixed with
+the \-\-autopkgtest\-virt\-server\-opts option.  Options will be passed to the respective
+autopkgtest\-virt\-* virtualization server in the order that the \-\-autopkgtest\-virt\-server\-opt
+and \-\-autopkgtest\-virt\-server\-opts options are given on the command line.  See the
+manual pages of the respective autopkgtest\-virt\-* commands for more information.
 Certain percent escapes are supported. To write a literal percent sign, escape
 it with another percent sign. See the section
 .BR "OPTION STRING PERCENT ESCAPES"
@@ -1138,13 +1138,13 @@ This command line option appends to the \fBAUTOPKGTEST_VIRT_SERVER_OPTIONS\fP co
 for more information.
 .TP
 .BR \-\-autopkgtest\-virt\-server\-opts=\fIoptions\fP
-Pass the specified options directly to the respective autopkgtest-virt-* virtualization
+Pass the specified options directly to the respective autopkgtest\-virt\-* virtualization
 server in addition to the options already passed by sbuild. The argument will
-be split by whitespaces and the resulting array passed to the autopkgtest-virt-*
+be split by whitespaces and the resulting array passed to the autopkgtest\-virt\-*
 invocation. If any options contain spaces, use \-\-autopkgtest\-virt\-server\-opt for
 them.  This option can be passed multiple times and can be freely mixed with
 the \-\-autopkgtest\-virt\-server\-opts option. Options will be passed to the
-respective autopkgtest-virt-* virtualization server in the order that the
+respective autopkgtest\-virt\-* virtualization server in the order that the
 \-\-autopkgtest\-virt\-server\-opt and \-\-autopkgtest\-virt\-server\-opts options are given on
 the command line. See the manual pages of the respective autopkgtest\-virt\-* commands
 for more information.
@@ -1156,7 +1156,7 @@ This command line option appends to the \fBAUTOPKGTEST_VIRT_SERVER_OPTIONS\fP co
 .BR sbuild.conf (5)
 for more information.
 .TP
-.BR \-\-sbuild-mode=\fImode\fP
+.BR \-\-sbuild\-mode=\fImode\fP
 Behaviour changes for use in a buildd environment.
 This command line option sets the \fBSBUILD_MODE\fP configuration variable. See
 .BR sbuild.conf (5)
@@ -1171,7 +1171,7 @@ for more information.
 .BR \-\-purge\-extra\-packages\fP
 This is an experimental option. Only use when you know what you are doing.
 Source packages must be buildable with only their build dependencies, all
-packages marked as Essential:yes, the build-essential package and their
+packages marked as Essential:yes, the build\-essential package and their
 transitive dependencies installed. But by default, most chroots will also
 include Priority:required packages and apt as well as their transitive
 dependencies. This option will try to remove all additional packages that are
@@ -1217,16 +1217,16 @@ sbuild itself but by multiple backends. The default backend (or chroot mode) is
 schroot which is an suid binary that allows regular users to enter a chroot
 environment. But sbuild also allows one to build packages in a qemu virtual
 machine, lxc, lxd or on a remote host reached by ssh using the autopkgtest
-backend. The backend can be chosen using the \f[CB]--chroot-mode\fP command
+backend. The backend can be chosen using the \f[CB]\-\-chroot\-mode\fP command
 line argument or the \fI$chroot_mode\fP configuration parameter.
 .TP
 .BR schroot
 The default and recommended chroot mode. It is also used on Debian buildd
 machines.  The easiest way to set up sbuild for use with the schroot backend is
-by using sbuild-createchroot which will also write out the necessary schroot
+by using sbuild\-createchroot which will also write out the necessary schroot
 configuration files in /etc. To use the chroots, the current user has to be
-added to the sbuild group, for example by running sbuild-adduser.  Updating
-these schroot backends can be done using sbuild-update. See the respective man
+added to the sbuild group, for example by running sbuild\-adduser.  Updating
+these schroot backends can be done using sbuild\-update. See the respective man
 pages for more information about how to use these programs.  Schroot supports
 chroots from directories, tarballs, filesystem images and block devices.
 Schroot provides ephemeral chroots either by unpacking a tarball into a
@@ -1234,7 +1234,7 @@ temporary directory, by using an overlay filesystem for directory chroots or by
 using btrfs or lvm snapshots. Chroots usable by schroot are defined by
 configuration files in /etc/schroot/chroot.d/. When building for a specific
 distribution and architecture, sbuild will choose the chroot that is named (or
-has the alias) \fI$distribution\-$arch-sbuild\fP, \fI$distribution\-sbuild\fP,
+has the alias) \fI$distribution\-$arch\-sbuild\fP, \fI$distribution\-sbuild\fP,
 \fI$distribution\-$arch\fP or \fI$distribution\fP, in that order of preference.
 The used chroot name can be overridden using the \-c or \-\-chroot options.
 .TP
@@ -1252,10 +1252,10 @@ This is an experimental chroot mode that allows one to build packages in any
 chroot supported by autopkgtest. This allows one to build packages in lxc or
 lxd containers, a qemu virtual machine or on a remote host via ssh. Which
 autopkgtest server to use is determined via the
-\f[CB]--autopkgtest-virt-server\fP option. Since autopkgtest (in contrast to
+\f[CB]\-\-autopkgtest\-virt\-server\fP option. Since autopkgtest (in contrast to
 schroot) does not maintain a registry of available containers or (virtual)
 machines, it is necessary to manually specify them using the
-\f[CB]--autopkgtest-virt-server-opts=\fP command line argument. To avoid having
+\f[CB]\-\-autopkgtest\-virt\-server\-opts=\fP command line argument. To avoid having
 to manually type the right container or machine name every time when sbuild is
 executed, percent escapes are permitted.
 .TP
@@ -1294,13 +1294,13 @@ During cross-compilation, \fBBUILD_ARCH_ALL\fR defaults to false.  This
 behaviour can be changed either by using command line options or by modifying
 the configuration variables in your \fI~/.sbuildrc\fP. The relevant command
 line options to change the values of \fBBUILD_ARCH_ANY\fR, \fBBUILD_ARCH_ALL\fR
-and \fBBUILD_SOURCE\fR are \f[CB]--arch-any/--no-arch-any\fP,
-\f[CB]--arch-all/--no-arch-all\fP and \f[CB]--source/--no-source\fP,
+and \fBBUILD_SOURCE\fR are \f[CB]\-\-arch\-any/\-\-no\-arch\-any\fP,
+\f[CB]\-\-arch\-all/\-\-no\-arch\-all\fP and \f[CB]\-\-source/\-\-no\-source\fP,
 respectively.
 .PP
 The values of \fBBUILD_ARCH_ANY\fR, \fBBUILD_ARCH_ALL\fR and \fBBUILD_SOURCE\fR
-change the parameter that dpkg-buildpackage is called with. The following table
-displays the argument passed to dpkg-buildpackage in the last column depending
+change the parameter that dpkg\-buildpackage is called with. The following table
+displays the argument passed to dpkg\-buildpackage in the last column depending
 on the configuration options in the first three columns.
 .PP
 .if t \{\
@@ -1308,15 +1308,15 @@ on the configuration options in the first three columns.
 \}
 .TS
 l l l l.
-\fBBUILD_ARCH_ANY\fR	\fBBUILD_ARCH_ALL\fR	\fBBUILD_SOURCE\fR	dpkg-buildpackage flag
+\fBBUILD_ARCH_ANY\fR	\fBBUILD_ARCH_ALL\fR	\fBBUILD_SOURCE\fR	dpkg\-buildpackage flag
 _
 false	false	false	invalid
-false	false	true	-S
-false	true	false	-A
-false	true	true	-g
-true	false	false	-B
-true	false	true	-G
-true	true	false	-b
+false	false	true	\-S
+false	true	false	\-A
+false	true	true	\-g
+true	false	false	\-B
+true	false	true	\-G
+true	true	false	\-b
 true	true	true	no option
 .TE
 .if t \{\
@@ -1334,7 +1334,7 @@ corresponding to the commands to run.
 There are several sets of commands. All command are run inside the chroot as
 root except for the  \fIpre/post\-build\-\fP commands which are run as the user
 running sbuild outside of the chroot. To run an external command as another
-user than the root user, prefix your command with \fIrunuser -u sbuild --\fP.
+user than the root user, prefix your command with \fIrunuser \-u sbuild \-\-\fP.
 .PP
 Here is a summary of the ordering, user, internal/external to chroot for each
 command hook
@@ -1344,9 +1344,9 @@ performs. The column \fIroot\fP shows whether the command is run as root (yes)
 or not (no).  The column \fIchroot\fP shows whether the command is run inside
 our outside the chroot. The working directory inside the chroot is the one
 marked with \f[CB]<<BUILDDIR>>\fR inside the log. By default, this is a
-directory of the format \f[CB]/build/packagename-XXXXXX/\f[R] where
+directory of the format \f[CB]/build/packagename\-XXXXXX/\f[R] where
 \f[CB]XXXXXX\fR is a random ascii string.  Otherwise, it is the directory set
-by \f[CB]--build-path\fR or by the \f[CB]BUILD_PATH\fR configuration option.
+by \f[CB]\-\-build\-path\fR or by the \f[CB]BUILD_PATH\fR configuration option.
 The working directory outside of the chroot is $HOME. The remaining columns
 show the percent escapes that are defined in each command.  Percent escapes
 that are available in all commands (\fB%%\fR, \fB%a\fR, \fB%b\fR, \fB%s\fR) are
@@ -1374,7 +1374,7 @@ Fetch and unpack source package
 Install Dependencies
 \f[CB]\-\-build\-deps\-failed\-commands\fP	yes	inside	no	no	yes
 \f[CB]\-\-starting\-build\-commands\fP	yes	inside	no	no	yes
-Run dpkg-buildpackage
+Run dpkg\-buildpackage
 \f[CB]\-\-build\-failed\-commands\fP	yes	inside	no	no	yes
 \f[CB]\-\-finished\-build\-commands\fP	yes	inside	no	no	yes
 Run lintian (if configured)
@@ -1398,7 +1398,7 @@ arguments before a build starts, specifying the "foo" command as a list and
 .PP
 \f[CB]$external_commands = {\fP
 .br
-\f[CB]    "pre-build-commands" => [\fP
+\f[CB]    "pre\-build\-commands" => [\fP
 .br
 \f[CB]        ['foo', 'arg1', 'arg2'],\fP
 .br
@@ -1409,7 +1409,7 @@ arguments before a build starts, specifying the "foo" command as a list and
 \f[CB]};\fP
 .PP
 Hash keys for commands to run at other stages have the same name as their
-corresponding command-line option name without the preceding '--'.
+corresponding command-line option name without the preceding '\-\-'.
 .PP
 Here's an example of how to do the same with the previous example, except using
 the \fI\-\-pre\-build\-commands\fP option.
@@ -1443,9 +1443,9 @@ These escapes are converted to the absolute path to a package's .dsc file.
 .TP
 \fB%c\fR, \fB%SBUILD_CHANGES\fR
 These escapes are converted to the absolute path to a package's source .changes
-file. This is the .changes file generated by the dpkg-buildpackage invocation
+file. This is the .changes file generated by the dpkg\-buildpackage invocation
 and not the source-only .changes file that might've been produced additionally
-via --source-only-changes. This variable is only set after the build is
+via \-\-source\-only\-changes. This variable is only set after the build is
 finished, i.e in \f[CB]\-\-chroot\-cleanup\-commands\fP,
 \f[CB]\-\-post\-build\-commands\fP, and
 \f[CB]\-\-post\-build\-failed\-commands\fP.
@@ -1486,7 +1486,7 @@ Percent escapes are only substituted when an appropriate value is defined for
 them. At other times, it is left unchanged. In practice this means that there
 are only two escapes that are not available in all external commands: \fB%c\fR
 and \fB%e\fR. For example, a .changes file is only defined at the end of a
-build, so using \fI%c\fR will only be substituted for post-build-commands and post-build-failed-commands.
+build, so using \fI%c\fR will only be substituted for post\-build\-commands and post\-build\-failed\-commands.
 .PP
 Here's an example of using an escape to run a program foo on a .changes file
 after a build is done.
@@ -1504,14 +1504,14 @@ The following example would copy a file from the host into the chroot:
 .PP
 \f[CB]$ sbuild \-\-pre\-build\-commands \\\fP
 .br
-\f[CB]      'cat blub.txt | %SBUILD_CHROOT_EXEC sh -c "cat > blub.txt"'\fP
+\f[CB]      'cat blub.txt | %SBUILD_CHROOT_EXEC sh \-c "cat > blub.txt"'\fP
 .PP
 One final note, external commands are processed in the order they are given.
 Also, the commands given in a configuration file are processed first, then the
 commands given through the command line options.
 .SH OPTION STRING PERCENT ESCAPES
 Besides for external command strings, percent escapes can also be used in
-custom options passed to piuparts, autopkgtest and the chosen autopkgtest-virt server.
+custom options passed to piuparts, autopkgtest and the chosen autopkgtest\-virt server.
 This is for example useful for communicating the right chroot backend to
 piuparts or autopkgtest depending on the distribution or architecture the
 source package was built for.
@@ -1527,32 +1527,32 @@ is being built for (e.g amd64, armhf).
 .TP
 \fB%r\fR, \fB%SBUILD_DISTRIBUTION\fR
 The distribution that the source package was built for. This is the value
-recorded in debian/changelog or the value passed via the --dist option.
+recorded in debian/changelog or the value passed via the \-\-dist option.
 Mnemonic: the \fBr\fR is the first letter in "release".
 .PP
 Here is an example that will run piuparts with the right schroot chroot:
 .PP
 \f[CB]$ sbuild \-\-run\-piuparts \\\fP
 .br
-\f[CB]      \-\-piuparts\-opts="--schroot=%r-%a-sbuild"
+\f[CB]      \-\-piuparts\-opts="\-\-schroot=%r\-%a\-sbuild"
 .PP
 Or an example of running autopkgtest with the right schroot chroot:
 .PP
-\f[CB]$ sbuild \-\-run\-autopkgtest \-\-autopkgtest-root-args= \\\fP
+\f[CB]$ sbuild \-\-run\-autopkgtest \-\-autopkgtest\-root\-args= \\\fP
 .br
-\f[CB]      \-\-autopkgtest\-opts="-- schroot %r-%a-sbuild"
+\f[CB]      \-\-autopkgtest\-opts="\-\- schroot %r\-%a\-sbuild"
 .PP
 To achieve the same effect via the configuration file, add the following:
 .PP
 \f[CB]$autopkgtest_root_args = '';\fP
 .br
-\f[CB]$piuparts_opts = [ '--schroot=%r-%a-sbuild' ];\fP
+\f[CB]$piuparts_opts = [ '\-\-schroot=%r\-%a\-sbuild' ];\fP
 .br
-\f[CB]$autopkgtest_opts = [ '--', 'schroot', '%r-%a-sbuild' ];\fP
+\f[CB]$autopkgtest_opts = [ '\-\-', 'schroot', '%r\-%a\-sbuild' ];\fP
 .PP
-The --autopkgtest-root-args option and the $autopkgtest_root_args configuration
+The \-\-autopkgtest\-root\-args option and the $autopkgtest_root_args configuration
 variable are set to the empty string because the default is to run autopkgtest
-with "sudo --" in front of it which is not needed with the schroot autopkgtest
+with "sudo \-\-" in front of it which is not needed with the schroot autopkgtest
 backend.
 .PP
 .SH LOCAL ARCHIVE
@@ -1565,9 +1565,9 @@ used to store the dummy dependency packages created for a single build.
 .PP
 The dependency resolvers do the following:
 .IP \[bu]
-Create a dummy dependency package.  This contains the Build-Depends (and
-optionally Build-Depends-Arch and Build-Depends-Indep) as Depends, and
-Build-Conflicts (and optionally Build-Conflicts-Arch and Build-Conflicts-Indep)
+Create a dummy dependency package.  This contains the Build\-Depends (and
+optionally Build\-Depends\-Arch and Build\-Depends\-Indep) as Depends, and
+Build\-Conflicts (and optionally Build\-Conflicts\-Arch and Build\-Conflicts\-Indep)
 as Conflicts.
 .IP \[bu]
 Install the dummy dependency package into the local archive,
@@ -1594,7 +1594,7 @@ Before you use sbuild for the first time, you have to do some setup depending
 on the chroot mode you are using. The default chroot mode is schroot. To use
 sbuild with the schroot backend, you need to add your user to the sbuild group
 and create a schroot chroot. The latter can be accomplished by using
-sbuild-createchroot(8). After this one time setup,
+sbuild\-createchroot(8). After this one time setup,
 you can now use sbuild to build packages like this:
 .PP
 \f[CR]% \f[CB]sbuild \-d unstable bash\fP\fP
@@ -1603,7 +1603,7 @@ Or on a .dsc:
 .PP
 \f[CR]% \f[CB]sbuild \-d unstable bash.dsc\fP\fP
 .PP
-Or from within an unpacked source package (the -d parameter is not necessary
+Or from within an unpacked source package (the \-d parameter is not necessary
 here because the distribution is inferred from debian/changelog):
 .PP
 \f[CR]% \f[CB]sbuild\fP\fP
