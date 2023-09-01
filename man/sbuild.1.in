@@ -976,7 +976,7 @@ aptitude resolver is very similar, but smarter and slower, and it will consider
 all alternatives by default; it is suited to more complex situations, such as
 building packages for the experimental distribution, where packages need
 installing from multiple suites (\fIunstable\fP and \fIexperimental\fP).  Due
-to performance and other issues (bug #139615), aptitude is not recommended for
+to performance issues, aptitude is not recommended for
 use by default.  If the dependency situation is so complex that neither apt nor
 aptitude are able to find a solution, then you can use the aspcud resolver.
 This resolver uses apt-cudf to ask aspcud, a real solver (in the math sense),
