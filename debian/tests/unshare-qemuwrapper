@@ -72,15 +72,17 @@ if [ ! -e "$TMPDIR/${ID}-${release}-host.ext4" ]; then
 		--release="${release}" \
 		--size=4G \
 		--sshkey="$TMPDIR/id_rsa.pub" \
+		--skip=usrmerge \
 		-- \
 		--hook-dir=/usr/share/mmdebstrap/hooks/file-mirror-automount \
+		--hook-dir=/usr/share/mmdebstrap/hooks/copy-host-apt-sources-and-preferences \
+		--hook-dir=/usr/share/mmdebstrap/hooks/maybe-merged-usr \
 		--include="$EXTRA_DEPS" \
-		--setup-hook='for f in /etc/apt/sources.list /etc/apt/sources.list.d/* /etc/apt/preferences.d/*;
-			do [ -e "$f" ] && { echo; sed "s| file://| copy://|" "$f"; } | tee "$1/$f" >&2; done' \
 		--customize-hook='chroot "$1" useradd --create-home user' \
 		--customize-hook='mkdir "$1"/build' \
 		--customize-hook='sync-in '"$SOURCES/"' /build/' \
-		--components="$COMPONENTS"
+		--components="$COMPONENTS" \
+		""
 fi
 
 debvm-run --sshport="$PORT" --image="$TMPDIR/${ID}-${release}-host.ext4" \
