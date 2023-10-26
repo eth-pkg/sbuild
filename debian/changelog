@@ -1,3 +1,14 @@
+sbuild (0.85.4) unstable; urgency=medium
+
+  * debian/tests/unshare-qemuwrapper:
+     - use hook directory copy-host-apt-sources-and-preferences
+     - explicitly choose unshare mode
+  * debian/tests/control:
+     - remove needs-root from unshare-qemuwrapper
+     - add dep on uidmap
+
+ -- Johannes Schauer Marin Rodrigues <josch@debian.org>  Thu, 26 Oct 2023 23:01:14 +0200
+
 sbuild (0.85.3) unstable; urgency=medium
 
   [ Lee Garrett ]
