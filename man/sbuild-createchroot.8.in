@@ -169,13 +169,12 @@ symbolic links to their counterparts in \fI/usr\fP.
 .BR \-\-no-merged-usr
 Create a chroot in which \fI/bin\fP, \fI/sbin\fP and \fI/lib*\fP are
 ordinary directories distinct from their counterparts in \fI/usr\fP.
-This is the default.
 .TP
 .BR \-\-auto-merged-usr
 Do not specify whether \fI/bin\fP, \fI/sbin\fP and \fI/lib*\fP are
 symbolic links to their counterparts in \fI/usr\fP. In this case
 debootstrap will use its default behaviour (which is suite-specific).
-This might become the default in a future version of sbuild-createchroot.
+This is the default.
 .TP
 .B SUITE
 The distribution to bootstrap (e.g. \[oq]stretch[cq], \[oq]buster\[cq],
