@@ -136,10 +136,11 @@ def get_qemu_base_args(image, guest_arch=None):
     return argv
 
 
-def update_interaction(child):
+def update_interaction(child, quiet):
     child.expect('host login: ')
     child.sendline('root')
-    child.logfile = sys.stdout
+    if not quiet:
+        child.logfile = sys.stdout
     child.expect('root@host:~# ')
     child.sendline('DEBIAN_FRONTEND=noninteractive apt-get --quiet update')
     child.expect('root@host:~# ')
@@ -193,6 +194,9 @@ def main():
         help="Image. Will first be interpreted as a path. If no suitable "
         "image exists at that location, then $IMAGEDIR\<image> is tried.",
     )
+    dbglvlgroup = parser.add_mutually_exclusive_group()
+    dbglvlgroup.add_argument("-v", "--verbose", action="store_true")
+    dbglvlgroup.add_argument("-q", "--quiet", action="store_true")
 
     parsed_args = parser.parse_args()
 
@@ -225,10 +229,13 @@ def main():
     elif parsed_args.snapshot and not make_snapshot(image):
         return
 
-    child = pexpect.spawn(args[0], args[1:], encoding='utf-8')
+    logfile = None
+    if parsed_args.verbose:
+        logfile = sys.stdout
+    child = pexpect.spawn(args[0], args[1:], logfile=logfile, encoding="utf-8")
     child.timeout = parsed_args.timeout
     try:
-        update_interaction(child)
+        update_interaction(child, parsed_args.quiet)
     except pexpect.TIMEOUT:
         print("Update timed out. Consider using --timeout.", file=sys.stderr)
         child.terminate()
