@@ -68,7 +68,7 @@ def make_snapshot(image):
     return True if run.returncode == 0 else False
 
 
-def get_qemu_base_args(image, guest_arch=None):
+def get_qemu_base_args(image, guest_arch=None, boot="auto"):
     host_arch = subprocess.check_output(
         ['dpkg', '--print-architecture'],
         text=True,
@@ -111,8 +111,6 @@ def get_qemu_base_args(image, guest_arch=None):
         argv = [
             'qemu-system-aarch64',
             '-machine', 'virt',
-            '-drive',   'if=pflash,format=raw,unit=0,read-only=on,'
-                        'file=/usr/share/AAVMF/AAVMF_CODE.fd',
         ]
         if host_arch == 'arm64':
             argv.extend(['-cpu', 'host', '-enable-kvm'])
@@ -129,9 +127,36 @@ def get_qemu_base_args(image, guest_arch=None):
                 argv = ['qemu-system-arm']
             argv.extend([
                 '-machine', 'virt',
-                '-drive',   'if=pflash,format=raw,unit=0,read-only=on,'
-                            'file=/usr/share/AAVMF/AAVMF32_CODE.fd',
             ])
+
+    if boot == "auto":
+        match guest_arch:
+            case 'amd64'|'i386':
+                boot = "bios"
+            case 'arm64'|'armhf':
+                boot = "efi"
+            case 'ppc64el':
+                boot = "ieee1275"
+
+    eficode = None
+    match boot:
+        case "bios"|"none":
+            pass
+        case "efi":
+            match guest_arch:
+                case 'amd64':
+                    eficode = "/usr/share/OVMF/OVMF_CODE.fd"
+                case 'i386':
+                    eficode = "/usr/share/OVMF/OVMF32_CODE_4M.secboot.fd"
+                case 'arm64':
+                    eficode = "/usr/share/AAVMF/AAVMF_CODE.fd"
+                case 'armhf':
+                    eficode = "/usr/share/AAVMF/AAVMF32_CODE.fd"
+                case 'ppc64el':
+                    print("efi not supported on ppc64el")
+    if eficode:
+        argv.extend(["-drive", f"if=pflash,format=raw,unit=0,read-only=on,file={eficode}"])
+
 
     return argv
 
@@ -189,6 +214,7 @@ def main():
         help="Don't actually do anything. Just print the command string that "
              "would be executed, and then exit.",
     )
+    parser.add_argument('--boot', choices=['auto', 'bios', 'efi', 'ieee1275', 'none'], default='auto')
     parser.add_argument(
         'image',
         help="Image. Will first be interpreted as a path. If no suitable "
@@ -210,7 +236,7 @@ def main():
         print("Image does not exist", file=sys.stderr)
         sys.exit(1)
 
-    args = get_qemu_base_args(parsed_args.image, parsed_args.arch)
+    args = get_qemu_base_args(parsed_args.image, parsed_args.arch, parsed_args.boot)
     if not args:
         sys.exit(1)
 
