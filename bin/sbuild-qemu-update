@@ -225,7 +225,7 @@ def main():
     elif parsed_args.snapshot and not make_snapshot(image):
         return
 
-    child = pexpect.spawn(' '.join(args), encoding='utf-8')
+    child = pexpect.spawn(args[0], args[1:], encoding='utf-8')
     child.timeout = parsed_args.timeout
     try:
         update_interaction(child)
