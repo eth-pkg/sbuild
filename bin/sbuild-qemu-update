@@ -198,6 +198,8 @@ def main():
     dbglvlgroup.add_argument("-v", "--verbose", action="store_true")
     dbglvlgroup.add_argument("-q", "--quiet", action="store_true")
 
+    parser.add_argument("extra_args", nargs='*')
+
     parsed_args = parser.parse_args()
 
     if os.path.exists(parsed_args.image):
@@ -222,6 +224,8 @@ def main():
             '-nographic',
             image,
     ])
+    if parsed_args.extra_args:
+        args.extend(parsed_args.extra_args)
 
     print(' '.join(str(a) for a in args))
     if parsed_args.noexec:
