@@ -66,6 +66,10 @@ be executed, and then exit.
 .TP
 \fB\-\-autopkgtest\-debug\fR
 Enable debug output for the autopkgtest\-virt\-qemu(1) driver.
+.TP
+\fB\-\-boot\fR=auto,bios,efi,ieee1275,none
+How to boot the image. Default is BIOS on amd64 and i386, EFI on arm64 and
+armhf, and IEEE1275 on ppc64el.
 .SH CONSIDERATIONS
 Using a fast temporary image overlay is key to faster build times. An overlay
 created on a \fItmpfs\fR would be ideal, and can speed up I/O by an order of

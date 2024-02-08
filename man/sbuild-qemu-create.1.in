@@ -80,6 +80,10 @@ used.
 \fB\-\-noexec\fR
 Don't actually do anything. Just print the autopkgtest\-build\-qemu(1) command
 string that would be executed, and then exit.
+.TP
+\fB\-\-boot\fR=auto,bios,efi,ieee1275,none
+How the image should boot. Default is BIOS on amd64 and i386, EFI on arm64 and
+armhf, and IEEE1275 on ppc64el.
 .SH "MIRROR"
 It is \fBhighly recommended\fR that you use an APT cache, like approx(8) or
 apt\-cacher\-ng(8), on the \fBlocal\fR machine (so that the VM can access
