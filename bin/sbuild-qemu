@@ -102,6 +102,13 @@ def main():
         action='store_true',
         help="Enable debug output for the autopkgtest-virt-qemu(1) driver.",
     )
+    parser.add_argument(
+        '--boot',
+        choices=['auto', 'bios', 'efi', 'ieee1275', 'none'],
+        default='auto',
+        help="How to boot the image. Default is BIOS on amd64 and i386, EFI "
+             "on arm64 and armhf, and IEEE1275 on ppc64el.",
+        )
     parsed_args, unparsed_args = parser.parse_known_args()
 
     # These aren't options for us specifically, but we use them for guessing
@@ -162,6 +169,7 @@ def main():
             '--autopkgtest-virt-server-opt',    f'--qemu-architecture={qemu_arch}',
             '--autopkgtest-virt-server-opt',    f'--ram-size={parsed_args.ram_size}',
             '--autopkgtest-virt-server-opt',    f'--cpus={parsed_args.cpus}',
+            '--autopkgtest-virt-server-opt',    f'--boot={parsed_args.boot}',
             '--autopkgtest-virt-server-opt',    image,
             # Worarkound -- dose can hang stuff in a qemu VM
             '--bd-uninstallable-explainer',     'apt',
