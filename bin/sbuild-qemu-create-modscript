@@ -130,5 +130,8 @@ then
 fi
 EOF
 
+# Makes the image significantly smaller
+chroot "$VMROOT" apt-get --option Dir::Etc::SourceList=/dev/null --option Dir::Etc::SourceParts=/dev/null update
+chroot "$VMROOT" apt-get  clean
 
 echo "### Customization of base image complete. ###"
