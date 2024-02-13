@@ -1,3 +1,27 @@
+sbuild (0.85.5) unstable; urgency=medium
+
+  [ Jochen Sprickerhof ]
+  * Replace ‐ with - in commands
+
+  [ Johannes Schauer Marin Rodrigues ]
+  * sbuild-qemu-update: pass exec args as list avoiding a sub-shell
+  * sbuild-qemu-update: add --verbose and --quiet
+  * sbuild-qemu-update: allow passing arbitrary extra options to qemu after
+    a double dash
+  * sbuild-qemu-update: add --boot option analogous to autopkgtest-virt-qemu
+    (Closes: #1061636)
+
+  [ Christian Kastner ]
+  * sbuild-qemu-create: add --boot option analogous to autopkgtest-build-qemu
+  * sbuild-qemu-boot: add --boot option analogous to autopkgtest-virt-qemu
+  * sbuild-qemu: add --boot option analogous to autopkgtest-virt-qemu
+  * sbuild-qemu-update: Add help message to --boot
+  * sbuild-qemu*: Update manpages for --boot
+  * sbuild-qemu-create: Remove APT lists to reduce image size.
+  * Bump copyrights
+
+ -- Christian Kastner <ckk@debian.org>  Tue, 13 Feb 2024 19:59:25 +0100
+
 sbuild (0.85.4) unstable; urgency=medium
 
   * debian/tests/unshare-qemuwrapper:
