@@ -212,7 +212,13 @@ cat << END > "${AUTOPKGTEST_TMP}/test-pkg-1.0/debian/source/format"
 3.0 (native)
 END
 
-mmdebstrap --mode=unshare --variant=apt --skip=cleanup/apt/lists "$release" "${AUTOPKGTEST_TMP}/chroot.tar"
+mmdebstrap --mode=unshare --variant=apt \
+	--debug \
+	--hook-dir=/usr/share/mmdebstrap/hooks/copy-host-apt-sources-and-preferences \
+	--hook-dir=/usr/share/mmdebstrap/hooks/file-mirror-automount \
+	--skip=cleanup/apt/lists \
+	"$release" \
+	"${AUTOPKGTEST_TMP}/chroot.tar"
 
 env --chdir="${AUTOPKGTEST_TMP}/test-pkg-1.0/" dpkg-buildpackage --sign-keyfile="${AUTOPKGTEST_TMP}/key.asc" --build=full
 env --chdir="${AUTOPKGTEST_TMP}/test-pkg-1.0/" dpkg-buildpackage --sign-keyfile="${AUTOPKGTEST_TMP}/key.asc" --target=clean

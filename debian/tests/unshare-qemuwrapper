@@ -24,7 +24,8 @@
 
 set -exu
 
-EXTRA_DEPS=gnupg,sbuild,mmdebstrap,build-essential,uidmap,fakeroot,diffoscope,devscripts,python3-apt,sqop
+# linux-image-generic is required for 9p support which the cloud image is lacking
+EXTRA_DEPS=gnupg,sbuild,mmdebstrap,build-essential,uidmap,fakeroot,diffoscope,devscripts,python3-apt,sqop,linux-image-generic
 PORT=$(python3 -c 'from socket import socket; s=socket(); s.bind(("", 0)); print(s.getsockname()[1]);' || echo 10022)
 SCRIPT=./debian/tests/unshare
 
@@ -78,7 +79,9 @@ if [ ! -e "$TMPDIR/${ID}-${release}-host.ext4" ]; then
 		--hook-dir=/usr/share/mmdebstrap/hooks/copy-host-apt-sources-and-preferences \
 		--hook-dir=/usr/share/mmdebstrap/hooks/file-mirror-automount \
 		--hook-dir=/usr/share/mmdebstrap/hooks/maybe-merged-usr \
+		--hook-dir=/usr/share/mmdebstrap/hooks/9pmount \
 		--include="$EXTRA_DEPS" \
+		--setup-hook='copy-out /run/mmdebstrap/file-mirror-automount '"$TMPDIR" \
 		--customize-hook='chroot "$1" useradd --create-home user' \
 		--customize-hook='mkdir "$1"/build' \
 		--customize-hook='sync-in '"$SOURCES/"' /build/' \
@@ -86,7 +89,36 @@ if [ ! -e "$TMPDIR/${ID}-${release}-host.ext4" ]; then
 		""
 fi
 
+# we use file-mirror-automount from the chroot because:
+#  - we avoid calling apt-ftparchive again
+#  - we make sure that the list of file:// mirrors is the same
+#  - we feed the while loop below with a redirect instead of a pipeline, thus
+#    avoiding spawning a sub-shell which would disallow modifying "$@" from the
+#    parent
+#
+# assumption: the file:// path does not contain newlines
+# replace null with newlines
+sed -i 's/\x00/\x0a/g' "$TMPDIR/file-mirror-automount"
+# while we are at it, remove trailing slashes as ln does not like them in link names
+sed -i 's/\/\+$//' "$TMPDIR/file-mirror-automount"
+echo "$AUTOPKGTEST_TMP"
+ls -lha "$AUTOPKGTEST_TMP/../binaries/Packages"
+
+# replicate the logic from file-mirror-automount to add virtfs as 9p
+set --
+i=0
+while read -r path; do
+	if [ ! -d "$path" ]; then
+		echo "$path is not an existing directory" >&2
+		continue
+	fi
+	set -- "$@" -virtfs local,security_model=none,path="$path",mount_tag="tag$(printf "%04d" "$i")"
+	i=$((i+1))
+done < "$TMPDIR/file-mirror-automount"
+
 debvm-run --sshport="$PORT" --image="$TMPDIR/${ID}-${release}-host.ext4" \
+	-- \
+	"$@" \
 	> "$TMPDIR/debvm.log" </dev/null 2>&1 &
 
 # store the pid
@@ -135,6 +167,17 @@ trap onerror EXIT
 # ssh might wait for input on stdin of the ssh process
 ssh="ssh -o NoHostAuthenticationForLocalhost=yes -i "$TMPDIR/id_rsa" -T -p $PORT"
 
+i=0
+while read -r path; do
+	if [ ! -d "$path" ]; then
+		echo "$path is not an existing directory" >&2
+		continue
+	fi
+	$ssh root@localhost mkdir -p "$(dirname "$path")"
+	$ssh root@localhost ln -s "/media/tag$(printf "%04d" "$i")" "$path"
+	i=$((i+1))
+done < "$TMPDIR/file-mirror-automount"
+
 $ssh root@localhost env --chdir=/build/ AUTOPKGTEST_TMP=/tmp runuser -u user -- "$SCRIPT"
 
 # shut the system off
@@ -144,7 +187,7 @@ wait $QEMUPID
 
 # cleanup
 [ -e "$TMPDIR/.guestfs-$(id -u)" ] && rm -r "$TMPDIR/.guestfs-$(id -u)"
-for f in "${ID}-${release}-host.ext4" id_rsa id_rsa.pub debvm.log; do
+for f in "${ID}-${release}-host.ext4" id_rsa id_rsa.pub debvm.log file-mirror-automount; do
 	rm "$TMPDIR/$f"
 done
 if [ -z ${AUTOPKGTEST_TMP+x} ]; then
