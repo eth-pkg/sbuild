@@ -50,7 +50,7 @@ sub get_info_all {
 
     my $chroots = {};
 
-    my $xdg_cache_home = $ENV{'HOME'} . "/.cache/sbuild";
+    my $xdg_cache_home = $self->get_conf('HOME') . "/.cache/sbuild";
     if (defined($ENV{'XDG_CACHE_HOME'})) {
 	$xdg_cache_home = $ENV{'XDG_CACHE_HOME'} . '/sbuild';
     }
