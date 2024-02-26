@@ -2,8 +2,15 @@ Tests: build-procenv
 Depends: apt (>= 1.1~exp2), apt-utils, debootstrap, distro-info, lsb-release, sudo, @
 Restrictions: needs-root skippable
 
-Tests: unshare-qemuwrapper
-Depends: debvm, grep-dctrl, openssh-client, python3-apt, seabios [ppc64el], uidmap
+Tests: unshare
+Depends: build-essential,
+         devscripts,
+         diffoscope,
+         fakeroot,
+         gnupg,
+         mmdebstrap,
+         python3-apt,
+         sbuild,
+         sqop,
+         uidmap
 Restrictions: allow-stderr
-# Skip running on armel and armhf as the emulation is too slow there to actually work.
-Architecture: amd64 arm64 i386 mips64el mipsel ppc64el riscv64 s390x
