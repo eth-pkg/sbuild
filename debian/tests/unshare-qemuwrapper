@@ -75,7 +75,6 @@ if [ ! -e "$TMPDIR/${ID}-${release}-host.ext4" ]; then
 		--sshkey="$TMPDIR/id_rsa.pub" \
 		--skip=usrmerge \
 		-- \
-		--mode=unshare \
 		--hook-dir=/usr/share/mmdebstrap/hooks/copy-host-apt-sources-and-preferences \
 		--hook-dir=/usr/share/mmdebstrap/hooks/file-mirror-automount \
 		--hook-dir=/usr/share/mmdebstrap/hooks/maybe-merged-usr \
