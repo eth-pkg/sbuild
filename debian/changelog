@@ -1,4 +1,4 @@
-sbuild (0.85.6) UNRELEASED; urgency=medium
+sbuild (0.85.6) unstable; urgency=medium
 
   [ Johannes Schauer Marin Rodrigues ]
   * d/tests/unshare: generate a new GPG key every time using sqop.
@@ -25,7 +25,7 @@ sbuild (0.85.6) UNRELEASED; urgency=medium
   [ Arnaud Rebillout ]
   * Update sbuild-createchroot man page regarding merged-usr
 
- -- Johannes Schauer Marin Rodrigues <josch@debian.org>  Mon, 26 Feb 2024 18:57:22 +0100
+ -- Johannes Schauer Marin Rodrigues <josch@debian.org>  Mon, 26 Feb 2024 19:22:49 +0100
 
 sbuild (0.85.5) unstable; urgency=medium
 
