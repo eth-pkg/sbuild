@@ -1239,11 +1239,10 @@ has the alias) \fI$distribution\-$arch\-sbuild\fP, \fI$distribution\-sbuild\fP,
 The used chroot name can be overridden using the \-c or \-\-chroot options.
 .TP
 .BR sudo
-This chroot mode is deprecated and only provided for backwards compatibility
-and testing purposes. It operates by plainly entering the chosen chroot
-directory using "sudo chroot". Thus, this backend also does not provide
-ephemeral chroots. The sudo chroot mode searches for a symlink or directory
-located at \fI/etc/sbuild/chroot/\fP or in the current directory, prefixed with
+It operates by plainly entering the chosen chroot directory using "sudo
+chroot". Thus, this backend also does not provide ephemeral chroots. The sudo
+chroot mode searches for a symlink or directory located at
+\fI/etc/sbuild/chroot/\fP or in the current directory, prefixed with
 \fIchroot\-\fP. The expected names are resolved in the same order as for the
 schroot chroot mode and can be overridden using the \-c or \-\-chroot options.
 .TP
