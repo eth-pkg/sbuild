@@ -148,7 +148,9 @@ def get_qemu_base_args(image, guest_arch=None, boot="auto"):
         case "efi":
             match guest_arch:
                 case 'amd64':
-                    eficode = "/usr/share/OVMF/OVMF_CODE.fd"
+                    eficode = "/usr/share/OVMF/OVMF_CODE_4M.fd"
+                    if not os.path.exists(eficode):
+                        eficode = "/usr/share/OVMF/OVMF_CODE.fd"
                 case 'i386':
                     eficode = "/usr/share/OVMF/OVMF32_CODE_4M.secboot.fd"
                 case 'arm64':
