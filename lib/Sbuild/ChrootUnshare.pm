@@ -358,9 +358,9 @@ sub get_command_internal {
     }
 
     my $disable_network = 0;
-    if (defined($options->{'DISABLE_NETWORK'}) && $options->{'DISABLE_NETWORK'}) {
-	$disable_network = 1;
-    }
+    # if (defined($options->{'DISABLE_NETWORK'}) && $options->{'DISABLE_NETWORK'}) {
+	# $disable_network = 1;
+    # }
 
     my @cmdline = $self->_get_exec_argv($dir, $user, $disable_network);
     if (ref $command) {
