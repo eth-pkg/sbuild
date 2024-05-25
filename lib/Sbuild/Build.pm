@@ -508,16 +508,15 @@ END
 		# running sbuild might not have permissions creating a directory in /build. This happens
 		# when the chroot was extracted in a different user namespace than the outer user
 		$self->check_abort();
-		my $tmpdir = $session->mktemp({
-			TEMPLATE => "/build/" . $self->get('Package') . '-XXXXXX',
-			DIRECTORY => 1});
+		my $build_dir = "/build/" . $self->get('Package');
+		my $tmpdir = $session->mkdir($build_dir, { PARENTS => 1, MODE => "00777"});
 		if (!$tmpdir) {
 			$self->log_error("unable to mktemp\n");
 			Sbuild::Exception::Build->throw(error => "unable to mktemp",
 				failstage => "create-build-dir");
 		}
 		$self->check_abort();
-		$self->set('Build Dir', $tmpdir);
+		$self->set('Build Dir', $build_dir);
 	}
 
 	# Copy in external solvers if we are cross-building
